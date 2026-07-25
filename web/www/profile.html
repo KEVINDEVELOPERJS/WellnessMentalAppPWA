@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Mi Perfil - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Profile Screen -->
+        <div id="profile-screen" class="screen active">
+            <div class="profile-container">
+                <header class="profile-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Mi Perfil</h1>
+                </header>
+
+                <!-- User Info Card -->
+                <div class="user-info-card">
+                    <div class="user-avatar">
+                        <span id="user-initials">U</span>
+                    </div>
+                    <div class="user-details">
+                        <h2 id="user-name">Usuario</h2>
+                        <p id="user-role" class="user-role">Estudiante</p>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="stats-card">
+                    <h3 class="card-title">📊 Estadísticas</h3>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-icon">📅</div>
+                            <div class="stat-value" id="stat-days">0</div>
+                            <div class="stat-label">Días activo</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">🧘</div>
+                            <div class="stat-value" id="stat-exercises">0</div>
+                            <div class="stat-label">Ejercicios</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">💬</div>
+                            <div class="stat-value" id="stat-chats">0</div>
+                            <div class="stat-label">Chats</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon">📋</div>
+                            <div class="stat-value" id="stat-evaluations">0</div>
+                            <div class="stat-label">Evaluaciones</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level Progress -->
+                <div class="level-card">
+                    <h3 class="card-title">⭐ Nivel y Puntos</h3>
+                    <div class="level-info">
+                        <span class="level-name" id="profile-level">Principiante</span>
+                        <span class="level-points" id="profile-points">0 puntos</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="profile-progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Notifications Settings -->
+                <div class="settings-card">
+                    <h3 class="card-title">🔔 Notificaciones</h3>
+                    <div class="setting-item">
+                        <span>Evaluaciones</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-evaluations" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Ejercicios</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-exercises" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Chat</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-chat" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Informes</span>
+                        <label class="switch">
+                            <input type="checkbox" id="notif-reports" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Hora de notificación</span>
+                        <button id="notif-time-btn" class="btn-time">9:00 AM</button>
+                    </div>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="settings-card">
+                    <h3 class="card-title">🔒 Seguridad</h3>
+                    <button class="setting-btn" id="change-password-btn">
+                        <span>🔑 Cambiar contraseña</span>
+                        <span class="arrow">→</span>
+                    </button>
+                    <button class="setting-btn" id="enable-2fa-btn">
+                        <span>🛡️ Activar autenticación 2FA</span>
+                        <span class="arrow">→</span>
+                    </button>
+                    <button class="setting-btn" id="download-data-btn">
+                        <span>📥 Descargar mis datos</span>
+                        <span class="arrow">→</span>
+                    </button>
+                </div>
+
+                <!-- Parent Access -->
+                <div class="settings-card">
+                    <h3 class="card-title">👨‍👩‍👧 Acceso de Padres</h3>
+                    <div class="parent-code-info" id="parent-code-info">
+                        <p id="parent-code-status">Sin código activo</p>
+                    </div>
+                    <button class="setting-btn" id="generate-parent-code-btn">
+                        <span>🔗 Generar código para padres</span>
+                        <span class="arrow">→</span>
+                    </button>
+                    <button class="setting-btn danger" id="revoke-parent-btn">
+                        <span>❌ Revocar acceso de padres</span>
+                        <span class="arrow">→</span>
+                    </button>
+                </div>
+
+                <!-- Account Actions -->
+                <div class="settings-card">
+                    <h3 class="card-title">⚙️ Cuenta</h3>
+                    <button class="setting-btn danger" id="logout-all-btn">
+                        <span>🚪 Cerrar todas las sesiones</span>
+                        <span class="arrow">→</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password Modal -->
+        <div id="change-password-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Cambiar Contraseña</h2>
+                    <button class="btn-close">×</button>
+                </div>
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label>Contraseña actual</label>
+                        <input type="password" id="current-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nueva contraseña</label>
+                        <input type="password" id="new-password" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary cancel-btn">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Cambiar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2FA Modal -->
+        <div id="2fa-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Autenticación 2FA</h2>
+                    <button class="btn-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <p>Tu código de autenticación de dos factores es:</p>
+                    <div class="code-display" id="2fa-code">------</div>
+                    <p class="code-warning">Guarda este código en un lugar seguro. No lo compartas con nadie.</p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-primary close-modal-btn">Entendido</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Picker Modal -->
+        <div id="time-picker-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Seleccionar Hora</h2>
+                    <button class="btn-close">×</button>
+                </div>
+                <div class="time-picker">
+                    <div class="time-display" id="time-display">09:00</div>
+                    <input type="range" id="hour-slider" min="0" max="23" value="9">
+                    <input type="range" id="minute-slider" min="0" max="59" value="0">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary cancel-btn">Cancelar</button>
+                    <button class="btn btn-primary save-time-btn">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/profile.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Juegos - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/games.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Games Screen -->
+        <div id="games-screen" class="screen active">
+            <div class="games-container">
+                <header class="games-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Juegos y Recompensas</h1>
+                </header>
+
+                <!-- User Stats -->
+                <div class="user-stats-card">
+                    <div class="stat-item">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Nivel</span>
+                            <span class="stat-value" id="user-level">Principiante</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Puntos</span>
+                            <span class="stat-value" id="user-points">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <span class="stat-label">Ranking</span>
+                            <span class="stat-value" id="user-ranking">#--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level Progress -->
+                <div class="level-progress">
+                    <div class="progress-header">
+                        <span>Progreso al siguiente nivel</span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="level-progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Daily Missions -->
+                <div class="section-card">
+                    <h2 class="section-title">🎯 Misiones Diarias</h2>
+                    <div class="missions-list" id="missions-list">
+                        <!-- Missions will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Mini Games -->
+                <div class="section-card">
+                    <h2 class="section-title">🎮 Mini Juegos</h2>
+                    <div class="mini-games-grid" id="mini-games-grid">
+                        <!-- Games will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Ranking -->
+                <div class="section-card">
+                    <h2 class="section-title">🏆 Ranking Global</h2>
+                    <div class="ranking-list" id="ranking-list">
+                        <!-- Ranking will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="section-card">
+                    <h2 class="section-title">🏅 Logros</h2>
+                    <div class="achievements-grid" id="achievements-grid">
+                        <!-- Achievements will be populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/games.js"></script>
+</body>
+</html>

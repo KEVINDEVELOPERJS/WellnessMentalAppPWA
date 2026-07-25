@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Comunidad - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/community.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Community Screen -->
+        <div id="community-screen" class="screen active">
+            <div class="community-container">
+                <header class="community-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Comunidad</h1>
+                </header>
+
+                <!-- Category Tabs -->
+                <div class="category-tabs" id="category-tabs">
+                    <button class="tab-btn active" data-category="all">Todos</button>
+                    <button class="tab-btn" data-category="ansiedad">Ansiedad</button>
+                    <button class="tab-btn" data-category="depresion">Depresión</button>
+                    <button class="tab-btn" data-category="estres">Estrés</button>
+                    <button class="tab-btn" data-category="bienestar">Bienestar</button>
+                </div>
+
+                <!-- Posts List -->
+                <div class="posts-list" id="posts-list">
+                    <!-- Posts will be populated by JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <h3>No hay posts aún</h3>
+                    <p>Sé el primero en compartir tu experiencia</p>
+                </div>
+
+                <!-- FAB for new post -->
+                <button id="new-post-btn" class="fab">
+                    <span>+</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- New Post Modal -->
+        <div id="new-post-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Crear Nuevo Post</h2>
+                    <button id="close-modal" class="btn-close">×</button>
+                </div>
+                <form id="new-post-form">
+                    <div class="form-group">
+                        <label for="post-title">Título</label>
+                        <input type="text" id="post-title" required placeholder="Ej: Mi experiencia con la respiración">
+                    </div>
+                    <div class="form-group">
+                        <label for="post-content">Contenido</label>
+                        <textarea id="post-content" required rows="4" placeholder="Comparte tu experiencia..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="post-category">Categoría</label>
+                        <select id="post-category" required>
+                            <option value="ansiedad">Ansiedad</option>
+                            <option value="depresion">Depresión</option>
+                            <option value="estres">Estrés</option>
+                            <option value="bienestar">Bienestar</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-post" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Publicar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/community.js"></script>
+</body>
+</html>
