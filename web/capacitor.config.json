@@ -1,0 +1,35 @@
+{
+  "appId": "com.wellnessmental.app",
+  "appName": "Wellness Mental",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "notifications": [
+        {
+          "id": "breathing-reminder",
+          "title": "Pausa de respiración",
+          "body": "Es hora de tu ejercicio de respiración"
+        }
+      ]
+    },
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#5BA3B8",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "androidSpinnerStyle": "large",
+      "iosSpinnerStyle": "large",
+      "spinnerColor": "#FF6B9D"
+    }
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "scrollEnabled": false,
+    "backgroundColor": "#5BA3B8"
+  }
+}

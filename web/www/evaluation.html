@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Evaluación - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/evaluation.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Questionnaire Selection Screen -->
+        <div id="questionnaire-list-screen" class="screen active">
+            <div class="evaluation-container">
+                <header class="evaluation-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Evaluaciones Psicológicas</h1>
+                </header>
+
+                <div class="questionnaire-list">
+                    <!-- GAD-7 Card -->
+                    <div class="questionnaire-card" data-questionnaire="1">
+                        <div class="card-header">
+                            <div class="card-icon">😰</div>
+                            <div class="card-info">
+                                <h3>GAD-7</h3>
+                                <p>Escala de Ansiedad Generalizada</p>
+                            </div>
+                        </div>
+                        <div class="card-details">
+                            <p>7 preguntas • 5 minutos</p>
+                            <p>Mide el nivel de ansiedad generalizada</p>
+                        </div>
+                        <button class="btn btn-primary btn-card start-questionnaire">
+                            Iniciar Evaluación
+                        </button>
+                    </div>
+
+                    <!-- PHQ-9 Card -->
+                    <div class="questionnaire-card" data-questionnaire="2">
+                        <div class="card-header">
+                            <div class="card-icon">😔</div>
+                            <div class="card-info">
+                                <h3>PHQ-9</h3>
+                                <p>Cuestionario de Salud del Paciente</p>
+                            </div>
+                        </div>
+                        <div class="card-details">
+                            <p>9 preguntas • 5 minutos</p>
+                            <p>Mide síntomas de depresión</p>
+                        </div>
+                        <button class="btn btn-primary btn-card start-questionnaire">
+                            Iniciar Evaluación
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questionnaire Screen -->
+        <div id="questionnaire-screen" class="screen">
+            <div class="questionnaire-container">
+                <header class="questionnaire-header">
+                    <button id="back-to-list" class="btn btn-secondary btn-small">
+                        ← Cancelar
+                    </button>
+                    <div class="progress-info">
+                        <span id="question-progress">1/7</span>
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="questionnaire-content">
+                    <h2 id="questionnaire-title">GAD-7</h2>
+                    <p id="questionnaire-instructions" class="instructions">
+                        Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguientes problemas?
+                    </p>
+
+                    <div id="question-container">
+                        <h3 id="question-text" class="question-text">
+                            Sentirse nervioso/a, ansioso/a o con los nervios de punta
+                        </h3>
+
+                        <div id="answer-options" class="answer-options">
+                            <label class="answer-option">
+                                <input type="radio" name="answer" value="0">
+                                <span class="option-text">Nunca</span>
+                            </label>
+                            <label class="answer-option">
+                                <input type="radio" name="answer" value="1">
+                                <span class="option-text">Varios días</span>
+                            </label>
+                            <label class="answer-option">
+                                <input type="radio" name="answer" value="2">
+                                <span class="option-text">Más de la mitad de los días</span>
+                            </label>
+                            <label class="answer-option">
+                                <input type="radio" name="answer" value="3">
+                                <span class="option-text">Casi todos los días</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="question-navigation">
+                        <button id="prev-question" class="btn btn-secondary" disabled>
+                            Anterior
+                        </button>
+                        <button id="next-question" class="btn btn-primary" disabled>
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="screen">
+            <div class="results-container">
+                <header class="results-header">
+                    <h1>Resultados de la Evaluación</h1>
+                </header>
+
+                <div class="results-content">
+                    <div class="score-card">
+                        <div class="score-icon" id="result-icon">📊</div>
+                        <h2 id="result-title">Ansiedad Leve</h2>
+                        <p id="result-level" class="result-level">Nivel de riesgo: Bajo</p>
+                        <div class="score-display">
+                            <span class="score-number" id="total-score">7</span>
+                            <span class="score-max">/ 21</span>
+                        </div>
+                    </div>
+
+                    <div class="diagnosis-card">
+                        <h3>Prediagnóstico</h3>
+                        <p id="prediagnosis">Puntaje dentro del rango normal. Se recomienda continuar con prácticas de bienestar.</p>
+                    </div>
+
+                    <div class="recommendations-card">
+                        <h3>Recomendaciones</h3>
+                        <ul id="recommendations-list">
+                            <li>Practicar ejercicios de respiración diariamente</li>
+                            <li>Mantener una rutina de sueño regular</li>
+                            <li>Realizar actividad física moderada</li>
+                        </ul>
+                    </div>
+
+                    <div class="risk-warning" id="risk-warning">
+                        <div class="warning-icon">⚠️</div>
+                        <p>Se ha detectado un nivel de riesgo moderado. Se recomienda consultar con un profesional de la salud mental.</p>
+                    </div>
+
+                    <div class="results-actions">
+                        <button id="back-to-dashboard-btn" class="btn btn-secondary">
+                            Volver al Dashboard
+                        </button>
+                        <button id="share-results-btn" class="btn btn-primary">
+                            Compartir Resultados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Procesando evaluación...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/evaluation.js"></script>
+</body>
+</html>

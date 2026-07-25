@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen active">
+            <div class="login-container">
+                <div class="logo-section">
+                    <div class="logo-icon">🧠</div>
+                    <h1>Wellness Mental</h1>
+                    <p>Tu bienestar emocional en tus manos</p>
+                </div>
+                
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email">Correo electrónico</label>
+                        <input type="email" id="login-email" required placeholder="tu@email.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Contraseña</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-large">
+                        Iniciar Sesión
+                    </button>
+                    
+                    <div class="auth-links">
+                        <a href="#" id="go-to-register">¿No tienes cuenta? Regístrate</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Register Screen -->
+        <div id="register-screen" class="screen">
+            <div class="register-container">
+                <div class="logo-section">
+                    <div class="logo-icon">🧠</div>
+                    <h1>Crear Cuenta</h1>
+                </div>
+                
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="register-name">Nombre completo</label>
+                        <input type="text" id="register-name" required placeholder="Tu nombre">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-email">Correo electrónico</label>
+                        <input type="email" id="register-email" required placeholder="tu@email.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-password">Contraseña</label>
+                        <input type="password" id="register-password" required placeholder="Mínimo 8 caracteres, mayúscula, número y símbolo">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-age">Edad</label>
+                        <input type="number" id="register-age" required min="13" max="100" placeholder="13-100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="register-role">Rol</label>
+                        <select id="register-role" required>
+                            <option value="estudiante">Estudiante</option>
+                            <option value="psicologo">Psicólogo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="grade-group">
+                        <label for="register-grade">Grado escolar</label>
+                        <input type="text" id="register-grade" placeholder="Ej: 10° grado">
+                    </div>
+                    
+                    <div class="form-group hidden" id="tutor-email-group">
+                        <label for="register-tutor-email">Correo del tutor (menores de 16)</label>
+                        <input type="email" id="register-tutor-email" placeholder="tutor@email.com">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-large">
+                        Crear Cuenta
+                    </button>
+                    
+                    <div class="auth-links">
+                        <a href="#" id="go-to-login">¿Ya tienes cuenta? Inicia sesión</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboard-screen" class="screen">
+            <div class="dashboard-container">
+                <header class="dashboard-header">
+                    <div class="user-info">
+                        <h2 id="user-greeting">Hola, Usuario</h2>
+                        <p id="user-role-badge" class="role-badge">Estudiante</p>
+                    </div>
+                    <button id="logout-btn" class="btn btn-secondary btn-small">
+                        Cerrar Sesión
+                    </button>
+                </header>
+
+                <div class="dashboard-content">
+                    <!-- Check-in Card -->
+                    <div class="card card-primary" id="check-in-card">
+                        <div class="card-icon">📝</div>
+                        <div class="card-content">
+                            <h3>Check-in Emocional</h3>
+                            <p id="check-in-status">Registra tu estado de ánimo hoy</p>
+                        </div>
+                        <button class="btn btn-card" id="check-in-btn">
+                            Registrar
+                        </button>
+                    </div>
+
+                    <!-- Evaluation Card -->
+                    <div class="card card-secondary" id="evaluation-card">
+                        <div class="card-icon">📋</div>
+                        <div class="card-content">
+                            <h3>Evaluación Psicológica</h3>
+                            <p>Cuestionarios GAD-7, PHQ-9, PSS-10</p>
+                        </div>
+                        <button class="btn btn-card" id="evaluation-btn">
+                            Evaluar
+                        </button>
+                    </div>
+
+                    <!-- Chat IA Card -->
+                    <div class="card card-accent" id="chat-card">
+                        <div class="card-icon">💬</div>
+                        <div class="card-content">
+                            <h3>Chat con Asistente IA</h3>
+                            <p>Conversa con nuestro asistente emocional</p>
+                        </div>
+                        <button class="btn btn-card" id="chat-btn">
+                            Chatear
+                        </button>
+                    </div>
+
+                    <!-- Exercises Card -->
+                    <div class="card card-success" id="exercises-card">
+                        <div class="card-icon">🧘</div>
+                        <div class="card-content">
+                            <h3>Ejercicios de Respiración</h3>
+                            <p>Técnicas para calmar la ansiedad</p>
+                        </div>
+                        <button class="btn btn-card" id="exercises-btn">
+                            Ejercitar
+                        </button>
+                    </div>
+
+                    <!-- Games Card -->
+                    <div class="card card-bonus" id="games-card">
+                        <div class="card-icon">🎮</div>
+                        <div class="card-content">
+                            <h3>Juegos y Recompensas</h3>
+                            <p>Cultiva tu Jardín Mental</p>
+                        </div>
+                        <button class="btn btn-card" id="games-btn">
+                            Jugar
+                        </button>
+                    </div>
+
+                    <!-- Community Card -->
+                    <div class="card card-primary" id="community-card">
+                        <div class="card-icon">🤝</div>
+                        <div class="card-content">
+                            <h3>Comunidad</h3>
+                            <p>Comparte experiencias con otros</p>
+                        </div>
+                        <button class="btn btn-card" id="community-btn">
+                            Comunidad
+                        </button>
+                    </div>
+
+                    <!-- Alerts Card (Psychologist only) -->
+                    <div class="card card-warning hidden" id="alerts-card">
+                        <div class="card-icon">🚨</div>
+                        <div class="card-content">
+                            <h3>Alertas de Riesgo</h3>
+                            <p id="alerts-count">0 alertas pendientes</p>
+                        </div>
+                        <button class="btn btn-card" id="alerts-btn">
+                            Ver Alertas
+                        </button>
+                    </div>
+
+                    <!-- Profile Card -->
+                    <div class="card card-secondary" id="profile-card">
+                        <div class="card-icon">👤</div>
+                        <div class="card-content">
+                            <h3>Mi Perfil</h3>
+                            <p>Configura tu cuenta y preferencias</p>
+                        </div>
+                        <button class="btn btn-card" id="profile-btn">
+                            Perfil
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

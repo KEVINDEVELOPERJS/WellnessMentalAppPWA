@@ -1,0 +1,357 @@
+/* Evaluation-specific styles */
+
+.evaluation-container,
+.questionnaire-container,
+.results-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+    min-height: 100vh;
+}
+
+.evaluation-header,
+.questionnaire-header,
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.evaluation-header h1,
+.results-header h1 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+}
+
+/* Questionnaire List */
+.questionnaire-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.questionnaire-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.questionnaire-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-icon {
+    font-size: 2.5rem;
+}
+
+.card-info h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+}
+
+.card-info p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.card-details {
+    margin-bottom: 1rem;
+    padding-left: 3.5rem;
+}
+
+.card-details p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Questionnaire Screen */
+.progress-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+#question-progress {
+    font-weight: 600;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #E2E8F0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.questionnaire-content {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+#questionnaire-title {
+    color: var(--primary);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.instructions {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.question-text {
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.answer-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.answer-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--background);
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.answer-option:hover {
+    border-color: var(--primary);
+    background: #F0F9FF;
+}
+
+.answer-option input[type="radio"] {
+    margin-right: 1rem;
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
+}
+
+.option-text {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.answer-option input[type="radio"]:checked + .option-text {
+    font-weight: 600;
+}
+
+.question-navigation {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.question-navigation button {
+    flex: 1;
+}
+
+.question-navigation button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Results Screen */
+.results-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.score-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.score-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.score-card h2 {
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.result-level {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.score-display {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+
+.score-number {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.score-max {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.diagnosis-card,
+.recommendations-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+.diagnosis-card h3,
+.recommendations-card h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.diagnosis-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.recommendations-list {
+    list-style: none;
+    padding: 0;
+}
+
+.recommendations-list li {
+    color: var(--text-secondary);
+    padding: 0.5rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.recommendations-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--success);
+    font-weight: bold;
+}
+
+.risk-warning {
+    background: #FFF3CD;
+    border-left: 4px solid var(--warning);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.warning-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.risk-warning p {
+    color: #856404;
+    line-height: 1.5;
+}
+
+.risk-warning.hidden {
+    display: none;
+}
+
+.results-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.results-actions button {
+    flex: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .evaluation-container,
+    .questionnaire-container,
+    .results-container {
+        padding: 0.5rem;
+    }
+    
+    .questionnaire-card {
+        padding: 1rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .card-details {
+        padding-left: 0;
+        text-align: center;
+    }
+    
+    .questionnaire-content {
+        padding: 1.5rem;
+    }
+    
+    .question-text {
+        font-size: 1.1rem;
+    }
+    
+    .score-card {
+        padding: 1.5rem;
+    }
+    
+    .score-number {
+        font-size: 2.5rem;
+    }
+    
+    .results-actions {
+        flex-direction: column;
+    }
+}

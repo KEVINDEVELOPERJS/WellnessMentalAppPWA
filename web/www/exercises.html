@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Ejercicios - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/exercises.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Exercises List Screen -->
+        <div id="exercises-list-screen" class="screen active">
+            <div class="exercises-container">
+                <header class="exercises-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Ejercicios de Respiración</h1>
+                </header>
+
+                <div class="exercises-list">
+                    <!-- Exercise cards will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Execution Screen -->
+        <div id="exercise-screen" class="screen">
+            <div class="exercise-container">
+                <header class="exercise-header">
+                    <button id="back-to-list" class="btn btn-secondary btn-small">
+                        ← Cancelar
+                    </button>
+                    <h2 id="exercise-title">Respiración 4-7-8</h2>
+                </header>
+
+                <div class="exercise-content">
+                    <div class="breathing-circle">
+                        <div class="circle-inner">
+                            <span id="breathing-phase">Preparado</span>
+                            <span id="breathing-count">3</span>
+                        </div>
+                    </div>
+
+                    <div class="exercise-instructions">
+                        <p id="exercise-description">Inhala 4 segundos, mantén 7 y exhala 8</p>
+                    </div>
+
+                    <div class="exercise-timer">
+                        <div class="timer-display">
+                            <span id="timer-seconds">0:00</span>
+                        </div>
+                        <div class="timer-progress">
+                            <div id="timer-progress-fill" class="progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div class="exercise-controls">
+                        <button id="start-exercise" class="btn btn-primary btn-large">
+                            Iniciar Ejercicio
+                        </button>
+                        <button id="pause-exercise" class="btn btn-secondary btn-large hidden">
+                            Pausar
+                        </button>
+                        <button id="resume-exercise" class="btn btn-primary btn-large hidden">
+                            Continuar
+                        </button>
+                        <button id="stop-exercise" class="btn btn-secondary btn-large hidden">
+                            Terminar
+                        </button>
+                    </div>
+
+                    <div class="exercise-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Ciclos</span>
+                            <span id="cycle-count" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Tiempo</span>
+                            <span id="total-time" class="stat-value">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exercise Complete Screen -->
+        <div id="exercise-complete-screen" class="screen">
+            <div class="complete-container">
+                <div class="complete-content">
+                    <div class="complete-icon">🎉</div>
+                    <h1>¡Ejercicio Completado!</h1>
+                    
+                    <div class="complete-stats">
+                        <div class="stat-card">
+                            <span class="stat-label">Ciclos completados</span>
+                            <span id="final-cycles" class="stat-value">5</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Tiempo total</span>
+                            <span id="final-time" class="stat-value">2:30</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Puntos ganados</span>
+                            <span id="final-points" class="stat-value">+25</span>
+                        </div>
+                    </div>
+
+                    <div class="complete-message">
+                        <p>¡Excelente trabajo! Has completado tu ejercicio de respiración.</p>
+                    </div>
+
+                    <div class="complete-actions">
+                        <button id="repeat-exercise" class="btn btn-secondary">
+                            Repetir
+                        </button>
+                        <button id="back-to-dashboard-btn" class="btn btn-primary">
+                            Volver al Dashboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/exercises.js"></script>
+</body>
+</html>

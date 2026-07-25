@@ -1,0 +1,38 @@
+{
+  "name": "wellness-mental-pwa",
+  "version": "1.0.0",
+  "description": "Wellness Mental App - PWA for iOS",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server --port=8080",
+    "build": "echo 'Build complete'",
+    "cap:sync": "cap sync",
+    "cap:open:ios": "cap open ios"
+  },
+  "keywords": [
+    "wellness",
+    "mental",
+    "health",
+    "pwa",
+    "capacitor"
+  ],
+  "author": "Wellness Mental",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/haptics": "^6.0.0",
+    "@capacitor/ios": "^6.0.0",
+    "@capacitor/keyboard": "^6.0.0",
+    "@capacitor/local-notifications": "^6.0.0",
+    "@capacitor/status-bar": "^6.0.0",
+    "@capacitor/preferences": "^6.0.0",
+    "@capacitor/camera": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "live-server": "^1.2.2"
+  }
+}

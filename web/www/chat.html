@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Chat IA - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Chat Screen -->
+        <div id="chat-screen" class="screen active">
+            <div class="chat-container">
+                <header class="chat-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <div class="chat-title">
+                        <div class="assistant-avatar">🤖</div>
+                        <div>
+                            <h1>Asistente Emocional</h1>
+                            <p class="status-text">En línea</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Welcome message -->
+                    <div class="message assistant-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <p>¡Hola! Soy tu asistente emocional. Estoy aquí para escucharte y ayudarte. ¿Cómo te sientes hoy?</p>
+                            <span class="message-time">Ahora</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-responses">
+                    <button class="quick-response-btn" data-response="Me siento ansioso/a">
+                        😰 Me siento ansioso/a
+                    </button>
+                    <button class="quick-response-btn" data-response="Me siento triste">
+                        😔 Me siento triste
+                    </button>
+                    <button class="quick-response-btn" data-response="Tengo mucho estrés">
+                        😓 Tengo mucho estrés
+                    </button>
+                    <button class="quick-response-btn" data-response="Necesito hablar">
+                        💬 Necesito hablar
+                    </button>
+                </div>
+
+                <div class="chat-input-area">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="message-input" 
+                            placeholder="Escribe tu mensaje..." 
+                            rows="1"
+                        ></textarea>
+                        <button id="send-btn" class="btn btn-primary btn-send" disabled>
+                            <span class="send-icon">➤</span>
+                        </button>
+                    </div>
+                    <p class="disclaimer">
+                        Este asistente no reemplaza ayuda profesional. Si necesitas ayuda urgente, contacta líneas de emergencia.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Enviando mensaje...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/chat.js"></script>
+</body>
+</html>
