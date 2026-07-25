@@ -31,7 +31,12 @@
                     
                     <div class="form-group">
                         <label for="login-password">Contraseña</label>
-                        <input type="password" id="login-password" required placeholder="••••••••">
+                        <div class="password-input-wrapper">
+                            <input type="password" id="login-password" required placeholder="••••••••">
+                            <button type="button" class="toggle-password" id="toggle-login-password">
+                                👁️
+                            </button>
+                        </div>
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-large">
@@ -66,7 +71,18 @@
                     
                     <div class="form-group">
                         <label for="register-password">Contraseña</label>
-                        <input type="password" id="register-password" required placeholder="Mínimo 8 caracteres, mayúscula, número y símbolo">
+                        <div class="password-input-wrapper">
+                            <input type="password" id="register-password" required placeholder="Mínimo 8 caracteres, mayúscula, número y símbolo">
+                            <button type="button" class="toggle-password" id="toggle-register-password">
+                                👁️
+                            </button>
+                        </div>
+                        <div class="password-requirements" id="password-requirements">
+                            <p class="requirement" id="req-length">✓ Mínimo 8 caracteres</p>
+                            <p class="requirement" id="req-uppercase">✓ Una mayúscula</p>
+                            <p class="requirement" id="req-number">✓ Un número</p>
+                            <p class="requirement" id="req-special">✓ Un símbolo (!@#$%^&*)</p>
+                        </div>
                     </div>
                     
                     <div class="form-group">

@@ -857,6 +857,57 @@ document.addEventListener('DOMContentLoaded', () => {
             tutorGroup.classList.add('hidden');
         }
     });
+
+    // Password visibility toggle for login
+    document.getElementById('toggle-login-password').addEventListener('click', () => {
+        const passwordInput = document.getElementById('login-password');
+        const toggleBtn = document.getElementById('toggle-login-password');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleBtn.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleBtn.textContent = '👁️';
+        }
+    });
+
+    // Password visibility toggle for register
+    document.getElementById('toggle-register-password').addEventListener('click', () => {
+        const passwordInput = document.getElementById('register-password');
+        const toggleBtn = document.getElementById('toggle-register-password');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleBtn.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleBtn.textContent = '👁️';
+        }
+    });
+
+    // Password requirements validation
+    document.getElementById('register-password').addEventListener('input', (e) => {
+        const password = e.target.value;
+        
+        // Check each requirement
+        const hasLength = password.length >= 8;
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSpecial = /[!@#$%^&*]/.test(password);
+        
+        // Update requirement indicators
+        updateRequirement('req-length', hasLength);
+        updateRequirement('req-uppercase', hasUppercase);
+        updateRequirement('req-number', hasNumber);
+        updateRequirement('req-special', hasSpecial);
+    });
+
+    function updateRequirement(id, isValid) {
+        const element = document.getElementById(id);
+        element.classList.remove('valid', 'invalid');
+        element.classList.add(isValid ? 'valid' : 'invalid');
+    }
     
     // Logout button
     document.getElementById('logout-btn').addEventListener('click', async () => {
