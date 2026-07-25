@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Pausas Activas - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/active-breaks.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Active Breaks Configuration Screen -->
+        <div id="active-breaks-screen" class="screen active">
+            <div class="active-breaks-container">
+                <header class="active-breaks-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Configurar Pausas Activas</h1>
+                </header>
+
+                <div class="active-breaks-content">
+                    <!-- Enable/Disable Card -->
+                    <div class="config-card">
+                        <div class="card-header">
+                            <div class="card-icon">⏰</div>
+                            <div class="card-info">
+                                <h3>Activar Pausas Activas</h3>
+                                <p>Recibe recordatorios para hacer pausas durante el día</p>
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="active-breaks-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Time Range Card -->
+                    <div class="config-card">
+                        <div class="card-header">
+                            <div class="card-icon">🕐</div>
+                            <div class="card-info">
+                                <h3>Horario de Pausas</h3>
+                                <p>Define el periodo para recibir notificaciones</p>
+                            </div>
+                        </div>
+                        <div class="time-range">
+                            <div class="time-input">
+                                <label>Hora Inicio</label>
+                                <button id="start-time-btn" class="btn btn-time">8:00 AM</button>
+                            </div>
+                            <div class="time-input">
+                                <label>Hora Fin</label>
+                                <button id="end-time-btn" class="btn btn-time">8:00 PM</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Frequency Card -->
+                    <div class="config-card">
+                        <div class="card-header">
+                            <div class="card-icon">🔄</div>
+                            <div class="card-info">
+                                <h3>Frecuencia</h3>
+                                <p>¿Cada cuánto tiempo quieres recibir recordatorios?</p>
+                            </div>
+                        </div>
+                        <div class="frequency-options">
+                            <label class="frequency-option">
+                                <input type="radio" name="frequency" value="1">
+                                <span class="option-text">Cada 1 hora</span>
+                            </label>
+                            <label class="frequency-option">
+                                <input type="radio" name="frequency" value="2" checked>
+                                <span class="option-text">Cada 2 horas</span>
+                            </label>
+                            <label class="frequency-option">
+                                <input type="radio" name="frequency" value="3">
+                                <span class="option-text">Cada 3 horas</span>
+                            </label>
+                            <label class="frequency-option">
+                                <input type="radio" name="frequency" value="4">
+                                <span class="option-text">Cada 4 horas</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Break Types Card -->
+                    <div class="config-card">
+                        <div class="card-header">
+                            <div class="card-icon">🧘</div>
+                            <div class="card-info">
+                                <h3>Tipos de Pausa</h3>
+                                <p>Selecciona las actividades que prefieres</p>
+                            </div>
+                        </div>
+                        <div class="break-types">
+                            <label class="break-type-option">
+                                <input type="checkbox" id="break-breathing" checked>
+                                <span class="option-text">🫁 Ejercicios de respiración</span>
+                            </label>
+                            <label class="break-type-option">
+                                <input type="checkbox" id="break-stretching" checked>
+                                <span class="option-text">🤸 Estiramientos</span>
+                            </label>
+                            <label class="break-type-option">
+                                <input type="checkbox" id="break-walking">
+                                <span class="option-text">🚶 Caminar breve</span>
+                            </label>
+                            <label class="break-type-option">
+                                <input type="checkbox" id="break-meditation">
+                                <span class="option-text">🧘 Meditación corta</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Info Card -->
+                    <div class="info-card">
+                        <div class="info-icon">ℹ️</div>
+                        <p>Las pausas activas te ayudan a mantener el bienestar mental durante el día. Recibirás notificaciones suaves para recordarte tomar descansos.</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="config-actions">
+                        <button id="cancel-btn" class="btn btn-secondary btn-large">
+                            Cancelar
+                        </button>
+                        <button id="save-btn" class="btn btn-primary btn-large">
+                            Guardar Configuración
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Picker Modal -->
+        <div id="time-picker-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Seleccionar Hora</h2>
+                    <button class="btn-close">×</button>
+                </div>
+                <div class="time-picker">
+                    <div class="time-display" id="time-display">08:00</div>
+                    <div class="time-sliders">
+                        <div class="slider-group">
+                            <label>Hora</label>
+                            <input type="range" id="hour-slider" min="0" max="23" value="8">
+                            <span id="hour-value">8</span>
+                        </div>
+                        <div class="slider-group">
+                            <label>Minuto</label>
+                            <input type="range" id="minute-slider" min="0" max="59" value="0">
+                            <span id="minute-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary cancel-btn">Cancelar</button>
+                    <button class="btn btn-primary save-time-btn">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/active-breaks.js"></script>
+</body>
+</html>

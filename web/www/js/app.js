@@ -475,6 +475,149 @@ class AuthController {
     }
 }
 
+// Check-in System
+const CheckInSystem = {
+    selectedEmoji: null,
+    selectedMood: null,
+
+    init() {
+        const checkInBtn = document.getElementById('check-in-btn');
+        if (checkInBtn) {
+            checkInBtn.addEventListener('click', () => this.showCheckInModal());
+        }
+
+        const modalClose = document.querySelector('#check-in-modal .btn-close');
+        if (modalClose) {
+            modalClose.addEventListener('click', () => this.hideCheckInModal());
+        }
+
+        const cancelBtn = document.querySelector('#check-in-modal .cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.hideCheckInModal());
+        }
+
+        const submitBtn = document.querySelector('#check-in-modal .submit-check-in');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => this.submitCheckIn());
+        }
+
+        // Emoji selection
+        document.querySelectorAll('.emoji-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                this.selectedEmoji = btn.dataset.emoji;
+                this.selectedMood = btn.dataset.mood;
+            });
+        });
+    },
+
+    showCheckInModal() {
+        // Check if already done today
+        const today = new Date().toDateString();
+        const lastCheckIn = localStorage.getItem('lastCheckIn');
+        
+        if (lastCheckIn === today) {
+            const lastEmoji = localStorage.getItem('lastCheckInEmoji');
+            Utils.showToast(`Ya completaste tu check-in hoy ${lastEmoji || '😊'}`);
+            return;
+        }
+
+        document.getElementById('check-in-modal').classList.remove('hidden');
+        this.selectedEmoji = null;
+        this.selectedMood = null;
+        document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('check-in-note').value = '';
+    },
+
+    hideCheckInModal() {
+        document.getElementById('check-in-modal').classList.add('hidden');
+    },
+
+    async submitCheckIn() {
+        if (!this.selectedEmoji || !this.selectedMood) {
+            Utils.showToast('Por favor selecciona cómo te sientes');
+            return;
+        }
+
+        const note = document.getElementById('check-in-note').value.trim();
+        const userId = localStorage.getItem('userId');
+
+        if (!userId) {
+            Utils.showToast('Error: No hay sesión activa');
+            return;
+        }
+
+        try {
+            // Save check-in to database
+            const checkInData = {
+                userId: parseInt(userId),
+                date: new Date().toDateString(),
+                emoji: this.selectedEmoji,
+                mood: this.selectedMood,
+                note: note,
+                timestamp: Utils.now()
+            };
+
+            await dbManager.add(DB_CONFIG.tables.checkIn, checkInData);
+
+            // Store in localStorage for quick access
+            const today = new Date().toDateString();
+            localStorage.setItem('lastCheckIn', today);
+            localStorage.setItem('lastCheckInEmoji', this.selectedEmoji);
+
+            // Update dashboard
+            this.updateCheckInStatus(this.selectedEmoji);
+
+            // Award points
+            await this.awardCheckInPoints();
+
+            this.hideCheckInModal();
+            Utils.showToast('¡Check-in registrado! +10 puntos', 'success');
+
+        } catch (error) {
+            console.error('Error submitting check-in:', error);
+            Utils.showToast('Error al registrar check-in', 'error');
+        }
+    },
+
+    updateCheckInStatus(emoji) {
+        const status = document.getElementById('check-in-status');
+        if (status) {
+            status.textContent = `Hoy te sientes ${emoji}`;
+        }
+    },
+
+    async awardCheckInPoints() {
+        const userId = parseInt(localStorage.getItem('userId'));
+        const pointsData = await dbManager.get(DB_CONFIG.tables.points, userId);
+        
+        if (pointsData) {
+            pointsData.total += 10;
+            pointsData.checkInStreak = (pointsData.checkInStreak || 0) + 1;
+            pointsData.lastCheckIn = Utils.now();
+            await dbManager.update(DB_CONFIG.tables.points, pointsData);
+        } else {
+            await dbManager.add(DB_CONFIG.tables.points, {
+                userId: userId,
+                total: 10,
+                checkInStreak: 1,
+                lastCheckIn: Utils.now()
+            });
+        }
+    },
+
+    async loadTodayCheckIn() {
+        const today = new Date().toDateString();
+        const lastCheckIn = localStorage.getItem('lastCheckIn');
+        
+        if (lastCheckIn === today) {
+            const lastEmoji = localStorage.getItem('lastCheckInEmoji');
+            this.updateCheckInStatus(lastEmoji || '😊');
+        }
+    }
+};
+
 // Initialize App
 let dbManager;
 let authController;
@@ -487,6 +630,9 @@ async function initApp() {
         
         // Initialize auth controller
         authController = new AuthController(dbManager);
+        
+        // Initialize check-in system
+        CheckInSystem.init();
         
         // Check for existing session
         const hasSession = await authController.checkSession();
@@ -719,11 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Utils.showToast('Sesión cerrada', 'success');
     });
     
-    // Dashboard card buttons (placeholder functionality)
-    document.getElementById('check-in-btn').addEventListener('click', () => {
-        Utils.showToast('Funcionalidad de check-in próximamente', 'info');
-    });
-    
+    // Dashboard card buttons
     document.getElementById('evaluation-btn').addEventListener('click', () => {
         window.location.href = 'evaluation.html';
     });
@@ -737,18 +879,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     document.getElementById('games-btn').addEventListener('click', () => {
-        Utils.showToast('Funcionalidad de juegos próximamente', 'info');
+        window.location.href = 'games.html';
+    });
+    
+    document.getElementById('videos-btn').addEventListener('click', () => {
+        window.location.href = 'videos.html';
+    });
+    
+    document.getElementById('active-breaks-btn').addEventListener('click', () => {
+        window.location.href = 'active-breaks.html';
+    });
+    
+    document.getElementById('mental-garden-btn').addEventListener('click', () => {
+        window.location.href = 'mental-garden.html';
+    });
+    
+    document.getElementById('parent-reports-btn').addEventListener('click', () => {
+        window.location.href = 'parent-reports.html';
     });
     
     document.getElementById('community-btn').addEventListener('click', () => {
-        Utils.showToast('Funcionalidad de comunidad próximamente', 'info');
+        window.location.href = 'community.html';
     });
     
     document.getElementById('alerts-btn').addEventListener('click', () => {
-        Utils.showToast('Funcionalidad de alertas próximamente', 'info');
+        window.location.href = 'alerts.html';
     });
     
     document.getElementById('profile-btn').addEventListener('click', () => {
-        Utils.showToast('Funcionalidad de perfil próximamente', 'info');
+        window.location.href = 'profile.html';
     });
 });

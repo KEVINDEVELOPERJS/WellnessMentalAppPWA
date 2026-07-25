@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Videos - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/videos.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Videos Screen -->
+        <div id="videos-screen" class="screen active">
+            <div class="videos-container">
+                <header class="videos-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Videos Guiados</h1>
+                </header>
+
+                <div class="videos-intro">
+                    <p>Explora nuestra colección de videos guiados para respiración, meditación y relajación.</p>
+                </div>
+
+                <!-- Videos Grid -->
+                <div class="videos-grid" id="videos-grid">
+                    <!-- Videos will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Player Screen -->
+        <div id="video-player-screen" class="screen">
+            <div class="video-player-container">
+                <header class="video-player-header">
+                    <button id="back-to-videos" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h2 id="video-title">Video Title</h2>
+                </header>
+
+                <div class="video-content">
+                    <div class="video-wrapper">
+                        <video id="video-player" controls>
+                            <source src="" type="video/mp4">
+                            Tu navegador no soporta videos.
+                        </video>
+                    </div>
+
+                    <div class="video-info">
+                        <h3 id="video-description">Descripción del video</h3>
+                        <div class="video-meta">
+                            <span class="video-duration">⏱️ <span id="video-duration">5:00</span></span>
+                            <span class="video-category">📚 <span id="video-category">Respiración</span></span>
+                        </div>
+                    </div>
+
+                    <div class="video-tips">
+                        <h4>💡 Consejos</h4>
+                        <ul id="video-tips-list">
+                            <li>Encuentra un lugar tranquilo</li>
+                            <li>Usa audífonos para mejor experiencia</li>
+                            <li>Relájate y sigue las instrucciones</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/videos.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Editor de Cuestionarios - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/questionnaire-editor.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Questionnaire Editor Screen -->
+        <div id="editor-screen" class="screen active">
+            <div class="editor-container">
+                <header class="editor-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Editor de Cuestionarios</h1>
+                    <button id="new-questionnaire-btn" class="btn btn-primary btn-small">
+                        + Nuevo
+                    </button>
+                </header>
+
+                <!-- Questionnaires List -->
+                <div class="questionnaires-list" id="questionnaires-list">
+                    <!-- Questionnaires will be populated by JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No hay cuestionarios</h3>
+                    <p>Crea tu primer cuestionario personalizado.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questionnaire Form Screen -->
+        <div id="form-screen" class="screen">
+            <div class="form-container">
+                <header class="form-header">
+                    <button id="back-to-editor" class="btn btn-secondary btn-small">
+                        ← Cancelar
+                    </button>
+                    <h2 id="form-title">Nuevo Cuestionario</h2>
+                </header>
+
+                <form id="questionnaire-form">
+                    <div class="form-section">
+                        <h3>Información General</h3>
+                        <div class="form-group">
+                            <label for="q-title">Título del Cuestionario</label>
+                            <input type="text" id="q-title" required placeholder="Ej: Escala de Estrés Académico">
+                        </div>
+                        <div class="form-group">
+                            <label for="q-description">Descripción</label>
+                            <textarea id="q-description" rows="3" required placeholder="Describe el propósito del cuestionario"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="q-category">Categoría</label>
+                            <select id="q-category" required>
+                                <option value="ansiedad">Ansiedad</option>
+                                <option value="depresion">Depresión</option>
+                                <option value="estres">Estrés</option>
+                                <option value="bienestar">Bienestar</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Preguntas</h3>
+                        <div id="questions-container">
+                            <!-- Questions will be added here -->
+                        </div>
+                        <button type="button" id="add-question-btn" class="btn btn-secondary">
+                            + Agregar Pregunta
+                        </button>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Configuración</h3>
+                        <div class="form-group">
+                            <label for="q-instructions">Instrucciones</label>
+                            <textarea id="q-instructions" rows="2" placeholder="Instrucciones para el estudiante"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="q-status">Estado</label>
+                            <select id="q-status">
+                                <option value="borrador">Borrador</option>
+                                <option value="publicado">Publicado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary btn-large">
+                            Guardar Cuestionario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/questionnaire-editor.js"></script>
+</body>
+</html>

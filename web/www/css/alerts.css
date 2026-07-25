@@ -1,0 +1,256 @@
+.alerts-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.alerts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.alerts-header h1 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.risk-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    background: #f8f9fa;
+}
+
+.tab-btn.active {
+    border-color: #667eea;
+    background: #E8F4F8;
+}
+
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.alert-item {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+    border-left: 4px solid #ccc;
+}
+
+.alert-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.alert-item.risk-high {
+    border-left-color: #e74c3c;
+}
+
+.alert-item.risk-medium {
+    border-left-color: #f39c12;
+}
+
+.alert-item.risk-low {
+    border-left-color: #27ae60;
+}
+
+.alert-item.resolved {
+    opacity: 0.6;
+    background: #f8f9fa;
+}
+
+.alert-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.alert-item-student {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.alert-item-date {
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+.alert-item-details {
+    display: flex;
+    gap: 16px;
+    font-size: 14px;
+    color: #555;
+}
+
+.alert-item-evaluation {
+    font-weight: 500;
+}
+
+.alert-item-score {
+    font-weight: 600;
+}
+
+.alert-item-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.alert-item-status.pending {
+    background: #fee;
+    color: #e74c3c;
+}
+
+.alert-item-status.resolved {
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.alert-detail-content {
+    margin-bottom: 20px;
+}
+
+.alert-risk-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.alert-risk-badge.high {
+    background: #fee;
+    color: #e74c3c;
+}
+
+.alert-risk-badge.medium {
+    background: #fef9e7;
+    color: #f39c12;
+}
+
+.alert-risk-badge.low {
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+.alert-info {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.alert-info p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.alert-info strong {
+    color: #555;
+}
+
+.alert-description {
+    margin-bottom: 16px;
+}
+
+.alert-description h4 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.alert-description p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.alert-recommendations {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.alert-recommendations h4 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 12px;
+}
+
+.alert-recommendations ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.alert-recommendations li {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    .alerts-header h1 {
+        font-size: 20px;
+    }
+    
+    .risk-tabs {
+        flex-direction: column;
+    }
+    
+    .alert-item-details {
+        flex-direction: column;
+        gap: 8px;
+    }
+}

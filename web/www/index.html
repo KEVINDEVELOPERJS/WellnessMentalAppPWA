@@ -177,6 +177,54 @@
                         </button>
                     </div>
 
+                    <!-- Videos Card -->
+                    <div class="card card-success" id="videos-card">
+                        <div class="card-icon">🎬</div>
+                        <div class="card-content">
+                            <h3>Videos Guiados</h3>
+                            <p>Respiración, meditación y relajación</p>
+                        </div>
+                        <button class="btn btn-card" id="videos-btn">
+                            Ver Videos
+                        </button>
+                    </div>
+
+                    <!-- Active Breaks Card -->
+                    <div class="card card-accent" id="active-breaks-card">
+                        <div class="card-icon">⏰</div>
+                        <div class="card-content">
+                            <h3>Pausas Activas</h3>
+                            <p>Configura recordatorios de descanso</p>
+                        </div>
+                        <button class="btn btn-card" id="active-breaks-btn">
+                            Configurar
+                        </button>
+                    </div>
+
+                    <!-- Mental Garden Card -->
+                    <div class="card card-bonus" id="mental-garden-card">
+                        <div class="card-icon">🌱</div>
+                        <div class="card-content">
+                            <h3>Jardín Mental</h3>
+                            <p>Cultiva tu jardín emocional</p>
+                        </div>
+                        <button class="btn btn-card" id="mental-garden-btn">
+                            Jardín
+                        </button>
+                    </div>
+
+                    <!-- Parent Reports Card -->
+                    <div class="card card-secondary" id="parent-reports-card">
+                        <div class="card-icon">👨‍👩‍👧</div>
+                        <div class="card-content">
+                            <h3>Informes Padres</h3>
+                            <p>Acceso para padres/tutores</p>
+                        </div>
+                        <button class="btn btn-card" id="parent-reports-btn">
+                            Informes
+                        </button>
+                    </div>
+
                     <!-- Community Card -->
                     <div class="card card-primary" id="community-card">
                         <div class="card-icon">🤝</div>
@@ -212,6 +260,35 @@
                             Perfil
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check-in Modal -->
+        <div id="check-in-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Check-in Emocional</h2>
+                    <button class="btn-close">×</button>
+                </div>
+                <div class="modal-body">
+                    <p class="check-in-question">¿Cómo te sientes hoy?</p>
+                    <div class="emoji-grid">
+                        <button class="emoji-btn" data-emoji="😊" data-mood="great">😊</button>
+                        <button class="emoji-btn" data-emoji="🙂" data-mood="good">🙂</button>
+                        <button class="emoji-btn" data-emoji="😐" data-mood="okay">😐</button>
+                        <button class="emoji-btn" data-emoji="😔" data-mood="sad">😔</button>
+                        <button class="emoji-btn" data-emoji="😰" data-mood="anxious">😰</button>
+                        <button class="emoji-btn" data-emoji="😤" data-mood="angry">😤</button>
+                    </div>
+                    <div class="check-in-note">
+                        <label for="check-in-note">Nota opcional:</label>
+                        <textarea id="check-in-note" rows="3" placeholder="¿Qué pasó hoy?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary cancel-btn">Cancelar</button>
+                    <button class="btn btn-primary submit-check-in">Registrar</button>
                 </div>
             </div>
         </div>

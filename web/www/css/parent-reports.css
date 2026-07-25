@@ -1,0 +1,362 @@
+.parent-reports-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.parent-reports-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.parent-reports-header h1 {
+    font-size: 24px;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.intro-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.intro-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.intro-card h2 {
+    font-size: 20px;
+    margin: 0 0 8px 0;
+}
+
+.intro-card p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.generate-code-section,
+.parent-access-section,
+.current-code-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.generate-code-section h3,
+.parent-access-section h3,
+.current-code-section h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+}
+
+.generate-code-section p,
+.parent-access-section p,
+.current-code-section p {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin: 0 0 16px 0;
+}
+
+.code-display {
+    background: #f8f9fa;
+    border: 2px dashed #667eea;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin: 16px 0;
+}
+
+.code-display span {
+    font-size: 32px;
+    font-weight: 600;
+    color: #667eea;
+    letter-spacing: 4px;
+    font-family: monospace;
+}
+
+.code-info {
+    font-size: 13px;
+    color: #7f8c8d;
+    text-align: center;
+    margin: 12px 0;
+}
+
+.code-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.code-actions .btn {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.two-fa-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reports-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reports-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.reports-section-header h2 {
+    font-size: 20px;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.reports-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.report-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-left: 4px solid #667eea;
+}
+
+.report-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.report-item.risk-high {
+    border-left-color: #e74c3c;
+}
+
+.report-item.risk-medium {
+    border-left-color: #f39c12;
+}
+
+.report-item.risk-low {
+    border-left-color: #27ae60;
+}
+
+.report-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.report-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.report-item-date {
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+.report-item-risk {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.report-item-risk.high {
+    background: #fee;
+    color: #e74c3c;
+}
+
+.report-item-risk.medium {
+    background: #fef9e7;
+    color: #f39c12;
+}
+
+.report-item-risk.low {
+    background: #eafaf1;
+    color: #27ae60;
+}
+
+.no-reports {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-reports-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.no-reports h3 {
+    font-size: 18px;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+}
+
+.no-reports p {
+    font-size: 14px;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.report-detail-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.report-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.report-detail-header h2 {
+    font-size: 20px;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.report-detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.report-risk-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+}
+
+.risk-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.report-risk-card h3 {
+    font-size: 20px;
+    margin: 0 0 8px 0;
+}
+
+.report-risk-card p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.report-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.report-section h4 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin: 0 0 12px 0;
+}
+
+.report-section p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.report-section ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.report-section li {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.report-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.report-actions .btn {
+    flex: 1;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+@media (max-width: 768px) {
+    .parent-reports-header h1,
+    .reports-section-header h2,
+    .report-detail-header h2 {
+        font-size: 20px;
+    }
+    
+    .code-actions,
+    .report-actions {
+        flex-direction: column;
+    }
+}

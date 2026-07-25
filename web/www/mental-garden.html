@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Jardín Mental - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/mental-garden.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Mental Garden Screen -->
+        <div id="mental-garden-screen" class="screen active">
+            <div class="mental-garden-container">
+                <header class="garden-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Jardín Mental</h1>
+                    <div class="garden-stats">
+                        <span class="stat">🔥 Racha: <span id="watering-streak">0</span></span>
+                    </div>
+                </header>
+
+                <!-- Garden Grid -->
+                <div class="garden-grid" id="garden-grid">
+                    <!-- Garden slots will be populated by JS -->
+                </div>
+
+                <!-- Garden Status -->
+                <div class="garden-status">
+                    <p id="garden-status-text">Selecciona una planta para regar</p>
+                </div>
+
+                <!-- Garden Controls -->
+                <div class="garden-controls">
+                    <button id="plant-btn" class="btn btn-primary">
+                        🌱 Plantar Semilla
+                    </button>
+                    <button id="water-btn" class="btn btn-secondary" disabled>
+                        💧 Regar
+                    </button>
+                </div>
+
+                <!-- Plant Selection Modal -->
+                <div id="plant-selection-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Seleccionar Planta</h2>
+                            <button class="btn-close">×</button>
+                        </div>
+                        <div class="plant-options" id="plant-options">
+                            <!-- Plant options will be populated by JS -->
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary cancel-btn">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plant Info Modal -->
+                <div id="plant-info-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="plant-info-title">Información de Planta</h2>
+                            <button class="btn-close">×</button>
+                        </div>
+                        <div class="plant-info-content">
+                            <div class="plant-emoji-large" id="plant-emoji-large">🌸</div>
+                            <div class="plant-details">
+                                <p><strong>Nombre:</strong> <span id="plant-name">Flor Sakura</span></p>
+                                <p><strong>Etapa:</strong> <span id="plant-stage">Brote</span></p>
+                                <p><strong>Progreso:</strong> <span id="plant-progress">0%</span></p>
+                                <p><strong>Último riego:</strong> <span id="plant-last-watered">Hoy</span></p>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-primary water-plant-btn">💧 Regar Ahora</button>
+                            <button class="btn btn-secondary cancel-btn">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/mental-garden.js"></script>
+</body>
+</html>

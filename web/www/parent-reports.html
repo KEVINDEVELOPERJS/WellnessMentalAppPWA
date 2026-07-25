@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Informes Padres - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/parent-reports.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Parent Reports Screen -->
+        <div id="parent-reports-screen" class="screen active">
+            <div class="parent-reports-container">
+                <header class="parent-reports-header">
+                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Informes para Padres</h1>
+                </header>
+
+                <!-- Access Section -->
+                <div id="access-section" class="access-section">
+                    <div class="intro-card">
+                        <div class="intro-icon">👨‍👩‍👧</div>
+                        <h2>Acceso de Padres</h2>
+                        <p>Los padres pueden acceder a los informes de bienestar de sus hijos mediante un código de invitación.</p>
+                    </div>
+
+                    <!-- Generate Code Section -->
+                    <div class="generate-code-section">
+                        <h3>Generar Código para Padres</h3>
+                        <p>Crea un código único que tus padres pueden usar para ver tus informes.</p>
+                        <button id="generate-code-btn" class="btn btn-primary btn-large">
+                            Generar Nuevo Código
+                        </button>
+                    </div>
+
+                    <!-- Current Code Section -->
+                    <div id="current-code-section" class="current-code-section hidden">
+                        <h3>Código Activo</h3>
+                        <div class="code-display">
+                            <span id="current-code">--------</span>
+                        </div>
+                        <p class="code-info">Comparte este código con tus padres. El código expira en 30 días.</p>
+                        <div class="code-actions">
+                            <button id="copy-code-btn" class="btn btn-secondary">
+                                📋 Copiar Código
+                            </button>
+                            <button id="revoke-code-btn" class="btn btn-danger">
+                                ❌ Revocar Código
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Parent Access Section -->
+                    <div class="parent-access-section">
+                        <h3>Acceso con Código de Padres</h3>
+                        <p>Si eres padre/madre y tienes un código de invitación, ingrésalo aquí.</p>
+                        <form id="parent-access-form">
+                            <div class="form-group">
+                                <label for="invitation-code">Código de Invitación</label>
+                                <input type="text" id="invitation-code" required placeholder="Ingresa el código de 8 caracteres" maxlength="8">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                Acceder a Informes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 2FA Section -->
+                <div id="2fa-section" class="two-fa-section hidden">
+                    <div class="intro-card">
+                        <div class="intro-icon">🔐</div>
+                        <h2>Verificación en Dos Pasos</h2>
+                        <p>Se ha enviado un código de verificación al estudiante. Ingresa el código para continuar.</p>
+                    </div>
+
+                    <form id="2fa-form">
+                        <div class="form-group">
+                            <label for="2fa-code">Código de Verificación</label>
+                            <input type="text" id="2fa-code" required placeholder="Ingresa el código de 6 dígitos" maxlength="6">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-large">
+                            Verificar
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Reports List Section -->
+                <div id="reports-section" class="reports-section hidden">
+                    <header class="reports-section-header">
+                        <h2>Informes Disponibles</h2>
+                        <button id="back-to-access" class="btn btn-secondary btn-small">
+                            ← Volver
+                        </button>
+                    </header>
+
+                    <div id="reports-list" class="reports-list">
+                        <!-- Reports will be populated by JS -->
+                    </div>
+
+                    <div id="no-reports" class="no-reports hidden">
+                        <div class="no-reports-icon">📋</div>
+                        <h3>No hay informes disponibles</h3>
+                        <p>No se han generado informes aún.</p>
+                    </div>
+                </div>
+
+                <!-- Report Detail Section -->
+                <div id="report-detail-section" class="report-detail-section hidden">
+                    <header class="report-detail-header">
+                        <button id="back-to-reports" class="btn btn-secondary btn-small">
+                            ← Volver
+                        </button>
+                        <h2>Detalle del Informe</h2>
+                    </header>
+
+                    <div class="report-detail-content">
+                        <div class="report-risk-card">
+                            <div class="risk-icon" id="report-risk-icon">📊</div>
+                            <h3 id="report-risk-level">Nivel de Riesgo: Bajo</h3>
+                            <p id="report-date">Fecha: 24/07/2026</p>
+                        </div>
+
+                        <div class="report-section">
+                            <h4>📝 Resumen</h4>
+                            <p id="report-summary">El estudiante muestra un estado emocional estable con indicadores positivos de bienestar.</p>
+                        </div>
+
+                        <div class="report-section">
+                            <h4>🔍 Detalle</h4>
+                            <p id="report-detail">Los resultados de las evaluaciones indican niveles de ansiedad y depresión dentro de rangos normales. Se recomienda continuar con las prácticas de bienestar actuales.</p>
+                        </div>
+
+                        <div class="report-section">
+                            <h4>💡 Recomendaciones</h4>
+                            <ul id="report-recommendations">
+                                <li>Mantener rutina de ejercicios de respiración</li>
+                                <li>Continuar con check-ins emocionales diarios</li>
+                                <li>Fomentar actividades recreativas</li>
+                            </ul>
+                        </div>
+
+                        <div class="report-actions">
+                            <button id="download-pdf-btn" class="btn btn-primary">
+                                📥 Descargar PDF
+                            </button>
+                            <button id="contact-psychologist-btn" class="btn btn-secondary">
+                                📧 Contactar Psicólogo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/parent-reports.js"></script>
+</body>
+</html>
