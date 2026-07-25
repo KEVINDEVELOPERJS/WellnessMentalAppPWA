@@ -3,89 +3,63 @@ const VideosModule = {
     videos: [
         {
             id: 1,
-            title: 'Respiración 4-7-8',
-            description: 'Técnica de respiración para reducir ansiedad y mejorar el sueño',
-            duration: '5:30',
-            category: 'Respiración',
+            title: 'Kiara en un espejismo de vida',
+            description: '',
+            duration: '0:00',
+            category: 'Historia',
             color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            tips: [
-                'Siéntate cómodamente o acuéstate',
-                'Inhala por la nariz por 4 segundos',
-                'Mantén el aire por 7 segundos',
-                'Exhala por la boca por 8 segundos'
-            ]
+            videoFile: 'videos/video1.mp4',
+            tips: []
         },
         {
             id: 2,
-            title: 'Respiración Box',
-            description: 'Técnica de respiración cuadrada para calmar la mente',
-            duration: '4:00',
-            category: 'Respiración',
+            title: 'La importancia de salud mental desde lo básico',
+            description: '',
+            duration: '0:00',
+            category: 'Historia',
             color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            tips: [
-                'Visualiza un cuadrado mientras respiras',
-                'Inhala por 4 segundos',
-                'Mantén por 4 segundos',
-                'Exhala por 4 segundos',
-                'Mantén vacío por 4 segundos'
-            ]
+            videoFile: 'videos/video2.mp4',
+            tips: []
         },
         {
             id: 3,
-            title: 'Meditación Guiada',
-            description: 'Sesión de meditación para principiantes',
-            duration: '10:00',
-            category: 'Meditación',
+            title: 'Una madre y sus soles en medio del disciplinamiento emocional',
+            description: '',
+            duration: '0:00',
+            category: 'Historia',
             color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            tips: [
-                'Encuentra un lugar silencioso',
-                'Cierra los ojos suavemente',
-                'Enfócate en tu respiración',
-                'Deja pasar los pensamientos sin juzgar'
-            ]
+            videoFile: 'videos/video3.mp4',
+            tips: []
         },
         {
             id: 4,
-            title: 'Relajación Muscular',
-            description: 'Técnica de relajación progresiva de Jacobson',
-            duration: '15:00',
-            category: 'Relajación',
+            title: 'Las cicatrices que se pueden volver traumas',
+            description: '',
+            duration: '0:00',
+            category: 'Historia',
             color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            tips: [
-                'Acuéstate en una superficie cómoda',
-                'Tensa y relaja grupos musculares',
-                'Comienza desde los pies hasta la cabeza',
-                'Siente la diferencia entre tensión y relajación'
-            ]
+            videoFile: 'videos/video4.mp4',
+            tips: []
         },
         {
             id: 5,
-            title: 'Mindfulness Básico',
-            description: 'Ejercicios de atención plena para el día a día',
-            duration: '8:00',
-            category: 'Mindfulness',
+            title: 'Cuidar sin perderse',
+            description: '',
+            duration: '0:00',
+            category: 'Historia',
             color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-            tips: [
-                'Practica la atención en el presente',
-                'Observa sin juzgar',
-                'Acepta tus pensamientos y emociones',
-                'Regresa suavemente al presente cuando te distraigas'
-            ]
+            videoFile: 'videos/video5.mp4',
+            tips: []
         },
         {
             id: 6,
-            title: 'Salud Mental: Estrategias',
-            description: 'Consejos prácticos para mantener el bienestar emocional',
-            duration: '12:00',
-            category: 'Educación',
+            title: 'El camino hacia la sanación emocional',
+            description: '',
+            duration: '0:00',
+            category: 'Historia',
             color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-            tips: [
-                'Mantén una rutina diaria',
-                'Conecta con otros',
-                'Haz ejercicio regularmente',
-                'Duerme lo suficiente',
-                'Busca ayuda cuando la necesites'
-            ]
+            videoFile: 'videos/video6.mp4',
+            tips: []
         }
     ],
 
@@ -141,14 +115,25 @@ const VideosModule = {
         if (!video) return;
 
         document.getElementById('video-title').textContent = video.title;
-        document.getElementById('video-description').textContent = video.description;
-        document.getElementById('video-duration').textContent = video.duration;
-        document.getElementById('video-category').textContent = video.category;
-        
-        const tipsList = document.getElementById('video-tips-list');
-        tipsList.innerHTML = video.tips.map(tip => `<li>${tip}</li>`).join('');
+
+        // Set video source
+        const videoPlayer = document.getElementById('video-player');
+        const videoSource = videoPlayer.querySelector('source');
+        videoSource.src = video.videoFile;
+        videoPlayer.load();
 
         this.showVideoPlayerScreen();
+
+        // Request fullscreen after a short delay
+        setTimeout(() => {
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.webkitRequestFullscreen) {
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) {
+                videoPlayer.msRequestFullscreen();
+            }
+        }, 100);
     },
 
     showVideosScreen() {
