@@ -295,6 +295,9 @@ const CalmaMatchModule = {
         this.combo++;
         this.maxCombo = Math.max(this.maxCombo, this.combo);
         
+        // Get board element for animations
+        const board = document.getElementById('game-board');
+        
         // Calculate score
         const multiplier = this.combo >= 5 ? 5 : this.combo >= 3 ? 3 : this.combo >= 2 ? 2 : 1;
         let points = 0;
@@ -308,7 +311,6 @@ const CalmaMatchModule = {
         this.updateStats();
         
         // Calcular centro de los matches para efectos
-        const board = document.getElementById('game-board');
         const boardRect = board.getBoundingClientRect();
         const centerX = boardRect.width / 2;
         const centerY = boardRect.height / 2;
@@ -344,18 +346,29 @@ const CalmaMatchModule = {
                 this.fx.spawnComboBanner(centerX, centerY * 0.38, comboMsg, this.combo);
             }
             
-            // Efectos especiales para combos altos
+            // Efectos especiales reducidos para combos altos (sin zoom/shake excesivo)
             if (this.combo >= 4) {
-                this.fx.triggerFlash('#FFC107', 0.2 + this.combo * 0.04);
-                this.fx.triggerShake(Math.min(this.combo * 2.5, 18));
+                this.fx.triggerFlash('#FFC107', 0.1);
             }
             if (this.combo >= 6) {
-                this.fx.triggerFlash('#FF9800', 0.35);
-                this.fx.triggerShake(12);
+                this.fx.triggerFlash('#FF9800', 0.15);
             }
         }
         
-        // Animate matches
+        // Animate matches with elimination animation
+        matches.forEach(match => {
+            match.forEach(({ row, col }) => {
+                const cellIndex = row * this.COLS + col;
+                const cell = board.children[cellIndex];
+                if (cell) {
+                    cell.classList.add('eliminating');
+                }
+            });
+        });
+        
+        await this.delay(400);
+        
+        // Remove matches from grid after animation
         matches.forEach(match => {
             match.forEach(({ row, col }) => {
                 this.grid[row][col] = -1;
@@ -363,7 +376,7 @@ const CalmaMatchModule = {
         });
         this.renderBoard();
         
-        await this.delay(300);
+        await this.delay(100);
         
         // Apply gravity
         await this.applyGravity();
@@ -419,23 +432,6 @@ const CalmaMatchModule = {
         
         this.renderBoard();
         await this.delay(200);
-    },
-    
-    showCombo(comboLevel) {
-        const display = document.getElementById('combo-display');
-        const text = document.getElementById('combo-text');
-        
-        const messages = ['', '', '¡Doble!', '¡Triple!', '¡Cuádruple!', '¡Increíble!', '¡Épico!', '¡Legendario!'];
-        text.textContent = messages[Math.min(comboLevel, messages.length - 1)] || `¡Combo x${comboLevel}!`;
-        
-        display.classList.remove('hidden');
-        display.style.animation = 'none';
-        display.offsetHeight; // Trigger reflow
-        display.style.animation = 'comboPopup 0.8s ease-out';
-        
-        setTimeout(() => {
-            display.classList.add('hidden');
-        }, 800);
     },
     
     startTimer() {
