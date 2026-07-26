@@ -66,13 +66,31 @@ body {
     display: block;
 }
 
-/* Ensure login screen is visible by default */
+/* Ensure login screen is visible by default in index.html */
 #login-screen {
     display: block;
 }
 
 #login-screen:not(.active) {
     display: none;
+}
+
+/* For standalone pages (games.html, videos.html, etc.), show the main screen */
+.games-screen.active,
+.videos-screen.active,
+.chat-screen.active,
+.exercises-screen.active,
+.evaluation-screen.active,
+.community-screen.active,
+.profile-screen.active,
+.parent-reports-screen.active,
+.alerts-screen.active,
+.active-breaks-screen.active,
+.mental-garden-screen.active,
+.calma-match-screen.active,
+.puzzle-zen-screen.active,
+.ritmo-calma-screen.active {
+    display: block !important;
 }
 
 @keyframes fadeIn {

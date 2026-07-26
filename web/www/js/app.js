@@ -624,24 +624,29 @@ let authController;
 
 async function initApp() {
     try {
-        // Show login screen immediately
-        Utils.showScreen('login-screen');
-        
-        // Initialize database
+        // Initialize database first (needed for all pages)
         dbManager = new DatabaseManager();
         await dbManager.init();
         
         // Initialize auth controller
         authController = new AuthController(dbManager);
         
-        // Initialize check-in system
-        CheckInSystem.init();
+        // Check if we're on the main index page
+        const isIndexPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/WellnessMentalApp(WEB)/web/www/');
         
-        // Check for existing session
-        const hasSession = await authController.checkSession();
-        
-        if (hasSession) {
-            await showDashboard();
+        if (isIndexPage) {
+            // Show login screen immediately
+            Utils.showScreen('login-screen');
+            
+            // Initialize check-in system
+            CheckInSystem.init();
+            
+            // Check for existing session
+            const hasSession = await authController.checkSession();
+            
+            if (hasSession) {
+                await showDashboard();
+            }
         }
         
         // Seed initial data if needed
@@ -649,8 +654,11 @@ async function initApp() {
         
     } catch (error) {
         console.error('App initialization error:', error);
-        // Ensure login screen is shown even on error
-        Utils.showScreen('login-screen');
+        // Only show login screen if we're on index page
+        const isIndexPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/WellnessMentalApp(WEB)/web/www/');
+        if (isIndexPage) {
+            Utils.showScreen('login-screen');
+        }
     }
 }
 
