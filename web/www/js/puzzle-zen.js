@@ -1,256 +1,220 @@
-// Puzzle Zen Game Module (Sliding Puzzle)
+// Puzzle Zen - Memory Pattern Game (Simon Says style)
 const PuzzleZenModule = {
-    size: 3,
-    tiles: [],
-    emptyIndex: 8,
-    moves: 0,
-    timer: 0,
-    timerInterval: null,
-    gameStarted: false,
-
+    colors: ['#9C27B0', '#4CAF50', '#2196F3', '#FFC107'],
+    sequence: [],
+    userSequence: [],
+    level: 1,
+    isPlaying: false,
+    isShowingSequence: false,
+    activeCircle: -1,
+    
     init() {
         this.setupEventListeners();
-        this.startGame();
+        this.renderInitialBoard();
     },
-
+    
     setupEventListeners() {
         const backBtn = document.getElementById('back-to-games');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                this.stopTimer();
+                this.stopGame();
                 window.location.href = 'games.html';
             });
         }
-
-        const shuffleBtn = document.getElementById('shuffle-btn');
-        if (shuffleBtn) {
-            shuffleBtn.addEventListener('click', () => this.shuffleBoard());
+        
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startGame());
         }
-
-        const solveBtn = document.getElementById('solve-btn');
-        if (solveBtn) {
-            solveBtn.addEventListener('click', () => this.solvePuzzle());
+        
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.addEventListener('click', () => this.restartGame());
         }
-
-        // Difficulty buttons
-        document.querySelectorAll('.difficulty-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.size = parseInt(btn.dataset.size);
-                this.startGame();
+        
+        // Circle click listeners
+        document.querySelectorAll('.circle').forEach(circle => {
+            circle.addEventListener('click', () => {
+                const index = parseInt(circle.dataset.index);
+                this.handleCircleClick(index);
             });
         });
-
+        
         // Modal controls
         const modalClose = document.querySelector('#game-complete-modal .btn-close');
         if (modalClose) {
             modalClose.addEventListener('click', () => this.hideCompleteModal());
         }
-
+        
         const closeModalBtn = document.querySelector('#game-complete-modal .close-modal-btn');
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', () => this.hideCompleteModal());
         }
-
+        
         const restartModalBtn = document.querySelector('#game-complete-modal .restart-modal-btn');
         if (restartModalBtn) {
             restartModalBtn.addEventListener('click', () => {
                 this.hideCompleteModal();
-                this.startGame();
+                this.restartGame();
             });
         }
     },
-
-    startGame() {
-        this.stopTimer();
-        this.moves = 0;
-        this.timer = 0;
-        this.gameStarted = false;
-
-        // Initialize solved state
-        this.tiles = Array.from({ length: this.size * this.size }, (_, i) => i);
-        this.emptyIndex = this.tiles.length - 1;
-
-        this.updateStats();
-        this.shuffleBoard();
-    },
-
-    shuffleBoard() {
-        // Perform random valid moves to ensure solvability
-        const shuffleMoves = this.size * this.size * 10;
-        
-        for (let i = 0; i < shuffleMoves; i++) {
-            const movableIndices = this.getMovableIndices();
-            const randomIndex = movableIndices[Math.floor(Math.random() * movableIndices.length)];
-            this.swapTiles(randomIndex, this.emptyIndex, false);
-        }
-
-        this.moves = 0;
-        this.updateStats();
-        this.renderBoard();
-    },
-
-    getMovableIndices() {
-        const movable = [];
-        const row = Math.floor(this.emptyIndex / this.size);
-        const col = this.emptyIndex % this.size;
-
-        // Check adjacent tiles
-        if (row > 0) movable.push(this.emptyIndex - this.size); // Up
-        if (row < this.size - 1) movable.push(this.emptyIndex + this.size); // Down
-        if (col > 0) movable.push(this.emptyIndex - 1); // Left
-        if (col < this.size - 1) movable.push(this.emptyIndex + 1); // Right
-
-        return movable;
-    },
-
-    swapTiles(index1, index2, countMove = true) {
-        [this.tiles[index1], this.tiles[index2]] = [this.tiles[index2], this.tiles[index1]];
-        this.emptyIndex = index1;
-
-        if (countMove) {
-            this.moves++;
-            this.updateStats();
-        }
-    },
-
-    renderBoard() {
-        const board = document.getElementById('puzzle-board');
-        if (!board) return;
-
-        board.className = `puzzle-board size-${this.size}`;
-
-        const movableIndices = new Set(this.getMovableIndices());
-
-        board.innerHTML = this.tiles.map((value, index) => {
-            const isEmpty = value === this.tiles.length - 1;
-            const isMovable = !isEmpty && movableIndices.has(index);
-
-            return `
-                <div class="puzzle-tile ${isEmpty ? 'empty' : ''} ${isMovable ? 'movable' : ''}" 
-                     data-index="${index}">
-                    ${isEmpty ? '' : value + 1}
-                </div>
-            `;
-        }).join('');
-
-        // Add click listeners
-        board.querySelectorAll('.puzzle-tile:not(.empty)').forEach(tile => {
-            tile.addEventListener('click', () => this.handleTileClick(parseInt(tile.dataset.index)));
+    
+    renderInitialBoard() {
+        document.querySelectorAll('.circle').forEach((circle, index) => {
+            circle.style.background = this.colors[index];
+            circle.style.opacity = '0.6';
         });
     },
-
-    handleTileClick(index) {
-        const movableIndices = this.getMovableIndices();
+    
+    startGame() {
+        this.isPlaying = true;
+        this.level = 1;
+        this.sequence = [];
+        this.userSequence = [];
+        this.updateStats();
+        this.addStepAndShow();
         
-        if (!movableIndices.includes(index)) {
+        document.getElementById('start-btn').classList.add('hidden');
+        document.getElementById('restart-btn').classList.remove('hidden');
+    },
+    
+    restartGame() {
+        this.stopGame();
+        this.startGame();
+    },
+    
+    stopGame() {
+        this.isPlaying = false;
+        this.isShowingSequence = false;
+        this.activeCircle = -1;
+        this.renderInitialBoard();
+    },
+    
+    addStepAndShow() {
+        if (!this.isPlaying) return;
+        
+        // Add random step
+        this.sequence.push(Math.floor(Math.random() * 4));
+        this.userSequence = [];
+        
+        // Animate level up
+        this.animateLevelUp();
+        
+        // Show sequence
+        this.showSequence();
+        
+        this.updateStatus(`Memoriza el patrón nivel ${this.level}`);
+    },
+    
+    animateLevelUp() {
+        const levelDisplay = document.getElementById('level-display');
+        levelDisplay.style.transform = 'scale(1.5)';
+        levelDisplay.style.transition = 'transform 0.3s ease-out';
+        
+        setTimeout(() => {
+            levelDisplay.style.transform = 'scale(1)';
+        }, 300);
+    },
+    
+    async showSequence() {
+        this.isShowingSequence = true;
+        
+        for (let i = 0; i < this.sequence.length; i++) {
+            if (!this.isPlaying) return;
+            await this.flashCircle(this.sequence[i]);
+            await this.delay(180);
+        }
+        
+        this.isShowingSequence = false;
+        this.activeCircle = -1;
+        this.updateStatus('¡Tu turno! Repite el patrón');
+    },
+    
+    async flashCircle(index) {
+        const circle = document.querySelector(`.circle-${index}`);
+        this.activeCircle = index;
+        
+        circle.style.opacity = '1';
+        circle.style.transform = 'scale(1.35)';
+        circle.style.boxShadow = `0 0 30px ${this.colors[index]}, 0 0 60px ${this.colors[index]}`;
+        circle.style.transition = 'all 0.2s ease-out';
+        
+        await this.delay(450);
+        
+        circle.style.opacity = this.isShowingSequence ? '0.4' : '0.6';
+        circle.style.transform = 'scale(1)';
+        circle.style.boxShadow = 'none';
+        
+        this.activeCircle = -1;
+    },
+    
+    handleCircleClick(index) {
+        if (!this.isPlaying || this.isShowingSequence) return;
+        
+        this.flashCircle(index);
+        this.userSequence.push(index);
+        
+        const position = this.userSequence.length - 1;
+        
+        // Check if correct
+        if (this.userSequence[position] !== this.sequence[position]) {
+            this.updateStatus(`¡Casi! Nivel alcanzado: ${this.level}`);
+            setTimeout(() => this.endGame(), 600);
             return;
         }
-
-        // Start timer on first move
-        if (!this.gameStarted) {
-            this.gameStarted = true;
-            this.startTimer();
-        }
-
-        // Swap tiles
-        this.swapTiles(index, this.emptyIndex);
-        this.renderBoard();
-
-        // Check for win
-        if (this.checkWin()) {
-            this.stopTimer();
-            setTimeout(() => this.showCompleteModal(), 500);
-        }
-    },
-
-    checkWin() {
-        for (let i = 0; i < this.tiles.length; i++) {
-            if (this.tiles[i] !== i) {
-                return false;
-            }
-        }
-        return true;
-    },
-
-    solvePuzzle() {
-        // Reset to solved state
-        this.tiles = Array.from({ length: this.size * this.size }, (_, i) => i);
-        this.emptyIndex = this.tiles.length - 1;
-        this.renderBoard();
-        this.showToast('Puzzle resuelto automáticamente');
-    },
-
-    startTimer() {
-        this.timerInterval = setInterval(() => {
-            this.timer++;
+        
+        // Check if sequence complete
+        if (this.userSequence.length === this.sequence.length) {
+            this.level++;
             this.updateStats();
-        }, 1000);
-    },
-
-    stopTimer() {
-        if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-            this.timerInterval = null;
+            this.updateStatus('¡Perfecto! Siguiente nivel...');
+            setTimeout(() => this.addStepAndShow(), 800);
         }
     },
-
+    
     updateStats() {
-        const timerEl = document.getElementById('timer');
-        const movesEl = document.getElementById('moves');
-
-        if (timerEl) {
-            const minutes = Math.floor(this.timer / 60);
-            const seconds = this.timer % 60;
-            timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        if (movesEl) {
-            movesEl.textContent = this.moves;
-        }
+        const levelEl = document.getElementById('level');
+        const levelDisplay = document.getElementById('level-display');
+        
+        if (levelEl) levelEl.textContent = this.level;
+        if (levelDisplay) levelDisplay.textContent = `Nivel ${this.level}`;
     },
-
-    showCompleteModal() {
-        const modal = document.getElementById('game-complete-modal');
+    
+    updateStatus(message) {
+        const status = document.getElementById('game-status');
+        if (status) status.textContent = message;
+    },
+    
+    endGame() {
+        this.isPlaying = false;
         
-        const minutes = Math.floor(this.timer / 60);
-        const seconds = this.timer % 60;
-        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        // Calculate points
+        const points = this.level * 10 + 50;
         
-        // Calculate points (base 75 - 1 point per move over minimum, minimum 25 points)
-        const minMoves = this.size * this.size * 2;
-        const points = Math.max(25, 75 - Math.max(0, this.moves - minMoves));
-
-        document.getElementById('final-time').textContent = timeStr;
-        document.getElementById('final-moves').textContent = this.moves;
+        document.getElementById('final-level').textContent = this.level - 1;
         document.getElementById('final-points').textContent = `+${points}`;
-
-        // Award points
+        
         this.addPoints(points);
-
-        modal.classList.remove('hidden');
+        
+        setTimeout(() => this.showCompleteModal(), 500);
     },
-
+    
+    showCompleteModal() {
+        document.getElementById('game-complete-modal').classList.remove('hidden');
+    },
+    
     hideCompleteModal() {
         document.getElementById('game-complete-modal').classList.add('hidden');
     },
-
+    
     addPoints(amount) {
         const current = parseInt(localStorage.getItem('userPoints') || '0');
         localStorage.setItem('userPoints', current + amount);
     },
-
-    showToast(message) {
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
-        if (toast && toastMessage) {
-            toastMessage.textContent = message;
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000);
-        }
+    
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 };
 

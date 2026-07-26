@@ -648,7 +648,8 @@ async function initApp() {
         
     } catch (error) {
         console.error('App initialization error:', error);
-        Utils.showToast('Error al inicializar la aplicación', 'error');
+        // Don't show error toast - just continue with login screen
+        Utils.showScreen('login-screen');
     }
 }
 

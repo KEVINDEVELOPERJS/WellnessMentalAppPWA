@@ -1,14 +1,14 @@
-.puzzle-zen-container {
+.ritmo-calma-container {
     padding: 20px;
     max-width: 500px;
     margin: 0 auto;
     min-height: 100vh;
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 50%, #4facfe 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     position: relative;
     overflow: hidden;
 }
 
-.puzzle-zen-container::before {
+.ritmo-calma-container::before {
     content: '';
     position: absolute;
     top: -50%;
@@ -71,13 +71,13 @@
     color: #2c3e50;
 }
 
-.puzzle-board-container {
+.game-board-container {
     display: flex;
     justify-content: center;
     margin-bottom: 20px;
 }
 
-.puzzle-board {
+.game-board {
     position: relative;
     width: 300px;
     height: 300px;
@@ -88,56 +88,66 @@
     border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
-.level-display {
+.target-zone {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 24px;
-    font-weight: bold;
-    color: #2c3e50;
-    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
-    z-index: 10;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #4CAF50, #8BC34A);
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+    z-index: 1;
+}
+
+.indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #FF5722, #FF9800);
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(255, 87, 34, 0.8), 0 0 30px rgba(255, 152, 0, 0.4);
+    z-index: 2;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.indicator:hover {
+    transform: scale(1.2);
+}
+
+.indicator:active {
+    transform: scale(0.9);
+}
+
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
     pointer-events: none;
 }
 
-.circle {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+.feedback-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 
-.circle-0 {
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.circle-1 {
-    top: 50%;
-    right: 20px;
-    transform: translateY(-50%);
-}
-
-.circle-2 {
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.circle-3 {
-    top: 50%;
-    left: 20px;
-    transform: translateY(-50%);
-}
-
-.circle:hover {
-    transform: scale(1.15) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+.feedback-text.show {
+    opacity: 1;
 }
 
 .game-controls {
@@ -192,34 +202,28 @@
 }
 
 @media (max-width: 768px) {
-    .puzzle-board {
+    .game-board {
         width: 250px;
         height: 250px;
     }
     
-    .circle {
-        width: 60px;
-        height: 60px;
+    .target-zone {
+        width: 50px;
+        height: 50px;
     }
     
-    .circle-0 {
-        top: 15px;
+    .indicator {
+        width: 16px;
+        height: 16px;
     }
     
-    .circle-1 {
-        right: 15px;
+    .center-circle {
+        width: 80px;
+        height: 80px;
     }
     
-    .circle-2 {
-        bottom: 15px;
-    }
-    
-    .circle-3 {
-        left: 15px;
-    }
-    
-    .level-display {
-        font-size: 20px;
+    .feedback-text {
+        font-size: 12px;
     }
     
     .game-header h1 {

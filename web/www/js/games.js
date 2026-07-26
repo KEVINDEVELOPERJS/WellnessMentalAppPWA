@@ -92,9 +92,10 @@ class GamesModule {
 
     loadMiniGames() {
         this.miniGames = [
-            { id: 'calma_match', title: 'Calma Match', icon: '🧩', description: 'Juego de memoria', url: 'calma-match.html' },
+            { id: 'calma_match', title: 'Calma Match', icon: '💎', description: 'Match-3 relajante', url: 'calma-match.html' },
             { id: 'mental_garden', title: 'Jardín Mental', icon: '🌱', description: 'Cultiva tu jardín', url: 'mental-garden.html' },
-            { id: 'puzzle_zen', title: 'Puzzle Zen', icon: '🧩', description: 'Rompecabezas relajante', url: 'puzzle-zen.html' }
+            { id: 'puzzle_zen', title: 'Puzzle Zen', icon: '�', description: 'Memoria de patrones', url: 'puzzle-zen.html' },
+            { id: 'ritmo_calma', title: 'Ritmo Calma', icon: '🧘', description: 'Respiración rítmica', url: 'ritmo-calma.html' }
         ];
     }
 

@@ -6,38 +6,40 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#5BA3B8">
-    <title>Puzzle Zen - Wellness Mental</title>
+    <title>Ritmo Calma - Wellness Mental</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/puzzle-zen.css">
+    <link rel="stylesheet" href="css/ritmo-calma.css">
 </head>
 <body>
     <div id="app">
-        <!-- Puzzle Zen Game Screen -->
-        <div id="puzzle-zen-screen" class="screen active">
-            <div class="puzzle-zen-container">
+        <!-- Ritmo Calma Game Screen -->
+        <div id="ritmo-calma-screen" class="screen active">
+            <div class="ritmo-calma-container">
                 <header class="game-header">
                     <button id="back-to-games" class="btn btn-secondary btn-small">
                         ← Volver
                     </button>
-                    <h1>Puzzle Zen</h1>
+                    <h1>Ritmo Calma</h1>
                     <div class="game-stats">
-                        <span class="stat">🎯 <span id="level">1</span></span>
+                        <span class="stat">⭐ <span id="score">0</span></span>
+                        <span class="stat">🔥 <span id="combo">0</span></span>
+                        <span class="stat">⏱️ <span id="timer">1:30</span></span>
                     </div>
                 </header>
 
                 <!-- Game Info -->
                 <div class="game-info">
-                    <p id="game-status">Memoriza el patrón y repítelo</p>
+                    <p id="game-status">Toca cuando el indicador esté en la zona verde</p>
                 </div>
 
                 <!-- Game Board -->
-                <div class="puzzle-board-container">
-                    <div class="puzzle-board" id="puzzle-board">
-                        <div class="level-display" id="level-display">Nivel 1</div>
-                        <div class="circle circle-0" data-index="0"></div>
-                        <div class="circle circle-1" data-index="1"></div>
-                        <div class="circle circle-2" data-index="2"></div>
-                        <div class="circle circle-3" data-index="3"></div>
+                <div class="game-board-container">
+                    <div class="game-board" id="game-board">
+                        <div class="target-zone"></div>
+                        <div class="indicator" id="indicator"></div>
+                        <div class="center-circle">
+                            <div class="feedback-text" id="feedback-text"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -47,7 +49,7 @@
                         ▶️ Iniciar
                     </button>
                     <button id="restart-btn" class="btn btn-secondary hidden">
-                        � Reiniciar
+                        🔄 Reiniciar
                     </button>
                 </div>
 
@@ -55,22 +57,30 @@
                 <div id="game-complete-modal" class="modal hidden">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h2>¡Juego Terminado!</h2>
+                            <h2>¡Sesión Completada!</h2>
                             <button class="btn-close">×</button>
                         </div>
                         <div class="game-complete-content">
-                            <div class="complete-icon">�</div>
+                            <div class="complete-icon">🧘</div>
                             <div class="complete-stats">
                                 <div class="stat-item">
-                                    <span class="stat-label">Nivel Alcanzado</span>
-                                    <span class="stat-value" id="final-level">1</span>
+                                    <span class="stat-label">Puntos</span>
+                                    <span class="stat-value" id="final-score">0</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-label">Puntos</span>
+                                    <span class="stat-label">Combo Máximo</span>
+                                    <span class="stat-value" id="final-combo">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Perfectos</span>
+                                    <span class="stat-value" id="final-perfect">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Puntos Ganados</span>
                                     <span class="stat-value" id="final-points">+50</span>
                                 </div>
                             </div>
-                            <p class="complete-message">¡Excelente memoria! Has completado el Puzzle Zen.</p>
+                            <p class="complete-message">¡Excelente trabajo! Has completado la sesión de ritmo calma.</p>
                         </div>
                         <div class="modal-actions">
                             <button class="btn btn-secondary close-modal-btn">Cerrar</button>
@@ -94,6 +104,6 @@
     </div>
 
     <script src="js/app.js"></script>
-    <script src="js/puzzle-zen.js"></script>
+    <script src="js/ritmo-calma.js"></script>
 </body>
 </html>

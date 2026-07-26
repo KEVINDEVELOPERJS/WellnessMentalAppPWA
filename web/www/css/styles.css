@@ -27,6 +27,26 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    touch-action: manipulation;
+}
+
+/* Compatibility for older browsers */
+@supports not (backdrop-filter: blur(10px)) {
+    .game-board,
+    .garden-slot,
+    .puzzle-board {
+        background: rgba(255, 255, 255, 0.9) !important;
+    }
+}
+
+@supports not (aspect-ratio: 1) {
+    .match-cell,
+    .garden-slot,
+    .puzzle-tile {
+        height: 60px;
+    }
 }
 
 /* App Container */
