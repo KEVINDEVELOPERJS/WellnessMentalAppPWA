@@ -326,8 +326,9 @@ const CalmaMatchModule = {
             const avgRow = totalRow / match.length;
             const avgCol = totalCol / match.length;
             
-            const cellX = (avgCol + 0.5) * (boardRect.width / this.COLS);
-            const cellY = (avgRow + 0.5) * (boardRect.height / this.ROWS);
+            // Calcular posición absoluta en la pantalla
+            const cellX = boardRect.left + (avgCol + 0.5) * (boardRect.width / this.COLS);
+            const cellY = boardRect.top + (avgRow + 0.5) * (boardRect.height / this.ROWS);
             const type = this.grid[Math.floor(avgRow)][Math.floor(avgCol)];
             const color = this.colors[type];
             
@@ -359,8 +360,8 @@ const CalmaMatchModule = {
                 });
                 const avgRow = totalRow / matches[0].length;
                 const avgCol = totalCol / matches[0].length;
-                const comboX = (avgCol + 0.5) * (boardRect.width / this.COLS);
-                const comboY = (avgRow + 0.5) * (boardRect.height / this.ROWS);
+                const comboX = boardRect.left + (avgCol + 0.5) * (boardRect.width / this.COLS);
+                const comboY = boardRect.top + (avgRow + 0.5) * (boardRect.height / this.ROWS);
                 
                 this.fx.spawnComboBanner(comboX, comboY - 60, comboMsg, this.combo);
             }

@@ -106,7 +106,7 @@ const GameFxEngine = {
             color,
             life: 1,
             vy: -2,
-            scale: 1.5
+            scale: 1
         });
         this.ensureRunning();
     },
@@ -121,8 +121,7 @@ const GameFxEngine = {
             text,
             color,
             life: 1,
-            scale: 0,
-            targetScale: 1.2 + comboLevel * 0.1
+            scale: 1
         });
         this.ensureRunning();
     },
@@ -170,7 +169,7 @@ const GameFxEngine = {
             t.y += t.vy;
             t.vy *= 0.95;
             t.life -= 0.03;
-            t.scale *= 0.98;
+            // Sin scale para evitar zoom
 
             if (t.life <= 0) {
                 this.floatingTexts.splice(i, 1);
@@ -183,10 +182,8 @@ const GameFxEngine = {
         for (let i = this.comboBanners.length - 1; i >= 0; i--) {
             const b = this.comboBanners[i];
             
-            // Animación de entrada
-            if (b.scale < b.targetScale) {
-                b.scale += (b.targetScale - b.scale) * 0.2;
-            }
+            // Sin animación de zoom - mantener escala constante
+            b.scale = 1;
             
             b.life -= 0.02;
             
@@ -276,7 +273,6 @@ const GameFxEngine = {
                 font-size: 24px;
                 font-weight: bold;
                 opacity: ${t.life};
-                transform: scale(${t.scale});
                 pointer-events: none;
                 z-index: 1001;
                 text-shadow: 0 2px 4px rgba(0,0,0,0.3);
@@ -304,7 +300,7 @@ const GameFxEngine = {
                 font-size: 32px;
                 font-weight: bold;
                 opacity: ${b.life};
-                transform: scale(${b.scale}) translate(-50%, -50%);
+                transform: translate(-50%, -50%);
                 pointer-events: none;
                 z-index: 1002;
                 text-shadow: 0 0 20px ${b.color}, 0 4px 8px rgba(0,0,0,0.3);
