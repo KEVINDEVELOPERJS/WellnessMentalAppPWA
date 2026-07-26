@@ -103,13 +103,12 @@ const MentalGardenModule = {
             const progress = Math.min(100, Math.round((slot.stage / (plant.stages.length - 1)) * 100));
             const canWater = this.canWaterToday(slot);
 
+            const stageText = `Etapa ${slot.stage + 1}/4`;
             return `
                 <div class="garden-slot occupied ${this.selectedSlot === index ? 'selected' : ''}" data-slot="${index}">
                     <div class="plant-display">${plant.stages[stageIndex]}</div>
                     ${canWater ? '<div class="plant-water-indicator">💧</div>' : ''}
-                    <div class="plant-progress-bar">
-                        <div class="plant-progress-fill" style="width: ${progress}%"></div>
-                    </div>
+                    <div class="plant-stage-text">${stageText}</div>
                 </div>
             `;
         }).join('');
@@ -252,6 +251,7 @@ const MentalGardenModule = {
         this.saveGardenState();
         this.renderGarden();
         this.hidePlantSelection();
+        this.animateNewPlant(slotIndex);
         this.showToast(`¡${this.selectedPlant?.name || 'Planta'} plantada! -${this.selectedPlant?.cost || 0} pts`, 'success');
     },
 
@@ -315,8 +315,13 @@ const MentalGardenModule = {
         
         // Grow the plant
         const plant = this.plants.find(p => p.id === slot.plantId);
+        const previousStage = slot.stage;
         if (plant && slot.stage < plant.stages.length - 1) {
             slot.stage++;
+            // Animate flowering if stage increased from > 0
+            if (previousStage > 0) {
+                this.animateFlowering(this.selectedSlot);
+            }
         }
 
         // Update streak
@@ -382,6 +387,60 @@ const MentalGardenModule = {
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 3000);
+        }
+    },
+    
+    animateFlowering: function(slotIndex) {
+        const slot = document.querySelector(`.garden-slot[data-slot="${slotIndex}"]`);
+        if (!slot) return;
+        
+        // Create flowering circle animation
+        const circle = document.createElement('div');
+        circle.className = 'flowering-circle';
+        slot.appendChild(circle);
+        
+        // Animate plant scale
+        const plantDisplay = slot.querySelector('.plant-display');
+        if (plantDisplay) {
+            plantDisplay.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            plantDisplay.style.transform = 'scale(1.25)';
+            setTimeout(() => {
+                plantDisplay.style.transform = 'scale(1)';
+            }, 300);
+        }
+        
+        // Remove circle after animation
+        setTimeout(() => {
+            circle.remove();
+        }, 700);
+    },
+    
+    animateWatering: function(slotIndex) {
+        const slot = document.querySelector(`.garden-slot[data-slot="${slotIndex}"]`);
+        if (!slot) return;
+        
+        // Create water overlay animation
+        const waterOverlay = document.createElement('div');
+        waterOverlay.className = 'water-overlay';
+        slot.appendChild(waterOverlay);
+        
+        // Remove after animation
+        setTimeout(() => {
+            waterOverlay.remove();
+        }, 800);
+    },
+    
+    animateNewPlant: function(slotIndex) {
+        const slot = document.querySelector(`.garden-slot[data-slot="${slotIndex}"]`);
+        if (!slot) return;
+        
+        const plantDisplay = slot.querySelector('.plant-display');
+        if (plantDisplay) {
+            plantDisplay.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            plantDisplay.style.transform = 'scale(0)';
+            setTimeout(() => {
+                plantDisplay.style.transform = 'scale(1)';
+            }, 50);
         }
     }
 };

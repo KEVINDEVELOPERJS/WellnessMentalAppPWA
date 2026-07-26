@@ -107,6 +107,8 @@ const RitmoCalmaModule = {
         this.fx.init();
         this.playStartTone();
         this.updateStats();
+        this.updateOrbColor();
+        this.updateComboText();
         this.startAnimation();
         this.startTimer();
         
@@ -156,9 +158,36 @@ const RitmoCalmaModule = {
         }
         
         // Aplicar escala al orbe central
-        const centerCircle = document.querySelector('.center-circle');
-        if (centerCircle) {
-            centerCircle.style.transform = `scale(${this.pulseScale})`;
+        const centralOrb = document.getElementById('central-orb');
+        if (centralOrb) {
+            const baseRadius = 66;
+            const newRadius = baseRadius * this.pulseScale;
+            centralOrb.setAttribute('r', newRadius);
+        }
+    },
+    
+    updateOrbColor() {
+        const centralOrb = document.getElementById('central-orb');
+        if (!centralOrb) return;
+        
+        let color;
+        if (this.combo >= 15) {
+            color = '#F44336'; // Red
+        } else if (this.combo >= 10) {
+            color = '#FF9800'; // Orange
+        } else if (this.combo >= 5) {
+            color = '#B3E5FC'; // Light blue
+        } else {
+            color = '#667eea'; // Primary purple
+        }
+        
+        centralOrb.style.fill = color;
+    },
+    
+    updateComboText() {
+        const comboText = document.getElementById('combo-text');
+        if (comboText) {
+            comboText.textContent = `COMBO x${this.combo}`;
         }
     },
 
@@ -169,6 +198,7 @@ const RitmoCalmaModule = {
         if (this.feedbackAlpha > 0) {
             feedbackText.style.opacity = this.feedbackAlpha;
             feedbackText.textContent = this.feedbackText;
+            feedbackText.classList.add('show');
             
             // Color según resultado
             const colors = {
@@ -176,12 +206,13 @@ const RitmoCalmaModule = {
                 'GOOD': '#2196F3',
                 'MISS': '#F44336'
             };
-            feedbackText.style.color = colors[this.lastResult] || '#4CAF50';
+            feedbackText.style.fill = colors[this.lastResult] || '#4CAF50';
             
             this.feedbackAlpha -= 0.02;
             if (this.feedbackAlpha < 0) this.feedbackAlpha = 0;
         } else {
             feedbackText.style.opacity = 0;
+            feedbackText.classList.remove('show');
         }
     },
     
@@ -222,19 +253,24 @@ const RitmoCalmaModule = {
     },
     
     checkTap() {
-        const targetAngle = 0; // Top position (0 degrees)
-        const tolerance = 30; // Degrees tolerance
+        // Target zone is from -45° to 45° (90° arc at top)
+        const normalizedAngle = this.normalizeAngle(this.angle);
+        const absAngle = Math.abs(normalizedAngle);
         
-        const angleDiff = Math.abs(this.angle - targetAngle);
-        const wrappedDiff = Math.min(angleDiff, 360 - angleDiff);
-        
-        if (wrappedDiff <= tolerance / 2) {
+        if (absAngle <= 12) {
             return 'PERFECT';
-        } else if (wrappedDiff <= tolerance) {
+        } else if (absAngle <= 25) {
             return 'GOOD';
         } else {
             return 'MISS';
         }
+    },
+    
+    normalizeAngle(angle) {
+        let a = angle % 360;
+        if (a > 180) a -= 360;
+        if (a < -180) a += 360;
+        return a;
     },
     
     processResult(result) {
@@ -282,6 +318,8 @@ const RitmoCalmaModule = {
         }
         
         this.updateStats();
+        this.updateOrbColor();
+        this.updateComboText();
     },
 
     getComboMultiplier(combo) {

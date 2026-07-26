@@ -38,11 +38,23 @@
                 <!-- Game Board -->
                 <div class="game-board-container">
                     <div class="game-board" id="game-board">
-                        <div class="target-zone"></div>
+                        <svg class="game-board-svg" viewBox="0 0 300 300">
+                            <defs>
+                                <linearGradient id="zoneGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.8" />
+                                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:0.8" />
+                                </linearGradient>
+                            </defs>
+                            <!-- Target zone arc (90 degrees) -->
+                            <path id="target-zone" class="target-zone-arc" d="M 150 30 A 120 120 0 0 1 270 150" fill="none" stroke="url(#zoneGradient)" stroke-width="16" stroke-linecap="round" />
+                            <!-- Central orb -->
+                            <circle id="central-orb" class="central-orb" cx="150" cy="150" r="66" />
+                            <!-- Combo text -->
+                            <text id="combo-text" class="combo-text" x="150" y="210" text-anchor="middle">COMBO x0</text>
+                            <!-- Feedback text -->
+                            <text id="feedback-text" class="feedback-text-svg" x="150" y="130" text-anchor="middle"></text>
+                        </svg>
                         <div class="indicator" id="indicator"></div>
-                        <div class="center-circle">
-                            <div class="feedback-text" id="feedback-text"></div>
-                        </div>
                     </div>
                 </div>
 

@@ -83,8 +83,28 @@ const CalmaMatchModule = {
     },
 
     createFxContainer() {
-        // Desactivado - no crear contenedor de efectos
-        return;
+        // Crear contenedor de efectos si no existe
+        let container = document.getElementById('fx-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'fx-container';
+            container.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 1000;
+                overflow: hidden;
+            `;
+            const boardContainer = document.querySelector('.game-board-container');
+            if (boardContainer) {
+                boardContainer.appendChild(container);
+            }
+        }
+        this.fx = GameFxEngine;
+        this.fx.init();
     },
     
     startGame() {
@@ -96,7 +116,7 @@ const CalmaMatchModule = {
         this.timeLeft = this.DURATION;
         this.selectedCell = null;
         
-        // this.fx.init(); // Desactivado
+        this.fx.init();
         this.generateGrid();
         this.renderBoard();
         this.updateStats();
@@ -114,7 +134,7 @@ const CalmaMatchModule = {
     stopGame() {
         this.gameStarted = false;
         this.isProcessing = false;
-        this.fx.stop();
+        if (this.fx) this.fx.stop();
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
@@ -213,7 +233,7 @@ const CalmaMatchModule = {
             this.renderBoard();
             
             // Shake effect para movimiento inválido
-            this.fx.triggerShake(8);
+            if (this.fx) this.fx.triggerShake(8);
             await this.delay(300);
             
             this.isProcessing = false;
@@ -305,15 +325,75 @@ const CalmaMatchModule = {
         this.score += points;
         this.updateStats();
         
-        // Desactivar temporalmente efectos visuales para aislar el problema
         // Calcular centro de los matches para efectos
         const boardRect = board.getBoundingClientRect();
-        const centerX = boardRect.width / 2;
-        const centerY = boardRect.height / 2;
+        let centerX = 0, centerY = 0;
+        let totalCells = 0;
         
-        // Efectos desactivados temporalmente
+        matches.forEach(match => {
+            match.forEach(({ row, col }) => {
+                const cell = board.children[row * this.COLS + col];
+                if (cell) {
+                    const rect = cell.getBoundingClientRect();
+                    centerX += rect.left + rect.width / 2 - boardRect.left;
+                    centerY += rect.top + rect.height / 2 - boardRect.top;
+                    totalCells++;
+                }
+            });
+        });
         
-        // Remove matches from grid immediately without animation
+        if (totalCells > 0) {
+            centerX /= totalCells;
+            centerY /= totalCells;
+        }
+        
+        // Efectos visuales activados
+        const dominantType = matches[0]?.[0] ? this.grid[matches[0][0].row][matches[0][0].col] : 0;
+        const color = this.colors[dominantType] || '#FFC107';
+        
+        // Spawn particle burst
+        this.fx.spawnParticleBurst(centerX, centerY, color, matches.length * 4 + this.combo * 3, 1 + this.combo * 0.25);
+        
+        // Spawn score popup
+        this.fx.spawnScorePopup(centerX, centerY - 20, points, color);
+        
+        // Combo banner
+        if (this.combo >= 2) {
+            const comboMsg = GameFxEngine.getComboMessage(this.combo);
+            if (comboMsg) {
+                this.fx.spawnComboBanner(boardRect.width / 2, boardRect.height * 0.38, comboMsg, this.combo);
+                this.showComboSpecial(this.combo, comboMsg);
+            }
+        }
+        
+        // Match length messages
+        matches.forEach(match => {
+            const matchMsg = GameFxEngine.getMatchMessage(match.length);
+            if (matchMsg) {
+                const firstCell = match[0];
+                const cell = board.children[firstCell.row * this.COLS + firstCell.col];
+                if (cell) {
+                    const rect = cell.getBoundingClientRect();
+                    const cellX = rect.left + rect.width / 2 - boardRect.left;
+                    const cellY = rect.top + rect.height / 2 - boardRect.top;
+                    this.fx.spawnComboBanner(cellX, cellY - 30, matchMsg, this.combo + 2);
+                }
+            }
+        });
+        
+        // Flash and shake for high combos
+        if (this.combo >= 4) {
+            this.fx.triggerFlash(color, 0.2 + this.combo * 0.04);
+            this.fx.triggerShake(Math.min(this.combo * 2.5, 18));
+        }
+        if (this.combo >= 6) {
+            this.fx.triggerFlash('#FFC107', 0.35);
+            this.fx.triggerShake(12);
+        }
+        
+        // Animate matches elimination
+        await this.animateMatches(matches, this.combo, points);
+        // Remove matches from grid after animation
         matches.forEach(match => {
             match.forEach(({ row, col }) => {
                 this.grid[row][col] = -1;
@@ -432,6 +512,60 @@ const CalmaMatchModule = {
     
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    
+    async animateMatches(matches, comboLevel, pointsGained) {
+        const board = document.getElementById('game-board');
+        if (!board) return;
+        
+        // Add eliminating class to matched cells
+        matches.forEach(match => {
+            match.forEach(({ row, col }) => {
+                const cell = board.children[row * this.COLS + col];
+                if (cell) {
+                    cell.classList.add('eliminating');
+                }
+            });
+        });
+        
+        // Duration based on combo level
+        const duration = comboLevel >= 5 ? 380 : comboLevel >= 3 ? 320 : 260;
+        await this.delay(duration);
+        
+        // Remove eliminating class
+        matches.forEach(match => {
+            match.forEach(({ row, col }) => {
+                const cell = board.children[row * this.COLS + col];
+                if (cell) {
+                    cell.classList.remove('eliminating');
+                }
+            });
+        });
+    },
+    
+    showComboSpecial(combo, message) {
+        const comboEl = document.getElementById('combo');
+        if (!comboEl) return;
+        
+        // Color based on combo level
+        let color = '#666';
+        if (combo >= 8) color = '#F44336';
+        else if (combo >= 5) color = '#FF9800';
+        else if (combo >= 3) color = '#2196F3';
+        else if (combo >= 2) color = '#4CAF50';
+        
+        comboEl.textContent = message;
+        comboEl.style.color = color;
+        comboEl.style.fontWeight = 'bold';
+        comboEl.style.fontSize = '18px';
+        
+        // Reset after delay
+        setTimeout(() => {
+            comboEl.textContent = this.combo;
+            comboEl.style.color = '';
+            comboEl.style.fontWeight = '';
+            comboEl.style.fontSize = '';
+        }, 1500);
     }
 };
 

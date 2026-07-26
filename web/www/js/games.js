@@ -92,10 +92,11 @@ class GamesModule {
 
     loadMiniGames() {
         this.miniGames = [
-            { id: 'calma_match', title: 'Calma Match', icon: '💎', description: 'Match-3 relajante', url: 'calma-match.html' },
-            { id: 'mental_garden', title: 'Jardín Mental', icon: '🌱', description: 'Cultiva tu jardín', url: 'mental-garden.html' },
-            { id: 'puzzle_zen', title: 'Puzzle Zen', icon: '�', description: 'Memoria de patrones', url: 'puzzle-zen.html' },
-            { id: 'ritmo_calma', title: 'Ritmo Calma', icon: '🧘', description: 'Respiración rítmica', url: 'ritmo-calma.html' }
+            { id: 'calma_match', nombre: 'Calma Match', descripcion: 'Combina gemas emocionales. ¡Sube en el ranking!', duracionMaxMin: 5, icono: '🍬', disponible: true, url: 'calma-match.html' },
+            { id: 'jardin_mental', nombre: 'Jardín Mental', descripcion: 'Cultiva plantas con tu autocuidado diario', duracionMaxMin: 0, icono: '🌱', disponible: true, url: 'mental-garden.html' },
+            { id: 'ritmo_calma', nombre: 'Ritmo Calma', descripcion: 'Toca al ritmo del orbe. ¡Sube tu combo!', duracionMaxMin: 5, icono: '🎵', disponible: true, url: 'ritmo-calma.html' },
+            { id: 'puzzle_zen', nombre: 'Puzzle Zen', descripcion: 'Memoriza patrones relajantes', duracionMaxMin: 5, icono: '🧩', disponible: true, url: 'puzzle-zen.html' },
+            { id: 'arte_emocional', nombre: 'Arte Emocional', descripcion: 'Expresa tus emociones con color', duracionMaxMin: 3, icono: '🎨', disponible: true, url: 'arte-emocional.html' }
         ];
     }
 
@@ -237,22 +238,40 @@ class GamesModule {
     }
 
     renderMiniGames() {
-        const gamesGrid = document.getElementById('mini-games-grid');
-        gamesGrid.innerHTML = this.miniGames.map(game => `
-            <div class="game-card" data-game-id="${game.id}">
-                <div class="game-icon">${game.icon}</div>
-                <div class="game-title">${game.title}</div>
-                <div class="game-description">${game.description}</div>
+        const gamesList = document.getElementById('mini-games-list');
+        gamesList.innerHTML = this.miniGames.map((game, index) => {
+            const animClass = this.getAnimationClass(game.id);
+            const buttonText = game.disponible ? 'Jugar' : 'Próximamente';
+            return `
+            <div class="game-card ${!game.disponible ? 'unavailable' : ''}" data-game-id="${game.id}">
+                <div class="game-icon ${game.disponible ? animClass : ''}">${game.icono}</div>
+                <div class="game-info">
+                    <div class="game-title">${game.nombre}</div>
+                    <div class="game-description">${game.descripcion}</div>
+                </div>
+                <button class="game-button" ${!game.disponible ? 'disabled' : ''}>${buttonText}</button>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Add click listeners for games
-        gamesGrid.querySelectorAll('.game-card').forEach(card => {
+        gamesList.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('click', (e) => {
                 const gameId = e.currentTarget.dataset.gameId;
                 this.openGame(gameId);
             });
         });
+    }
+
+    getAnimationClass(gameId) {
+        const animations = {
+            'calma_match': 'anim-pulse',
+            'jardin_mental': 'anim-bounce',
+            'ritmo_calma': 'anim-shake',
+            'puzzle_zen': 'anim-spin',
+            'arte_emocional': 'anim-pop'
+        };
+        return animations[gameId] || '';
     }
 
     openGame(gameId) {
