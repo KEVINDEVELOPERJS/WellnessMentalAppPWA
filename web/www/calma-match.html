@@ -44,7 +44,7 @@
 
                 <!-- Game Controls -->
                 <div class="game-controls">
-                    <button id="start-btn" class="btn btn-primary">
+                    <button id="start-btn" class="btn btn-primary" onclick="console.log('Inline click'); if(typeof CalmaMatchModule !== 'undefined') CalmaMatchModule.startGame(); else console.error('Module not found');">
                         ▶️ Iniciar Juego
                     </button>
                     <button id="restart-btn" class="btn btn-secondary hidden">

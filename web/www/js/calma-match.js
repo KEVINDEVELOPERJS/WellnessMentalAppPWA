@@ -20,6 +20,8 @@ const CalmaMatchModule = {
     fx: null,
     
     init() {
+        console.log('CalmaMatchModule init called');
+        console.log('Start button exists:', !!document.getElementById('start-btn'));
         this.setupEventListeners();
         this.renderInitialBoard();
         this.createFxContainer();
@@ -36,7 +38,13 @@ const CalmaMatchModule = {
         
         const startBtn = document.getElementById('start-btn');
         if (startBtn) {
-            startBtn.addEventListener('click', () => this.startGame());
+            startBtn.addEventListener('click', (e) => {
+                console.log('Start button clicked');
+                e.preventDefault();
+                this.startGame();
+            });
+        } else {
+            console.error('Start button not found');
         }
         
         const restartBtn = document.getElementById('restart-btn');
@@ -103,11 +111,18 @@ const CalmaMatchModule = {
                 boardContainer.appendChild(container);
             }
         }
-        this.fx = GameFxEngine;
-        this.fx.init();
+        if (typeof GameFxEngine !== 'undefined') {
+            this.fx = GameFxEngine;
+            this.fx.init();
+        } else {
+            console.error('GameFxEngine not available during createFxContainer');
+        }
     },
     
     startGame() {
+        console.log('startGame called');
+        
+        // Reset game state
         this.gameStarted = true;
         this.isProcessing = false;
         this.score = 0;
@@ -115,15 +130,34 @@ const CalmaMatchModule = {
         this.maxCombo = 0;
         this.timeLeft = this.DURATION;
         this.selectedCell = null;
+        this.fx = null; // Disable FX for now
         
-        this.fx.init();
+        console.log('Generating grid...');
         this.generateGrid();
+        console.log('Grid generated:', this.grid);
+        
+        console.log('Rendering board...');
         this.renderBoard();
+        
+        console.log('Updating stats...');
         this.updateStats();
+        
+        console.log('Starting timer...');
         this.startTimer();
         
-        document.getElementById('start-btn').classList.add('hidden');
-        document.getElementById('restart-btn').classList.remove('hidden');
+        console.log('Hiding start button, showing restart button...');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        if (startBtn) {
+            startBtn.classList.add('hidden');
+            console.log('Start button hidden');
+        }
+        if (restartBtn) {
+            restartBtn.classList.remove('hidden');
+            console.log('Restart button shown');
+        }
+        
+        console.log('Game started successfully');
     },
     
     restartGame() {
@@ -156,8 +190,12 @@ const CalmaMatchModule = {
     
     renderBoard() {
         const board = document.getElementById('game-board');
-        if (!board) return;
+        if (!board) {
+            console.error('Game board element not found');
+            return;
+        }
         
+        console.log('Rendering board, grid:', this.grid);
         board.innerHTML = '';
         board.style.gridTemplateColumns = `repeat(${this.COLS}, 1fr)`;
         
@@ -571,5 +609,26 @@ const CalmaMatchModule = {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded, initializing CalmaMatchModule');
     CalmaMatchModule.init();
 });
+
+// Fallback in case DOMContentLoaded already fired
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    console.log('DOM already ready, initializing CalmaMatchModule');
+    CalmaMatchModule.init();
+}
+
+// Direct event listener as fallback
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'start-btn') {
+        console.log('Direct click listener triggered');
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof CalmaMatchModule !== 'undefined') {
+            CalmaMatchModule.startGame();
+        } else {
+            console.error('CalmaMatchModule not defined');
+        }
+    }
+}, true);
