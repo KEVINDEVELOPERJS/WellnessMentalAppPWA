@@ -624,6 +624,9 @@ let authController;
 
 async function initApp() {
     try {
+        // Show login screen immediately
+        Utils.showScreen('login-screen');
+        
         // Initialize database
         dbManager = new DatabaseManager();
         await dbManager.init();
@@ -639,8 +642,6 @@ async function initApp() {
         
         if (hasSession) {
             await showDashboard();
-        } else {
-            Utils.showScreen('login-screen');
         }
         
         // Seed initial data if needed
@@ -648,7 +649,7 @@ async function initApp() {
         
     } catch (error) {
         console.error('App initialization error:', error);
-        // Don't show error toast - just continue with login screen
+        // Ensure login screen is shown even on error
         Utils.showScreen('login-screen');
     }
 }

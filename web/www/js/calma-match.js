@@ -5,7 +5,7 @@ const CalmaMatchModule = {
     TYPES: 5,
     DURATION: 90, // seconds
     
-    emojis: ['💜', '💚', '💙', '⭐', '�'],
+    emojis: ['💜', '💚', '💙', '⭐', '🌸'],
     colors: ['#9C27B0', '#4CAF50', '#2196F3', '#FFC107', '#E91E63'],
     
     grid: [],

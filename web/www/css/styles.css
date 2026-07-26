@@ -66,6 +66,15 @@ body {
     display: block;
 }
 
+/* Ensure login screen is visible by default */
+#login-screen {
+    display: block;
+}
+
+#login-screen:not(.active) {
+    display: none;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
