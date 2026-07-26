@@ -784,190 +784,253 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
     
     // Login form
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
-        
-        Utils.showLoading();
-        
-        const result = await authController.login(email, password);
-        
-        Utils.hideLoading();
-        
-        if (result.success) {
-            AppState.currentUser = result.user;
-            AppState.token = result.token;
-            Utils.showToast('Bienvenido de nuevo', 'success');
-            await showDashboard();
-        } else {
-            Utils.showToast(result.error, 'error');
-        }
-    });
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            Utils.showLoading();
+            
+            const result = await authController.login(email, password);
+            
+            Utils.hideLoading();
+            
+            if (result.success) {
+                AppState.currentUser = result.user;
+                AppState.token = result.token;
+                Utils.showToast('Bienvenido de nuevo', 'success');
+                await showDashboard();
+            } else {
+                Utils.showToast(result.error, 'error');
+            }
+        });
+    }
     
     // Register form
-    document.getElementById('register-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const userData = {
-            name: document.getElementById('register-name').value,
-            email: document.getElementById('register-email').value,
-            password: document.getElementById('register-password').value,
-            age: parseInt(document.getElementById('register-age').value),
-            role: document.getElementById('register-role').value,
-            grade: document.getElementById('register-grade').value
-        };
-        
-        Utils.showLoading();
-        
-        const result = await authController.register(userData);
-        
-        Utils.hideLoading();
-        
-        if (result.success) {
-            Utils.showToast('Cuenta creada exitosamente', 'success');
-            Utils.showScreen('login-screen');
-        } else {
-            Utils.showToast(result.error, 'error');
-        }
-    });
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userData = {
+                name: document.getElementById('register-name').value,
+                email: document.getElementById('register-email').value,
+                password: document.getElementById('register-password').value,
+                age: parseInt(document.getElementById('register-age').value),
+                role: document.getElementById('register-role').value,
+                grade: document.getElementById('register-grade').value
+            };
+            
+            Utils.showLoading();
+            
+            const result = await authController.register(userData);
+            
+            Utils.hideLoading();
+            
+            if (result.success) {
+                Utils.showToast('Cuenta creada exitosamente', 'success');
+                Utils.showScreen('login-screen');
+            } else {
+                Utils.showToast(result.error, 'error');
+            }
+        });
+    }
     
     // Navigation links
-    document.getElementById('go-to-register').addEventListener('click', (e) => {
-        e.preventDefault();
-        Utils.showScreen('register-screen');
-    });
+    const goToRegister = document.getElementById('go-to-register');
+    if (goToRegister) {
+        goToRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            Utils.showScreen('register-screen');
+        });
+    }
     
-    document.getElementById('go-to-login').addEventListener('click', (e) => {
-        e.preventDefault();
-        Utils.showScreen('login-screen');
-    });
+    const goToLogin = document.getElementById('go-to-login');
+    if (goToLogin) {
+        goToLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            Utils.showScreen('login-screen');
+        });
+    }
     
     // Role change handler
-    document.getElementById('register-role').addEventListener('change', (e) => {
-        const role = e.target.value;
-        const gradeGroup = document.getElementById('grade-group');
-        
-        if (role === 'psicologo') {
-            gradeGroup.classList.add('hidden');
-        } else {
-            gradeGroup.classList.remove('hidden');
-        }
-    });
+    const registerRole = document.getElementById('register-role');
+    if (registerRole) {
+        registerRole.addEventListener('change', (e) => {
+            const role = e.target.value;
+            const gradeGroup = document.getElementById('grade-group');
+            
+            if (role === 'psicologo') {
+                gradeGroup.classList.add('hidden');
+            } else {
+                gradeGroup.classList.remove('hidden');
+            }
+        });
+    }
     
     // Age change handler for tutor email
-    document.getElementById('register-age').addEventListener('change', (e) => {
-        const age = parseInt(e.target.value);
-        const tutorGroup = document.getElementById('tutor-email-group');
-        
-        if (age < 16) {
-            tutorGroup.classList.remove('hidden');
-        } else {
-            tutorGroup.classList.add('hidden');
-        }
-    });
+    const registerAge = document.getElementById('register-age');
+    if (registerAge) {
+        registerAge.addEventListener('change', (e) => {
+            const age = parseInt(e.target.value);
+            const tutorGroup = document.getElementById('tutor-email-group');
+            
+            if (age < 16) {
+                tutorGroup.classList.remove('hidden');
+            } else {
+                tutorGroup.classList.add('hidden');
+            }
+        });
+    }
 
     // Password visibility toggle for login
-    document.getElementById('toggle-login-password').addEventListener('click', () => {
-        const passwordInput = document.getElementById('login-password');
-        const toggleBtn = document.getElementById('toggle-login-password');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleBtn.textContent = '🙈';
-        } else {
-            passwordInput.type = 'password';
-            toggleBtn.textContent = '👁️';
-        }
-    });
+    const toggleLoginPassword = document.getElementById('toggle-login-password');
+    if (toggleLoginPassword) {
+        toggleLoginPassword.addEventListener('click', () => {
+            const passwordInput = document.getElementById('login-password');
+            const toggleBtn = document.getElementById('toggle-login-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        });
+    }
 
     // Password visibility toggle for register
-    document.getElementById('toggle-register-password').addEventListener('click', () => {
-        const passwordInput = document.getElementById('register-password');
-        const toggleBtn = document.getElementById('toggle-register-password');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleBtn.textContent = '🙈';
-        } else {
-            passwordInput.type = 'password';
-            toggleBtn.textContent = '👁️';
-        }
-    });
+    const toggleRegisterPassword = document.getElementById('toggle-register-password');
+    if (toggleRegisterPassword) {
+        toggleRegisterPassword.addEventListener('click', () => {
+            const passwordInput = document.getElementById('register-password');
+            const toggleBtn = document.getElementById('toggle-register-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        });
+    }
 
     // Password requirements validation
-    document.getElementById('register-password').addEventListener('input', (e) => {
-        const password = e.target.value;
-        
-        // Check each requirement
-        const hasLength = password.length >= 8;
-        const hasUppercase = /[A-Z]/.test(password);
-        const hasNumber = /\d/.test(password);
-        const hasSpecial = /[!@#$%^&*]/.test(password);
-        
-        // Update requirement indicators
-        updateRequirement('req-length', hasLength);
-        updateRequirement('req-uppercase', hasUppercase);
-        updateRequirement('req-number', hasNumber);
-        updateRequirement('req-special', hasSpecial);
-    });
+    const registerPassword = document.getElementById('register-password');
+    if (registerPassword) {
+        registerPassword.addEventListener('input', (e) => {
+            const password = e.target.value;
+            
+            // Check each requirement
+            const hasLength = password.length >= 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*]/.test(password);
+            
+            // Update requirement indicators
+            updateRequirement('req-length', hasLength);
+            updateRequirement('req-uppercase', hasUppercase);
+            updateRequirement('req-number', hasNumber);
+            updateRequirement('req-special', hasSpecial);
+        });
 
-    function updateRequirement(id, isValid) {
-        const element = document.getElementById(id);
-        element.classList.remove('valid', 'invalid');
-        element.classList.add(isValid ? 'valid' : 'invalid');
+        function updateRequirement(id, isValid) {
+            const element = document.getElementById(id);
+            element.classList.remove('valid', 'invalid');
+            element.classList.add(isValid ? 'valid' : 'invalid');
+        }
     }
     
     // Logout button
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-        await authController.logout();
-        Utils.showScreen('login-screen');
-        Utils.showToast('Sesión cerrada', 'success');
-    });
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            await authController.logout();
+            Utils.showScreen('login-screen');
+            Utils.showToast('Sesión cerrada', 'success');
+        });
+    }
     
     // Dashboard card buttons
-    document.getElementById('evaluation-btn').addEventListener('click', () => {
-        window.location.href = 'evaluation.html';
-    });
+    const evaluationBtn = document.getElementById('evaluation-btn');
+    if (evaluationBtn) {
+        evaluationBtn.addEventListener('click', () => {
+            window.location.href = 'evaluation.html';
+        });
+    }
     
-    document.getElementById('chat-btn').addEventListener('click', () => {
-        window.location.href = 'chat.html';
-    });
+    const chatBtn = document.getElementById('chat-btn');
+    if (chatBtn) {
+        chatBtn.addEventListener('click', () => {
+            window.location.href = 'chat.html';
+        });
+    }
     
-    document.getElementById('exercises-btn').addEventListener('click', () => {
-        window.location.href = 'exercises.html';
-    });
+    const exercisesBtn = document.getElementById('exercises-btn');
+    if (exercisesBtn) {
+        exercisesBtn.addEventListener('click', () => {
+            window.location.href = 'exercises.html';
+        });
+    }
     
-    document.getElementById('games-btn').addEventListener('click', () => {
-        window.location.href = 'games.html';
-    });
+    const gamesBtn = document.getElementById('games-btn');
+    if (gamesBtn) {
+        gamesBtn.addEventListener('click', () => {
+            window.location.href = 'games.html';
+        });
+    }
     
-    document.getElementById('videos-btn').addEventListener('click', () => {
-        window.location.href = 'videos.html';
-    });
+    const videosBtn = document.getElementById('videos-btn');
+    if (videosBtn) {
+        videosBtn.addEventListener('click', () => {
+            window.location.href = 'videos.html';
+        });
+    }
     
-    document.getElementById('active-breaks-btn').addEventListener('click', () => {
-        window.location.href = 'active-breaks.html';
-    });
+    const activeBreaksBtn = document.getElementById('active-breaks-btn');
+    if (activeBreaksBtn) {
+        activeBreaksBtn.addEventListener('click', () => {
+            window.location.href = 'active-breaks.html';
+        });
+    }
     
-    document.getElementById('mental-garden-btn').addEventListener('click', () => {
-        window.location.href = 'mental-garden.html';
-    });
+    const mentalGardenBtn = document.getElementById('mental-garden-btn');
+    if (mentalGardenBtn) {
+        mentalGardenBtn.addEventListener('click', () => {
+            window.location.href = 'mental-garden.html';
+        });
+    }
     
-    document.getElementById('parent-reports-btn').addEventListener('click', () => {
-        window.location.href = 'parent-reports.html';
-    });
+    const parentReportsBtn = document.getElementById('parent-reports-btn');
+    if (parentReportsBtn) {
+        parentReportsBtn.addEventListener('click', () => {
+            window.location.href = 'parent-reports.html';
+        });
+    }
     
-    document.getElementById('community-btn').addEventListener('click', () => {
-        window.location.href = 'community.html';
-    });
+    const communityBtn = document.getElementById('community-btn');
+    if (communityBtn) {
+        communityBtn.addEventListener('click', () => {
+            window.location.href = 'community.html';
+        });
+    }
     
-    document.getElementById('alerts-btn').addEventListener('click', () => {
-        window.location.href = 'alerts.html';
-    });
+    const alertsBtn = document.getElementById('alerts-btn');
+    if (alertsBtn) {
+        alertsBtn.addEventListener('click', () => {
+            window.location.href = 'alerts.html';
+        });
+    }
     
-    document.getElementById('profile-btn').addEventListener('click', () => {
-        window.location.href = 'profile.html';
-    });
+    const profileBtn = document.getElementById('profile-btn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+            window.location.href = 'profile.html';
+        });
+    }
 });
