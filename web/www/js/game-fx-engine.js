@@ -126,17 +126,16 @@ const GameFxEngine = {
         this.ensureRunning();
     },
 
-    // Trigger shake effect
+    // Trigger shake effect - desactivado para evitar zoom
     triggerShake(intensity) {
-        this.shakeIntensity = intensity;
-        this.ensureRunning();
+        // No hacer nada para evitar efectos de zoom
+        return;
     },
 
-    // Trigger flash effect
+    // Trigger flash effect - desactivado para evitar zoom
     triggerFlash(color, alpha = 0.3) {
-        this.flashColor = color;
-        this.flashAlpha = alpha;
-        this.ensureRunning();
+        // No hacer nada para evitar efectos de zoom
+        return;
     },
 
     // Asegurar que el motor esté corriendo

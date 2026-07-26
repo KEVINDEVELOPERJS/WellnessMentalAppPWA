@@ -146,8 +146,8 @@ const CalmaMatchModule = {
         board.innerHTML = '';
         board.style.gridTemplateColumns = `repeat(${this.COLS}, 1fr)`;
         
-        // Aplicar shake si está activo
-        this.fx.applyShake(board);
+        // Eliminar shake effect
+        board.style.transform = 'none';
         
         for (let r = 0; r < this.ROWS; r++) {
             for (let c = 0; c < this.COLS; c++) {
@@ -310,70 +310,13 @@ const CalmaMatchModule = {
         this.score += points;
         this.updateStats();
         
+        // Desactivar temporalmente efectos visuales para aislar el problema
         // Calcular centro de los matches para efectos
         const boardRect = board.getBoundingClientRect();
         const centerX = boardRect.width / 2;
         const centerY = boardRect.height / 2;
         
-        // Generar efectos visuales para cada match
-        matches.forEach(match => {
-            // Calcular centro exacto del match (promedio de todas las celdas)
-            let totalRow = 0, totalCol = 0;
-            match.forEach(({ row, col }) => {
-                totalRow += row;
-                totalCol += col;
-            });
-            const avgRow = totalRow / match.length;
-            const avgCol = totalCol / match.length;
-            
-            // Calcular posición absoluta en la pantalla
-            const cellX = boardRect.left + (avgCol + 0.5) * (boardRect.width / this.COLS);
-            const cellY = boardRect.top + (avgRow + 0.5) * (boardRect.height / this.ROWS);
-            const type = this.grid[Math.floor(avgRow)][Math.floor(avgCol)];
-            const color = this.colors[type];
-            
-            // Partículas en el centro del match
-            const particleCount = Math.min(match.length * 4 + this.combo * 3, 40);
-            const power = 1 + this.combo * 0.25 + match.length * 0.08;
-            this.fx.spawnParticleBurst(cellX, cellY, color, particleCount, power);
-            
-            // Score popup en el centro del match
-            const matchPoints = match.length * 12 * multiplier;
-            this.fx.spawnScorePopup(cellX, cellY - 20, matchPoints, color);
-            
-            // Mensaje de match largo en el centro del match
-            const matchMsg = this.fx.getMatchMessage(match.length);
-            if (matchMsg) {
-                this.fx.spawnComboBanner(cellX, cellY - 40, matchMsg, this.combo + 2);
-            }
-        });
-        
-        // Combo banner centrado en el primer match
-        if (this.combo >= 2 && matches.length > 0) {
-            const comboMsg = this.fx.getComboMessage(this.combo);
-            if (comboMsg) {
-                // Calcular centro del primer match para el banner de combo
-                let totalRow = 0, totalCol = 0;
-                matches[0].forEach(({ row, col }) => {
-                    totalRow += row;
-                    totalCol += col;
-                });
-                const avgRow = totalRow / matches[0].length;
-                const avgCol = totalCol / matches[0].length;
-                const comboX = boardRect.left + (avgCol + 0.5) * (boardRect.width / this.COLS);
-                const comboY = boardRect.top + (avgRow + 0.5) * (boardRect.height / this.ROWS);
-                
-                this.fx.spawnComboBanner(comboX, comboY - 60, comboMsg, this.combo);
-            }
-            
-            // Efectos especiales reducidos para combos altos (sin zoom/shake excesivo)
-            if (this.combo >= 4) {
-                this.fx.triggerFlash('#FFC107', 0.1);
-            }
-            if (this.combo >= 6) {
-                this.fx.triggerFlash('#FF9800', 0.15);
-            }
-        }
+        // Efectos desactivados temporalmente
         
         // Animate matches with elimination animation
         matches.forEach(match => {
@@ -381,12 +324,14 @@ const CalmaMatchModule = {
                 const cellIndex = row * this.COLS + col;
                 const cell = board.children[cellIndex];
                 if (cell) {
+                    // Eliminar completamente el contenido de la celda
+                    cell.innerHTML = '';
                     cell.classList.add('eliminating');
                 }
             });
         });
         
-        await this.delay(400);
+        await this.delay(300);
         
         // Remove matches from grid after animation
         matches.forEach(match => {
