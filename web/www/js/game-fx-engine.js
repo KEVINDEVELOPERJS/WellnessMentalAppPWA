@@ -80,19 +80,36 @@ const GameFxEngine = {
         this.flashAlpha = 0;
     },
 
-    // Crear explosión de partículas
-    spawnParticleBurst(x, y, color, count = 20, spread = 1) {
+    // Crear explosión de partículas (matching Android version)
+    spawnParticleBurst(x, y, color, count = 20, power = 1) {
+        // Colored particles
         for (let i = 0; i < count; i++) {
-            const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
-            const speed = (2 + Math.random() * 4) * spread;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = (4 + Math.random() * 6) * power;
+            this.particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 2,
+                life: 1,
+                decay: 0.018 + Math.random() * 0.02,
+                size: 3 + Math.random() * 6,
+                color
+            });
+        }
+        
+        // White particles (60% of count, minimum 3)
+        const whiteCount = Math.max(Math.floor(count * 0.6), 3);
+        for (let i = 0; i < whiteCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1 + Math.random() * 3;
             this.particles.push({
                 x, y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 life: 1,
-                decay: 0.02 + Math.random() * 0.02,
-                size: 4 + Math.random() * 8,
-                color
+                decay: 0.02 + Math.random() * 0.025,
+                size: 2 + Math.random() * 4,
+                color: '#FFFFFF'
             });
         }
         this.ensureRunning();
@@ -111,31 +128,55 @@ const GameFxEngine = {
         this.ensureRunning();
     },
 
-    // Crear banner de combo
+    // Crear banner de combo (matching Android version colors)
     spawnComboBanner(x, y, text, comboLevel) {
-        const colors = ['#FFC107', '#FF9800', '#F44336', '#E91E63', '#9C27B0'];
-        const color = colors[Math.min(comboLevel - 2, colors.length - 1)];
+        // Colors matching Android version
+        let color;
+        if (comboLevel >= 8) color = '#FF4081';
+        else if (comboLevel >= 5) color = '#FFD700';
+        else if (comboLevel >= 3) color = '#FF9800';
+        else color = '#4CAF50';
         
         this.comboBanners.push({
             x, y,
             text,
             color,
             life: 1,
-            scale: 1
+            scale: 0.5,
+            isCombo: true
         });
         this.ensureRunning();
     },
 
-    // Trigger shake effect - desactivado para evitar zoom
+    // Trigger shake effect - enabled for Android-like experience
     triggerShake(intensity) {
-        // No hacer nada para evitar efectos de zoom
-        return;
+        this.shakeIntensity = intensity;
+        this.ensureRunning();
     },
 
-    // Trigger flash effect - desactivado para evitar zoom
+    // Trigger flash effect - enabled for Android-like experience
     triggerFlash(color, alpha = 0.3) {
-        // No hacer nada para evitar efectos de zoom
-        return;
+        this.flashColor = color;
+        this.flashAlpha = Math.min(Math.max(alpha, 0.15), 0.55);
+        this.ensureRunning();
+    },
+
+    // Spawn stars for high combos (matching Android version)
+    spawnStars(x, y, count) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+            this.particles.push({
+                x, y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1,
+                decay: 0.015,
+                size: 4 + Math.random() * 5,
+                color: '#FFD700' // Gold color for stars
+            });
+        }
+        this.ensureRunning();
     },
 
     // Asegurar que el motor esté corriendo
@@ -167,8 +208,11 @@ const GameFxEngine = {
             const t = this.floatingTexts[i];
             t.y += t.vy;
             t.vy *= 0.95;
-            t.life -= 0.03;
-            // Sin scale para evitar zoom
+            t.life -= 0.018;
+            // Scale up animation like Android version
+            if (t.scale < 1.2) {
+                t.scale += 0.06;
+            }
 
             if (t.life <= 0) {
                 this.floatingTexts.splice(i, 1);
@@ -181,10 +225,12 @@ const GameFxEngine = {
         for (let i = this.comboBanners.length - 1; i >= 0; i--) {
             const b = this.comboBanners[i];
             
-            // Sin animación de zoom - mantener escala constante
-            b.scale = 1;
+            // Scale up animation like Android version
+            if (b.scale < 1.2) {
+                b.scale += 0.06;
+            }
             
-            b.life -= 0.02;
+            b.life -= 0.012;
             
             if (b.life <= 0) {
                 this.comboBanners.splice(i, 1);
@@ -195,9 +241,12 @@ const GameFxEngine = {
     // Actualizar shake
     updateShake() {
         if (this.shakeIntensity > 0) {
-            this.shakeX = (Math.random() - 0.5) * this.shakeIntensity;
-            this.shakeY = (Math.random() - 0.5) * this.shakeIntensity;
-            this.shakeIntensity *= 0.9;
+            this.shakeX = (Math.random() - 0.5) * this.shakeIntensity * 2;
+            this.shakeY = (Math.random() - 0.5) * this.shakeIntensity * 2;
+            this.shakeIntensity *= 0.75;
+            
+            if (Math.abs(this.shakeX) < 0.3) this.shakeX = 0;
+            if (Math.abs(this.shakeY) < 0.3) this.shakeY = 0;
             
             if (this.shakeIntensity < 0.5) {
                 this.shakeIntensity = 0;
@@ -221,6 +270,7 @@ const GameFxEngine = {
 
     // Renderizar efectos
     render() {
+        this.applyShake();
         this.renderParticles();
         this.renderFloatingTexts();
         this.renderComboBanners();
@@ -291,19 +341,21 @@ const GameFxEngine = {
         this.comboBanners.forEach(b => {
             const el = document.createElement('div');
             el.className = 'fx-combo-banner';
+            const fontSize = 32 + Math.min(b.text.length, 10) * 4;
             el.style.cssText = `
                 position: absolute;
                 left: ${b.x}px;
                 top: ${b.y}px;
                 color: ${b.color};
-                font-size: 32px;
+                font-size: ${fontSize}px;
                 font-weight: bold;
                 opacity: ${b.life};
-                transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%) scale(${b.scale});
                 pointer-events: none;
                 z-index: 1002;
                 text-shadow: 0 0 20px ${b.color}, 0 4px 8px rgba(0,0,0,0.3);
                 white-space: nowrap;
+                ${b.isCombo ? 'font-family: system-ui, -apple-system, sans-serif;' : ''}
             `;
             el.textContent = b.text;
             container.appendChild(el);
@@ -337,10 +389,12 @@ const GameFxEngine = {
         }
     },
 
-    // Aplicar shake a un elemento
-    applyShake(element) {
-        if (!element) return;
-        element.style.transform = `translate(${this.shakeX}px, ${this.shakeY}px)`;
+    // Aplicar shake al tablero del juego
+    applyShake() {
+        const board = document.getElementById('game-board');
+        if (board && (this.shakeX !== 0 || this.shakeY !== 0)) {
+            board.style.transform = `translate(${this.shakeX}px, ${this.shakeY}px)`;
+        }
     },
 
     // Mensajes de combo
