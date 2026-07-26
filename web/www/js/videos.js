@@ -124,6 +124,9 @@ const VideosModule = {
 
         this.showVideoPlayerScreen();
 
+        // Play immediately
+        videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+
         // Request fullscreen after a short delay
         setTimeout(() => {
             if (videoPlayer.requestFullscreen) {

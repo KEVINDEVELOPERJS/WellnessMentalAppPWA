@@ -1,220 +1,433 @@
-// Calma Match Memory Game Module
+// Calma Match - Candy Crush Style Match-3 Game
 const CalmaMatchModule = {
-    emojis: ['🌸', '🌻', '🌹', '🌷', '🌺', '🌼', '🌻', '🌸'],
-    cards: [],
-    flippedCards: [],
-    matchedPairs: 0,
-    moves: 0,
-    timer: 0,
-    timerInterval: null,
+    COLS: 8,
+    ROWS: 8,
+    TYPES: 5,
+    DURATION: 90, // seconds
+    
+    emojis: ['💜', '💚', '💙', '⭐', '�'],
+    colors: ['#9C27B0', '#4CAF50', '#2196F3', '#FFC107', '#E91E63'],
+    
+    grid: [],
+    selectedCell: null,
+    score: 0,
+    combo: 0,
+    maxCombo: 0,
+    timeLeft: 90,
     gameStarted: false,
-
+    isProcessing: false,
+    timerInterval: null,
+    
     init() {
         this.setupEventListeners();
-        this.startGame();
+        this.renderInitialBoard();
     },
-
+    
     setupEventListeners() {
         const backBtn = document.getElementById('back-to-games');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                this.stopTimer();
+                this.stopGame();
                 window.location.href = 'games.html';
             });
         }
-
+        
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startGame());
+        }
+        
         const restartBtn = document.getElementById('restart-btn');
         if (restartBtn) {
-            restartBtn.addEventListener('click', () => this.startGame());
+            restartBtn.addEventListener('click', () => this.restartGame());
         }
-
+        
         // Modal controls
         const modalClose = document.querySelector('#game-complete-modal .btn-close');
         if (modalClose) {
             modalClose.addEventListener('click', () => this.hideCompleteModal());
         }
-
+        
         const closeModalBtn = document.querySelector('#game-complete-modal .close-modal-btn');
         if (closeModalBtn) {
             closeModalBtn.addEventListener('click', () => this.hideCompleteModal());
         }
-
+        
         const restartModalBtn = document.querySelector('#game-complete-modal .restart-modal-btn');
         if (restartModalBtn) {
             restartModalBtn.addEventListener('click', () => {
                 this.hideCompleteModal();
-                this.startGame();
+                this.restartGame();
             });
         }
     },
-
-    startGame() {
-        this.stopTimer();
-        this.flippedCards = [];
-        this.matchedPairs = 0;
-        this.moves = 0;
-        this.timer = 0;
-        this.gameStarted = false;
-
-        this.updateStats();
-        this.generateCards();
-        this.renderBoard();
-    },
-
-    generateCards() {
-        // Create pairs
-        const pairs = [...this.emojis, ...this.emojis];
-        
-        // Shuffle
-        for (let i = pairs.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
-        }
-
-        this.cards = pairs.map((emoji, index) => ({
-            id: index,
-            emoji: emoji,
-            flipped: false,
-            matched: false
-        }));
-    },
-
-    renderBoard() {
+    
+    renderInitialBoard() {
         const board = document.getElementById('game-board');
         if (!board) return;
-
-        board.innerHTML = this.cards.map(card => `
-            <div class="game-card ${card.flipped ? 'flipped' : ''} ${card.matched ? 'matched' : ''}" 
-                 data-card-id="${card.id}">
-                <div class="card-front">?</div>
-                <div class="card-back">${card.emoji}</div>
-            </div>
-        `).join('');
-
-        // Add click listeners
-        board.querySelectorAll('.game-card').forEach(cardEl => {
-            cardEl.addEventListener('click', () => this.handleCardClick(parseInt(cardEl.dataset.cardId)));
-        });
-    },
-
-    handleCardClick(cardId) {
-        const card = this.cards[cardId];
         
-        // Ignore if already flipped, matched, or two cards already flipped
-        if (card.flipped || card.matched || this.flippedCards.length >= 2) {
-            return;
-        }
-
-        // Start timer on first click
-        if (!this.gameStarted) {
-            this.gameStarted = true;
-            this.startTimer();
-        }
-
-        // Flip the card
-        card.flipped = true;
-        this.flippedCards.push(card);
-
-        // Update visual
-        const cardEl = document.querySelector(`[data-card-id="${cardId}"]`);
-        cardEl.classList.add('flipped');
-
-        // Check for match if two cards are flipped
-        if (this.flippedCards.length === 2) {
-            this.moves++;
-            this.updateStats();
-            this.checkForMatch();
-        }
-    },
-
-    checkForMatch() {
-        const [card1, card2] = this.flippedCards;
-
-        if (card1.emoji === card2.emoji) {
-            // Match found
-            card1.matched = true;
-            card2.matched = true;
-            this.matchedPairs++;
-            this.flippedCards = [];
-
-            // Update visuals
-            document.querySelector(`[data-card-id="${card1.id}"]`).classList.add('matched');
-            document.querySelector(`[data-card-id="${card2.id}"]`).classList.add('matched');
-
-            // Check for game complete
-            if (this.matchedPairs === this.emojis.length) {
-                this.stopTimer();
-                setTimeout(() => this.showCompleteModal(), 500);
+        board.innerHTML = '';
+        board.style.gridTemplateColumns = `repeat(${this.COLS}, 1fr)`;
+        
+        for (let r = 0; r < this.ROWS; r++) {
+            for (let c = 0; c < this.COLS; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'match-cell empty';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                board.appendChild(cell);
             }
-        } else {
-            // No match - flip back after delay
-            setTimeout(() => {
-                card1.flipped = false;
-                card2.flipped = false;
-                this.flippedCards = [];
-
-                document.querySelector(`[data-card-id="${card1.id}"]`).classList.remove('flipped');
-                document.querySelector(`[data-card-id="${card2.id}"]`).classList.remove('flipped');
-            }, 1000);
         }
     },
-
-    startTimer() {
-        this.timerInterval = setInterval(() => {
-            this.timer++;
-            this.updateStats();
-        }, 1000);
+    
+    startGame() {
+        this.gameStarted = true;
+        this.isProcessing = false;
+        this.score = 0;
+        this.combo = 0;
+        this.maxCombo = 0;
+        this.timeLeft = this.DURATION;
+        this.selectedCell = null;
+        
+        this.generateGrid();
+        this.renderBoard();
+        this.updateStats();
+        this.startTimer();
+        
+        document.getElementById('start-btn').classList.add('hidden');
+        document.getElementById('restart-btn').classList.remove('hidden');
     },
-
-    stopTimer() {
+    
+    restartGame() {
+        this.stopGame();
+        this.startGame();
+    },
+    
+    stopGame() {
+        this.gameStarted = false;
+        this.isProcessing = false;
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
     },
-
+    
+    generateGrid() {
+        do {
+            this.grid = [];
+            for (let r = 0; r < this.ROWS; r++) {
+                const row = [];
+                for (let c = 0; c < this.COLS; c++) {
+                    row.push(Math.floor(Math.random() * this.TYPES));
+                }
+                this.grid.push(row);
+            }
+        } while (this.findMatches().length > 0);
+    },
+    
+    renderBoard() {
+        const board = document.getElementById('game-board');
+        if (!board) return;
+        
+        board.innerHTML = '';
+        board.style.gridTemplateColumns = `repeat(${this.COLS}, 1fr)`;
+        
+        for (let r = 0; r < this.ROWS; r++) {
+            for (let c = 0; c < this.COLS; c++) {
+                const cell = document.createElement('div');
+                const type = this.grid[r][c];
+                cell.className = 'match-cell';
+                cell.dataset.row = r;
+                cell.dataset.col = c;
+                cell.dataset.type = type;
+                
+                if (this.selectedCell && this.selectedCell.row === r && this.selectedCell.col === c) {
+                    cell.classList.add('selected');
+                }
+                
+                cell.innerHTML = `<span class="cell-emoji">${this.emojis[type]}</span>`;
+                cell.style.background = `linear-gradient(135deg, ${this.colors[type]}dd, ${this.colors[type]}88)`;
+                
+                cell.addEventListener('click', () => this.handleCellClick(r, c));
+                board.appendChild(cell);
+            }
+        }
+    },
+    
+    handleCellClick(row, col) {
+        if (!this.gameStarted || this.isProcessing) return;
+        
+        if (!this.selectedCell) {
+            // Select first cell
+            this.selectedCell = { row, col };
+            this.renderBoard();
+        } else {
+            const prev = this.selectedCell;
+            
+            if (prev.row === row && prev.col === col) {
+                // Deselect
+                this.selectedCell = null;
+                this.renderBoard();
+            } else if (this.areAdjacent(prev, { row, col })) {
+                // Try swap
+                this.trySwap(prev.row, prev.col, row, col);
+            } else {
+                // Select new cell
+                this.selectedCell = { row, col };
+                this.renderBoard();
+            }
+        }
+    },
+    
+    areAdjacent(a, b) {
+        return Math.abs(a.row - b.row) + Math.abs(a.col - b.col) === 1;
+    },
+    
+    async trySwap(r1, c1, r2, c2) {
+        this.isProcessing = true;
+        this.selectedCell = null;
+        
+        // Perform swap
+        this.swap(r1, c1, r2, c2);
+        this.renderBoard();
+        
+        await this.delay(200);
+        
+        const matches = this.findMatches();
+        
+        if (matches.length === 0) {
+            // Swap back - invalid move
+            this.swap(r1, c1, r2, c2);
+            this.renderBoard();
+            this.isProcessing = false;
+        } else {
+            // Valid move - process cascade
+            await this.processCascade(matches);
+        }
+    },
+    
+    swap(r1, c1, r2, c2) {
+        const temp = this.grid[r1][c1];
+        this.grid[r1][c1] = this.grid[r2][c2];
+        this.grid[r2][c2] = temp;
+    },
+    
+    findMatches() {
+        const matches = [];
+        const visited = new Set();
+        
+        // Check horizontal matches
+        for (let r = 0; r < this.ROWS; r++) {
+            let c = 0;
+            while (c < this.COLS) {
+                const type = this.grid[r][c];
+                if (type === -1) { c++; continue; }
+                
+                let end = c + 1;
+                while (end < this.COLS && this.grid[r][end] === type) end++;
+                
+                if (end - c >= 3) {
+                    const match = [];
+                    for (let i = c; i < end; i++) {
+                        const key = `${r},${i}`;
+                        if (!visited.has(key)) {
+                            match.push({ row: r, col: i });
+                            visited.add(key);
+                        }
+                    }
+                    if (match.length > 0) matches.push(match);
+                }
+                c = end;
+            }
+        }
+        
+        // Check vertical matches
+        for (let c = 0; c < this.COLS; c++) {
+            let r = 0;
+            while (r < this.ROWS) {
+                const type = this.grid[r][c];
+                if (type === -1) { r++; continue; }
+                
+                let end = r + 1;
+                while (end < this.ROWS && this.grid[end][c] === type) end++;
+                
+                if (end - r >= 3) {
+                    const match = [];
+                    for (let i = r; i < end; i++) {
+                        const key = `${i},${c}`;
+                        if (!visited.has(key)) {
+                            match.push({ row: i, col: c });
+                            visited.add(key);
+                        }
+                    }
+                    if (match.length > 0) matches.push(match);
+                }
+                r = end;
+            }
+        }
+        
+        return matches;
+    },
+    
+    async processCascade(matches) {
+        this.combo++;
+        this.maxCombo = Math.max(this.maxCombo, this.combo);
+        
+        // Calculate score
+        const multiplier = this.combo >= 5 ? 5 : this.combo >= 3 ? 3 : this.combo >= 2 ? 2 : 1;
+        let points = 0;
+        
+        matches.forEach(match => {
+            const bonus = match.length >= 5 ? 3 : match.length >= 4 ? 2 : 1;
+            points += match.length * 12 * multiplier * bonus;
+        });
+        
+        this.score += points;
+        this.updateStats();
+        
+        // Show combo
+        if (this.combo >= 2) {
+            this.showCombo(this.combo);
+        }
+        
+        // Animate matches
+        matches.forEach(match => {
+            match.forEach(({ row, col }) => {
+                this.grid[row][col] = -1;
+            });
+        });
+        this.renderBoard();
+        
+        await this.delay(300);
+        
+        // Apply gravity
+        await this.applyGravity();
+        
+        // Fill empty cells
+        await this.fillEmptyCells();
+        
+        // Check for new matches
+        const newMatches = this.findMatches();
+        if (newMatches.length > 0) {
+            await this.delay(200);
+            await this.processCascade(newMatches);
+        } else {
+            this.combo = 0;
+            this.isProcessing = false;
+            this.updateStats();
+        }
+    },
+    
+    async applyGravity() {
+        for (let c = 0; c < this.COLS; c++) {
+            const gems = [];
+            for (let r = this.ROWS - 1; r >= 0; r--) {
+                if (this.grid[r][c] !== -1) {
+                    gems.push(this.grid[r][c]);
+                }
+            }
+            
+            let writeRow = this.ROWS - 1;
+            for (const gem of gems) {
+                this.grid[writeRow][c] = gem;
+                writeRow--;
+            }
+            
+            while (writeRow >= 0) {
+                this.grid[writeRow][c] = -1;
+                writeRow--;
+            }
+        }
+        
+        this.renderBoard();
+        await this.delay(200);
+    },
+    
+    async fillEmptyCells() {
+        for (let r = 0; r < this.ROWS; r++) {
+            for (let c = 0; c < this.COLS; c++) {
+                if (this.grid[r][c] === -1) {
+                    this.grid[r][c] = Math.floor(Math.random() * this.TYPES);
+                }
+            }
+        }
+        
+        this.renderBoard();
+        await this.delay(200);
+    },
+    
+    showCombo(comboLevel) {
+        const display = document.getElementById('combo-display');
+        const text = document.getElementById('combo-text');
+        
+        const messages = ['', '', '¡Doble!', '¡Triple!', '¡Cuádruple!', '¡Increíble!', '¡Épico!', '¡Legendario!'];
+        text.textContent = messages[Math.min(comboLevel, messages.length - 1)] || `¡Combo x${comboLevel}!`;
+        
+        display.classList.remove('hidden');
+        display.style.animation = 'none';
+        display.offsetHeight; // Trigger reflow
+        display.style.animation = 'comboPopup 0.8s ease-out';
+        
+        setTimeout(() => {
+            display.classList.add('hidden');
+        }, 800);
+    },
+    
+    startTimer() {
+        this.timerInterval = setInterval(() => {
+            this.timeLeft--;
+            this.updateStats();
+            
+            if (this.timeLeft <= 0) {
+                this.endGame();
+            }
+        }, 1000);
+    },
+    
     updateStats() {
+        const scoreEl = document.getElementById('score');
+        const comboEl = document.getElementById('combo');
         const timerEl = document.getElementById('timer');
-        const movesEl = document.getElementById('moves');
-
+        
+        if (scoreEl) scoreEl.textContent = this.score;
+        if (comboEl) comboEl.textContent = this.combo;
         if (timerEl) {
-            const minutes = Math.floor(this.timer / 60);
-            const seconds = this.timer % 60;
+            const minutes = Math.floor(this.timeLeft / 60);
+            const seconds = this.timeLeft % 60;
             timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
-
-        if (movesEl) {
-            movesEl.textContent = this.moves;
-        }
     },
-
-    showCompleteModal() {
-        const modal = document.getElementById('game-complete-modal');
+    
+    endGame() {
+        this.stopGame();
         
-        const minutes = Math.floor(this.timer / 60);
-        const seconds = this.timer % 60;
-        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        // Calculate points to award
+        const points = Math.floor(this.score / 10) + 50;
         
-        // Calculate points (base 50 - 1 point per move over minimum, minimum 10 points)
-        const points = Math.max(10, 50 - Math.max(0, this.moves - this.emojis.length));
-
-        document.getElementById('final-time').textContent = timeStr;
-        document.getElementById('final-moves').textContent = this.moves;
+        document.getElementById('final-score').textContent = this.score;
+        document.getElementById('final-combo').textContent = this.maxCombo;
         document.getElementById('final-points').textContent = `+${points}`;
-
-        // Award points
+        
         this.addPoints(points);
-
-        modal.classList.remove('hidden');
+        
+        setTimeout(() => this.showCompleteModal(), 500);
     },
-
+    
+    showCompleteModal() {
+        document.getElementById('game-complete-modal').classList.remove('hidden');
+    },
+    
     hideCompleteModal() {
         document.getElementById('game-complete-modal').classList.add('hidden');
     },
-
+    
     addPoints(amount) {
         const current = parseInt(localStorage.getItem('userPoints') || '0');
         localStorage.setItem('userPoints', current + amount);
+    },
+    
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 };
 
