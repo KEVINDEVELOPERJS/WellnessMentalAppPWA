@@ -99,6 +99,18 @@
     border-radius: 50%;
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.3);
     z-index: 1;
+    animation: targetPulse 2s ease-in-out infinite;
+}
+
+@keyframes targetPulse {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(76, 175, 80, 0.8), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+        transform: translate(-50%, -50%) scale(1.05);
+    }
 }
 
 .indicator {
@@ -113,6 +125,7 @@
     z-index: 2;
     cursor: pointer;
     transition: transform 0.1s;
+    backdrop-filter: blur(5px);
 }
 
 .indicator:hover {
@@ -135,15 +148,23 @@
     justify-content: center;
     z-index: 3;
     pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+    transition: transform 0.1s ease-out;
 }
 
 .feedback-text {
     font-size: 14px;
     font-weight: bold;
     color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px currentColor;
     opacity: 0;
     transition: opacity 0.3s;
+    text-align: center;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
 }
 
 .feedback-text.show {

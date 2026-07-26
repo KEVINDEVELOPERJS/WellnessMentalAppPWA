@@ -17,10 +17,12 @@ const CalmaMatchModule = {
     gameStarted: false,
     isProcessing: false,
     timerInterval: null,
+    fx: GameFxEngine,
     
     init() {
         this.setupEventListeners();
         this.renderInitialBoard();
+        this.createFxContainer();
     },
     
     setupEventListeners() {
@@ -79,6 +81,16 @@ const CalmaMatchModule = {
             }
         }
     },
+
+    createFxContainer() {
+        // Crear contenedor para efectos si no existe
+        if (!document.getElementById('fx-container')) {
+            const container = document.createElement('div');
+            container.id = 'fx-container';
+            container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: hidden;';
+            document.body.appendChild(container);
+        }
+    },
     
     startGame() {
         this.gameStarted = true;
@@ -89,6 +101,7 @@ const CalmaMatchModule = {
         this.timeLeft = this.DURATION;
         this.selectedCell = null;
         
+        this.fx.init();
         this.generateGrid();
         this.renderBoard();
         this.updateStats();
@@ -106,6 +119,7 @@ const CalmaMatchModule = {
     stopGame() {
         this.gameStarted = false;
         this.isProcessing = false;
+        this.fx.stop();
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
@@ -131,6 +145,9 @@ const CalmaMatchModule = {
         
         board.innerHTML = '';
         board.style.gridTemplateColumns = `repeat(${this.COLS}, 1fr)`;
+        
+        // Aplicar shake si está activo
+        this.fx.applyShake(board);
         
         for (let r = 0; r < this.ROWS; r++) {
             for (let c = 0; c < this.COLS; c++) {
@@ -199,6 +216,11 @@ const CalmaMatchModule = {
             // Swap back - invalid move
             this.swap(r1, c1, r2, c2);
             this.renderBoard();
+            
+            // Shake effect para movimiento inválido
+            this.fx.triggerShake(8);
+            await this.delay(300);
+            
             this.isProcessing = false;
         } else {
             // Valid move - process cascade
@@ -285,9 +307,52 @@ const CalmaMatchModule = {
         this.score += points;
         this.updateStats();
         
-        // Show combo
+        // Calcular centro de los matches para efectos
+        const board = document.getElementById('game-board');
+        const boardRect = board.getBoundingClientRect();
+        const centerX = boardRect.width / 2;
+        const centerY = boardRect.height / 2;
+        
+        // Generar efectos visuales para cada match
+        matches.forEach(match => {
+            const firstCell = match[0];
+            const cellX = (firstCell.col + 0.5) * (boardRect.width / this.COLS);
+            const cellY = (firstCell.row + 0.5) * (boardRect.height / this.ROWS);
+            const type = this.grid[firstCell.row][firstCell.col];
+            const color = this.colors[type];
+            
+            // Partículas
+            const particleCount = Math.min(match.length * 4 + this.combo * 3, 40);
+            const power = 1 + this.combo * 0.25 + match.length * 0.08;
+            this.fx.spawnParticleBurst(cellX, cellY, color, particleCount, power);
+            
+            // Score popup
+            const matchPoints = match.length * 12 * multiplier;
+            this.fx.spawnScorePopup(cellX, cellY - 20, matchPoints, color);
+            
+            // Mensaje de match largo
+            const matchMsg = this.fx.getMatchMessage(match.length);
+            if (matchMsg) {
+                this.fx.spawnComboBanner(cellX, cellY - 40, matchMsg, this.combo + 2);
+            }
+        });
+        
+        // Combo banner
         if (this.combo >= 2) {
-            this.showCombo(this.combo);
+            const comboMsg = this.fx.getComboMessage(this.combo);
+            if (comboMsg) {
+                this.fx.spawnComboBanner(centerX, centerY * 0.38, comboMsg, this.combo);
+            }
+            
+            // Efectos especiales para combos altos
+            if (this.combo >= 4) {
+                this.fx.triggerFlash('#FFC107', 0.2 + this.combo * 0.04);
+                this.fx.triggerShake(Math.min(this.combo * 2.5, 18));
+            }
+            if (this.combo >= 6) {
+                this.fx.triggerFlash('#FF9800', 0.35);
+                this.fx.triggerShake(12);
+            }
         }
         
         // Animate matches

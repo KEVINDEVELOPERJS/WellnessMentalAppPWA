@@ -7,10 +7,23 @@ const PuzzleZenModule = {
     isPlaying: false,
     isShowingSequence: false,
     activeCircle: -1,
+    activeScale: 1,
+    levelScale: 1,
+    fx: GameFxEngine,
     
     init() {
         this.setupEventListeners();
         this.renderInitialBoard();
+        this.createFxContainer();
+    },
+
+    createFxContainer() {
+        if (!document.getElementById('fx-container')) {
+            const container = document.createElement('div');
+            container.id = 'fx-container';
+            container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: hidden;';
+            document.body.appendChild(container);
+        }
     },
     
     setupEventListeners() {
@@ -64,7 +77,14 @@ const PuzzleZenModule = {
         document.querySelectorAll('.circle').forEach((circle, index) => {
             circle.style.background = this.colors[index];
             circle.style.opacity = '0.6';
+            circle.style.transform = 'scale(1)';
+            circle.style.boxShadow = 'none';
         });
+        
+        const levelDisplay = document.getElementById('level-display');
+        if (levelDisplay) {
+            levelDisplay.style.transform = `scale(${this.levelScale})`;
+        }
     },
     
     startGame() {
@@ -72,6 +92,7 @@ const PuzzleZenModule = {
         this.level = 1;
         this.sequence = [];
         this.userSequence = [];
+        this.fx.init();
         this.updateStats();
         this.addStepAndShow();
         
@@ -88,6 +109,9 @@ const PuzzleZenModule = {
         this.isPlaying = false;
         this.isShowingSequence = false;
         this.activeCircle = -1;
+        this.activeScale = 1;
+        this.levelScale = 1;
+        this.fx.stop();
         this.renderInitialBoard();
     },
     
@@ -109,12 +133,37 @@ const PuzzleZenModule = {
     
     animateLevelUp() {
         const levelDisplay = document.getElementById('level-display');
-        levelDisplay.style.transform = 'scale(1.5)';
-        levelDisplay.style.transition = 'transform 0.3s ease-out';
+        if (!levelDisplay) return;
         
-        setTimeout(() => {
-            levelDisplay.style.transform = 'scale(1)';
-        }, 300);
+        // Animación con overshoot como en Android
+        this.levelScale = 0.5;
+        const animate = () => {
+            if (this.levelScale < 1.15) {
+                this.levelScale += 0.13;
+                if (this.levelScale > 1.15) this.levelScale = 1.15;
+                levelDisplay.style.transform = `scale(${this.levelScale})`;
+                requestAnimationFrame(animate);
+            } else {
+                // Decay a 1.0
+                const decay = () => {
+                    if (this.levelScale > 1.0) {
+                        this.levelScale -= 0.015;
+                        if (this.levelScale < 1.0) this.levelScale = 1.0;
+                        levelDisplay.style.transform = `scale(${this.levelScale})`;
+                        requestAnimationFrame(decay);
+                    }
+                };
+                decay();
+            }
+        };
+        animate();
+        
+        // Efecto de partículas para nivel
+        const board = document.getElementById('puzzle-board');
+        if (board) {
+            const rect = board.getBoundingClientRect();
+            this.fx.spawnParticleBurst(rect.width / 2, rect.height / 2, '#FFD700', 15, 0.8);
+        }
     },
     
     async showSequence() {
@@ -133,20 +182,41 @@ const PuzzleZenModule = {
     
     async flashCircle(index) {
         const circle = document.querySelector(`.circle-${index}`);
-        this.activeCircle = index;
+        if (!circle) return;
         
-        circle.style.opacity = '1';
-        circle.style.transform = 'scale(1.35)';
-        circle.style.boxShadow = `0 0 30px ${this.colors[index]}, 0 0 60px ${this.colors[index]}`;
-        circle.style.transition = 'all 0.2s ease-out';
+        this.activeCircle = index;
+        this.activeScale = 1;
+        
+        // Animación de pulso con overshoot como en Android
+        const animate = () => {
+            if (this.activeScale < 1.35) {
+                this.activeScale += 0.07;
+                if (this.activeScale > 1.35) this.activeScale = 1.35;
+                circle.style.opacity = '1';
+                circle.style.transform = `scale(${this.activeScale})`;
+                circle.style.boxShadow = `0 0 30px ${this.colors[index]}, 0 0 60px ${this.colors[index]}`;
+                circle.style.transition = 'all 0.1s ease-out';
+                requestAnimationFrame(animate);
+            }
+        };
+        animate();
         
         await this.delay(450);
         
-        circle.style.opacity = this.isShowingSequence ? '0.4' : '0.6';
-        circle.style.transform = 'scale(1)';
-        circle.style.boxShadow = 'none';
-        
-        this.activeCircle = -1;
+        // Decay animación
+        const decay = () => {
+            if (this.activeScale > 1.0) {
+                this.activeScale -= 0.035;
+                if (this.activeScale < 1.0) this.activeScale = 1.0;
+                circle.style.opacity = this.isShowingSequence ? '0.4' : '0.6';
+                circle.style.transform = `scale(${this.activeScale})`;
+                circle.style.boxShadow = 'none';
+                requestAnimationFrame(decay);
+            } else {
+                this.activeCircle = -1;
+            }
+        };
+        decay();
     },
     
     handleCircleClick(index) {
@@ -160,6 +230,15 @@ const PuzzleZenModule = {
         // Check if correct
         if (this.userSequence[position] !== this.sequence[position]) {
             this.updateStatus(`¡Casi! Nivel alcanzado: ${this.level}`);
+            
+            // Efecto de error
+            const circle = document.querySelector(`.circle-${index}`);
+            if (circle) {
+                circle.style.background = '#F44336';
+                this.fx.triggerShake(10);
+                this.fx.triggerFlash('#F44336', 0.3);
+            }
+            
             setTimeout(() => this.endGame(), 600);
             return;
         }
@@ -169,6 +248,15 @@ const PuzzleZenModule = {
             this.level++;
             this.updateStats();
             this.updateStatus('¡Perfecto! Siguiente nivel...');
+            
+            // Efecto de éxito
+            const board = document.getElementById('puzzle-board');
+            if (board) {
+                const rect = board.getBoundingClientRect();
+                this.fx.spawnParticleBurst(rect.width / 2, rect.height / 2, '#4CAF50', 20, 1);
+                this.fx.spawnScorePopup(rect.width / 2, rect.height / 2 - 30, '¡Perfecto!', '#4CAF50');
+            }
+            
             setTimeout(() => this.addStepAndShow(), 800);
         }
     },

@@ -12,10 +12,34 @@ const RitmoCalmaModule = {
     timerInterval: null,
     lastResult: null,
     radius: 120,
+    pulseScale: 1,
+    feedbackAlpha: 0,
+    feedbackText: '',
+    fx: GameFxEngine,
+    audioContext: null,
     
     init() {
         this.setupEventListeners();
         this.renderInitialBoard();
+        this.createFxContainer();
+        this.initAudio();
+    },
+
+    createFxContainer() {
+        if (!document.getElementById('fx-container')) {
+            const container = document.createElement('div');
+            container.id = 'fx-container';
+            container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: hidden;';
+            document.body.appendChild(container);
+        }
+    },
+
+    initAudio() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('Audio not supported');
+        }
     },
     
     setupEventListeners() {
@@ -77,7 +101,11 @@ const RitmoCalmaModule = {
         this.perfectHits = 0;
         this.timeLeft = 90;
         this.lastResult = null;
+        this.pulseScale = 1;
+        this.feedbackAlpha = 0;
         
+        this.fx.init();
+        this.playStartTone();
         this.updateStats();
         this.startAnimation();
         this.startTimer();
@@ -93,6 +121,7 @@ const RitmoCalmaModule = {
     
     stopGame() {
         this.isPlaying = false;
+        this.fx.stop();
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
@@ -111,10 +140,49 @@ const RitmoCalmaModule = {
             if (this.angle >= 360) this.angle = 0;
             
             this.updateIndicatorPosition();
+            this.updatePulseAnimation();
+            this.updateFeedback();
             this.animationId = requestAnimationFrame(animate);
         };
         
         this.animationId = requestAnimationFrame(animate);
+    },
+
+    updatePulseAnimation() {
+        // Decay del pulso
+        if (this.pulseScale > 1) {
+            this.pulseScale -= 0.006;
+            if (this.pulseScale < 1) this.pulseScale = 1;
+        }
+        
+        // Aplicar escala al orbe central
+        const centerCircle = document.querySelector('.center-circle');
+        if (centerCircle) {
+            centerCircle.style.transform = `scale(${this.pulseScale})`;
+        }
+    },
+
+    updateFeedback() {
+        const feedbackText = document.getElementById('feedback-text');
+        if (!feedbackText) return;
+        
+        if (this.feedbackAlpha > 0) {
+            feedbackText.style.opacity = this.feedbackAlpha;
+            feedbackText.textContent = this.feedbackText;
+            
+            // Color según resultado
+            const colors = {
+                'PERFECT': '#4CAF50',
+                'GOOD': '#2196F3',
+                'MISS': '#F44336'
+            };
+            feedbackText.style.color = colors[this.lastResult] || '#4CAF50';
+            
+            this.feedbackAlpha -= 0.02;
+            if (this.feedbackAlpha < 0) this.feedbackAlpha = 0;
+        } else {
+            feedbackText.style.opacity = 0;
+        }
     },
     
     startTimer() {
@@ -172,40 +240,123 @@ const RitmoCalmaModule = {
     processResult(result) {
         this.lastResult = result;
         
+        const multiplier = this.getComboMultiplier(this.combo);
+        
         switch (result) {
             case 'PERFECT':
                 this.combo++;
                 this.maxCombo = Math.max(this.maxCombo, this.combo);
                 this.perfectHits++;
-                this.score += 15 * (1 + this.combo * 0.1);
-                this.showFeedback('¡Perfecto!', '#4CAF50');
+                this.score += 15 * multiplier;
+                this.feedbackText = this.combo >= 10 ? '🔥 INCREÍBLE x' + multiplier : '¡PERFECTO! x' + multiplier;
+                this.feedbackAlpha = 1;
+                this.pulseScale = 1.12;
+                this.playTone('PERFECT');
+                
+                // Efectos visuales
+                if (this.combo >= 5) {
+                    this.fx.triggerFlash('#4CAF50', 0.2);
+                }
+                
+                // Acelerar cada 8 perfect hits
+                if (this.perfectHits % 8 === 0) {
+                    this.accelerate();
+                }
                 break;
             case 'GOOD':
-                this.combo++;
-                this.maxCombo = Math.max(this.maxCombo, this.combo);
-                this.score += 10 * (1 + this.combo * 0.05);
-                this.showFeedback('¡Bien!', '#FFC107');
+                this.combo = Math.max(0, this.combo - 1);
+                this.score += 8;
+                this.feedbackText = 'Bien';
+                this.feedbackAlpha = 1;
+                this.playTone('GOOD');
                 break;
             case 'MISS':
                 this.combo = 0;
                 this.score = Math.max(0, this.score - 5);
-                this.showFeedback('Falló', '#F44336');
+                this.feedbackText = 'Fallaste';
+                this.feedbackAlpha = 1;
+                this.playTone('MISS');
+                this.fx.triggerShake(8);
+                this.fx.triggerFlash('#F44336', 0.3);
                 break;
         }
         
         this.updateStats();
     },
+
+    getComboMultiplier(combo) {
+        if (combo >= 20) return 5;
+        if (combo >= 15) return 4;
+        if (combo >= 10) return 3;
+        if (combo >= 5) return 2;
+        return 1;
+    },
+
+    accelerate() {
+        this.speed = Math.min(this.speed + 0.35, 6.5);
+    },
     
-    showFeedback(text, color) {
-        const feedbackText = document.getElementById('feedback-text');
-        if (feedbackText) {
-            feedbackText.textContent = text;
-            feedbackText.style.color = color;
-            feedbackText.classList.add('show');
+    playStartTone() {
+        this.playTone(440, 0.5); // A4 - tono de inicio
+    },
+
+    playTone(result) {
+        if (!this.audioContext) return;
+        
+        let frequency;
+        let duration;
+        
+        switch (result) {
+            case 'PERFECT':
+                frequency = this.getPerfectTone();
+                duration = 0.3;
+                break;
+            case 'GOOD':
+                frequency = 392; // G4
+                duration = 0.2;
+                break;
+            case 'MISS':
+                frequency = 261.63; // C4
+                duration = 0.15;
+                break;
+            default:
+                return;
+        }
+        
+        this.playTone(frequency, duration);
+    },
+
+    getPerfectTone() {
+        if (this.combo >= 15) return 880; // A5
+        if (this.combo >= 10) return 783.99; // G5
+        if (this.combo >= 5) return 659.25; // E5
+        return 523.25; // C5
+    },
+
+    playTone(frequency, duration) {
+        if (!this.audioContext) return;
+        
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
             
-            setTimeout(() => {
-                feedbackText.classList.remove('show');
-            }, 500);
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            // Envelope ADSR
+            const now = this.audioContext.currentTime;
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + duration * 0.1); // Attack
+            gainNode.gain.linearRampToValueAtTime(0.2, now + duration * 0.3); // Decay
+            gainNode.gain.linearRampToValueAtTime(0, now + duration); // Release
+            
+            oscillator.start(now);
+            oscillator.stop(now + duration);
+        } catch (e) {
+            console.log('Error playing tone:', e);
         }
     },
     
