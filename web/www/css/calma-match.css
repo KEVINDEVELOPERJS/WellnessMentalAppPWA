@@ -200,6 +200,10 @@
     animation: cellEliminate 0.4s ease-out forwards;
 }
 
+.match-cell.eliminating .cell-emoji {
+    opacity: 0;
+}
+
 .game-controls {
     display: flex;
     justify-content: center;

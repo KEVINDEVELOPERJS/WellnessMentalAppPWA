@@ -317,33 +317,52 @@ const CalmaMatchModule = {
         
         // Generar efectos visuales para cada match
         matches.forEach(match => {
-            const firstCell = match[0];
-            const cellX = (firstCell.col + 0.5) * (boardRect.width / this.COLS);
-            const cellY = (firstCell.row + 0.5) * (boardRect.height / this.ROWS);
-            const type = this.grid[firstCell.row][firstCell.col];
+            // Calcular centro exacto del match (promedio de todas las celdas)
+            let totalRow = 0, totalCol = 0;
+            match.forEach(({ row, col }) => {
+                totalRow += row;
+                totalCol += col;
+            });
+            const avgRow = totalRow / match.length;
+            const avgCol = totalCol / match.length;
+            
+            const cellX = (avgCol + 0.5) * (boardRect.width / this.COLS);
+            const cellY = (avgRow + 0.5) * (boardRect.height / this.ROWS);
+            const type = this.grid[Math.floor(avgRow)][Math.floor(avgCol)];
             const color = this.colors[type];
             
-            // Partículas
+            // Partículas en el centro del match
             const particleCount = Math.min(match.length * 4 + this.combo * 3, 40);
             const power = 1 + this.combo * 0.25 + match.length * 0.08;
             this.fx.spawnParticleBurst(cellX, cellY, color, particleCount, power);
             
-            // Score popup
+            // Score popup en el centro del match
             const matchPoints = match.length * 12 * multiplier;
             this.fx.spawnScorePopup(cellX, cellY - 20, matchPoints, color);
             
-            // Mensaje de match largo
+            // Mensaje de match largo en el centro del match
             const matchMsg = this.fx.getMatchMessage(match.length);
             if (matchMsg) {
                 this.fx.spawnComboBanner(cellX, cellY - 40, matchMsg, this.combo + 2);
             }
         });
         
-        // Combo banner
-        if (this.combo >= 2) {
+        // Combo banner centrado en el primer match
+        if (this.combo >= 2 && matches.length > 0) {
             const comboMsg = this.fx.getComboMessage(this.combo);
             if (comboMsg) {
-                this.fx.spawnComboBanner(centerX, centerY * 0.38, comboMsg, this.combo);
+                // Calcular centro del primer match para el banner de combo
+                let totalRow = 0, totalCol = 0;
+                matches[0].forEach(({ row, col }) => {
+                    totalRow += row;
+                    totalCol += col;
+                });
+                const avgRow = totalRow / matches[0].length;
+                const avgCol = totalCol / matches[0].length;
+                const comboX = (avgCol + 0.5) * (boardRect.width / this.COLS);
+                const comboY = (avgRow + 0.5) * (boardRect.height / this.ROWS);
+                
+                this.fx.spawnComboBanner(comboX, comboY - 60, comboMsg, this.combo);
             }
             
             // Efectos especiales reducidos para combos altos (sin zoom/shake excesivo)
