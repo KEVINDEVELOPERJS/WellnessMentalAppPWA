@@ -8,22 +8,6 @@
     overflow: hidden;
 }
 
-.calma-match-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: shimmer 15s infinite linear;
-    pointer-events: none;
-}
-
-@keyframes shimmer {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
 
 .game-header {
     display: flex;
@@ -98,7 +82,6 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.3);
     position: relative;
     overflow: hidden;
@@ -136,7 +119,6 @@
 }
 
 .match-cell:not(.empty):hover {
-    transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.4);
     z-index: 10;
     filter: brightness(1.1);
@@ -144,7 +126,6 @@
 
 .match-cell.selected {
     box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9), 0 0 0 8px #FFC107, 0 8px 24px rgba(255, 193, 7, 0.6);
-    transform: translateY(-6px);
     z-index: 10;
     filter: brightness(1.15);
 }
@@ -161,12 +142,6 @@
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     position: relative;
     z-index: 1;
-    animation: emojiFloat 3s ease-in-out infinite;
-}
-
-@keyframes emojiFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
 }
 
 @keyframes cellEliminate {

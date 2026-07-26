@@ -17,7 +17,7 @@ const CalmaMatchModule = {
     gameStarted: false,
     isProcessing: false,
     timerInterval: null,
-    fx: GameFxEngine,
+    fx: null,
     
     init() {
         this.setupEventListeners();
@@ -83,13 +83,8 @@ const CalmaMatchModule = {
     },
 
     createFxContainer() {
-        // Crear contenedor para efectos si no existe
-        if (!document.getElementById('fx-container')) {
-            const container = document.createElement('div');
-            container.id = 'fx-container';
-            container.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; overflow: hidden;';
-            document.body.appendChild(container);
-        }
+        // Desactivado - no crear contenedor de efectos
+        return;
     },
     
     startGame() {
@@ -101,7 +96,7 @@ const CalmaMatchModule = {
         this.timeLeft = this.DURATION;
         this.selectedCell = null;
         
-        this.fx.init();
+        // this.fx.init(); // Desactivado
         this.generateGrid();
         this.renderBoard();
         this.updateStats();
@@ -162,7 +157,7 @@ const CalmaMatchModule = {
                     cell.classList.add('selected');
                 }
                 
-                cell.innerHTML = `<span class="cell-emoji">${this.emojis[type]}</span>`;
+                cell.innerHTML = '';
                 cell.style.background = `linear-gradient(135deg, ${this.colors[type]}dd, ${this.colors[type]}88)`;
                 
                 cell.addEventListener('click', () => this.handleCellClick(r, c));
@@ -318,30 +313,13 @@ const CalmaMatchModule = {
         
         // Efectos desactivados temporalmente
         
-        // Animate matches with elimination animation
-        matches.forEach(match => {
-            match.forEach(({ row, col }) => {
-                const cellIndex = row * this.COLS + col;
-                const cell = board.children[cellIndex];
-                if (cell) {
-                    // Eliminar completamente el contenido de la celda
-                    cell.innerHTML = '';
-                    cell.classList.add('eliminating');
-                }
-            });
-        });
-        
-        await this.delay(300);
-        
-        // Remove matches from grid after animation
+        // Remove matches from grid immediately without animation
         matches.forEach(match => {
             match.forEach(({ row, col }) => {
                 this.grid[row][col] = -1;
             });
         });
         this.renderBoard();
-        
-        await this.delay(100);
         
         // Apply gravity
         await this.applyGravity();
