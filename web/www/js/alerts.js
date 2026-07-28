@@ -5,12 +5,16 @@ const AlertsModule = {
     alerts: [],
     selectedAlert: null,
     hubUrl: '', // Will be loaded from config
+    pollingInterval: null,
+    lastAlertCount: 0,
 
     init() {
         this.loadHubUrl();
         this.loadAlerts();
         this.setupEventListeners();
         this.renderAlerts();
+        this.startPolling();
+        this.requestNotificationPermission();
     },
 
     loadHubUrl() {
@@ -52,9 +56,18 @@ const AlertsModule = {
             
             if (data.ok && data.alertas) {
                 console.log('[ALERTS PANEL] Raw alerts from hub:', data.alertas);
+                const previousCount = this.alerts.length;
                 this.alerts = this.transformHubAlerts(data.alertas);
                 console.log('[ALERTS PANEL] Transformed alerts:', this.alerts);
                 this.saveAlerts();
+                
+                // Check for new alerts and notify
+                if (this.alerts.length > previousCount && previousCount > 0) {
+                    const newAlerts = this.alerts.length - previousCount;
+                    console.log(`[ALERTS PANEL] ${newAlerts} new alert(s) detected`);
+                    this.notifyNewAlerts(newAlerts);
+                }
+                
                 console.log(`[ALERTS PANEL] Loaded ${this.alerts.length} alerts from hub`);
             } else {
                 console.error('[ALERTS PANEL] Error fetching alerts from hub:', data.error);
@@ -499,10 +512,80 @@ const AlertsModule = {
             console.error('Error updating alert status on hub:', error);
             return false;
         }
+    },
+
+    startPolling() {
+        // Poll for new alerts every 30 seconds
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+        this.pollingInterval = setInterval(() => {
+            this.loadAlerts();
+            this.renderAlerts();
+        }, 30000);
+        console.log('[ALERTS PANEL] Started polling for alerts (30s interval)');
+    },
+
+    stopPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+            console.log('[ALERTS PANEL] Stopped polling for alerts');
+        }
+    },
+
+    requestNotificationPermission() {
+        if ('Notification' in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('[ALERTS PANEL] Notification permission granted');
+                } else {
+                    console.log('[ALERTS PANEL] Notification permission denied');
+                }
+            });
+        } else {
+            console.log('[ALERTS PANEL] This browser does not support notifications');
+        }
+    },
+
+    notifyNewAlerts(count) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            const pendingHighRisk = this.alerts.filter(a => 
+                a.riskLevel === 'high' && a.status === 'pending'
+            ).length;
+            
+            const title = count === 1 
+                ? '🚨 Nueva Alerta de Riesgo' 
+                : `🚨 ${count} Nuevas Alertas de Riesgo`;
+            
+            const body = pendingHighRisk > 0 
+                ? `${pendingHighRisk} alerta(s) de alto riesgo pendiente(s). Revisa el panel de alertas.`
+                : `${count} nueva(s) alerta(s) pendiente(s). Revisa el panel de alertas.`;
+
+            const notification = new Notification(title, {
+                body: body,
+                icon: '/images/app-icon.jpeg',
+                badge: '/images/app-icon.jpeg',
+                tag: 'wellness-alerts',
+                requireInteraction: true
+            });
+
+            notification.onclick = () => {
+                window.focus();
+                notification.close();
+            };
+
+            console.log('[ALERTS PANEL] Browser notification sent');
+        }
     }
 };
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     AlertsModule.init();
+});
+
+// Cleanup when leaving the page
+window.addEventListener('beforeunload', () => {
+    AlertsModule.stopPolling();
 });

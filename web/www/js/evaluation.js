@@ -252,6 +252,10 @@ class EvaluationController {
             const psicologoEmail = await this.getPsicologoEmail();
             console.log('[EVALUATION] Psychologist email:', psicologoEmail);
 
+            if (!psicologoEmail) {
+                console.error('[EVALUATION] No psychologist email found - alert will be sent but email notification may fail');
+            }
+
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
             
             const alerta = {
@@ -271,23 +275,38 @@ class EvaluationController {
             };
 
             console.log('[EVALUATION] Sending alert to hub:', JSON.stringify(alerta));
+            console.log('[EVALUATION] Alert risk level for email trigger:', alerta.nivelRiesgo);
+            console.log('[EVALUATION] Psychologist email for email trigger:', alerta.emailPsicologo);
 
             const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
+            console.log('[EVALUATION] Full request URL:', url);
+            
             const response = await fetch(url, {
                 mode: 'cors',
                 redirect: 'follow'
             });
+
+            console.log('[EVALUATION] Response status:', response.status);
+            console.log('[EVALUATION] Response ok:', response.ok);
 
             const data = await response.json();
             console.log('[EVALUATION] Hub response:', data);
             
             if (data.ok) {
                 console.log('[EVALUATION] Alert sent to hub successfully');
+                console.log('[EVALUATION] Remote ID:', data.remoteId);
+                
+                // Show success toast to user
+                if (score.riskLevel === 'Alto') {
+                    Utils.showToast('Alerta de alto riesgo enviada al psicólogo', 'warning');
+                }
             } else {
                 console.error('[EVALUATION] Error sending alert to hub:', data.error);
+                Utils.showToast('Error al enviar alerta al hub', 'error');
             }
         } catch (error) {
             console.error('[EVALUATION] Error sending alert to hub:', error);
+            Utils.showToast('Error de conexión al enviar alerta', 'error');
         }
     }
 
