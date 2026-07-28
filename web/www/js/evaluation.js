@@ -236,74 +236,92 @@ class EvaluationController {
 
     async sendAlertToHub(userId, result, score, resultId) {
         try {
+            console.log('[EVALUATION] Starting alert sending process');
+            console.log('[EVALUATION] Score:', score);
+            console.log('[EVALUATION] Risk level:', score.riskLevel);
+            
             // Get user info
             const user = await this.db.get(DB_CONFIG.tables.users, userId);
-            if (!user) return;
+            if (!user) {
+                console.error('[EVALUATION] User not found:', userId);
+                return;
+            }
+            console.log('[EVALUATION] User found:', user.email, user.name);
 
             // Get psychologist email
             const psicologoEmail = await this.getPsicologoEmail();
+            console.log('[EVALUATION] Psychologist email:', psicologoEmail);
 
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
             
             const alerta = {
-                action: 'publicar',
-                alerta: {
-                    remoteId: `web_eval_${Date.now()}_${userId}`,
-                    emailEstudiante: user.email,
-                    nombreEstudiante: user.name,
-                    gradoEstudiante: user.grade || 'N/A',
-                    tipo: 'evaluacion',
-                    nivelRiesgo: score.riskLevel.toLowerCase(),
-                    timestamp: result.fecha,
-                    extracto: `Evaluación ${this.currentQuestionnaire.tipo}. Puntaje ${score.totalScore}. ${result.prediagnostico.substring(0, 50)}`,
-                    estado: 'PENDIENTE',
-                    notas: '',
-                    idReferencia: resultId,
-                    deviceOrigen: 'web',
-                    emailPsicologo: psicologoEmail || ''
-                }
+                remoteId: `web_eval_${Date.now()}_${userId}`,
+                emailEstudiante: user.email,
+                nombreEstudiante: user.name,
+                gradoEstudiante: user.grade || 'N/A',
+                tipo: 'evaluacion',
+                nivelRiesgo: score.riskLevel.toLowerCase(),
+                timestamp: result.fecha,
+                extracto: `Evaluación ${this.currentQuestionnaire.tipo}. Puntaje ${score.totalScore}. ${result.prediagnostico.substring(0, 50)}`,
+                estado: 'PENDIENTE',
+                notas: '',
+                idReferencia: resultId,
+                deviceOrigen: 'web',
+                emailPsicologo: psicologoEmail || ''
             };
 
-            const response = await fetch(hubUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(alerta)
+            console.log('[EVALUATION] Sending alert to hub:', JSON.stringify(alerta));
+
+            const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
+            const response = await fetch(url, {
+                mode: 'cors',
+                redirect: 'follow'
             });
 
             const data = await response.json();
+            console.log('[EVALUATION] Hub response:', data);
+            
             if (data.ok) {
-                console.log('Alert sent to hub successfully');
+                console.log('[EVALUATION] Alert sent to hub successfully');
             } else {
-                console.error('Error sending alert to hub:', data.error);
+                console.error('[EVALUATION] Error sending alert to hub:', data.error);
             }
         } catch (error) {
-            console.error('Error sending alert to hub:', error);
+            console.error('[EVALUATION] Error sending alert to hub:', error);
         }
     }
 
     async getPsicologoEmail() {
         try {
+            console.log('[EVALUATION] Getting psychologist email from hub');
             // Try to get from hub first
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
-            const response = await fetch(`${hubUrl}?action=listar_psicologos`);
+            const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
+                mode: 'cors',
+                redirect: 'follow'
+            });
             const data = await response.json();
             
+            console.log('[EVALUATION] Hub psychologists response:', data);
+            
             if (data.ok && data.psicologos && data.psicologos.length > 0) {
+                console.log('[EVALUATION] Found psychologist in hub:', data.psicologos[0].email);
                 return data.psicologos[0].email;
             }
             
+            console.log('[EVALUATION] No psychologist in hub, checking local database');
             // Fallback: get from local database
             const allUsers = await this.db.getAll(DB_CONFIG.tables.users);
             const psicologo = allUsers.find(u => u.role === 'psicologo');
             if (psicologo) {
+                console.log('[EVALUATION] Found psychologist in local database:', psicologo.email);
                 return psicologo.email;
             }
             
+            console.log('[EVALUATION] No psychologist found anywhere');
             return null;
         } catch (error) {
-            console.error('Error getting psychologist email:', error);
+            console.error('[EVALUATION] Error getting psychologist email:', error);
             return null;
         }
     }

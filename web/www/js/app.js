@@ -401,34 +401,36 @@ class AuthController {
     
     async registerPsicologoToHub(user) {
         try {
+            console.log('[AUTH] Registering psychologist to hub');
+            console.log('[AUTH] Psychologist:', user.email, user.name);
+            
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
             
             const psicologo = {
-                action: 'publicar_psicologo',
-                psicologo: {
-                    email: user.email,
-                    nombre: user.name,
-                    especialidad: 'Psicología General',
-                    timestampRegistro: Utils.now()
-                }
+                email: user.email,
+                nombre: user.name,
+                especialidad: 'Psicología General',
+                timestampRegistro: Utils.now()
             };
 
-            const response = await fetch(hubUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(psicologo)
+            console.log('[AUTH] Sending to hub:', JSON.stringify(psicologo));
+
+            const url = `${hubUrl}?action=publicar_psicologo&psicologo=${encodeURIComponent(JSON.stringify(psicologo))}`;
+            const response = await fetch(url, {
+                mode: 'cors',
+                redirect: 'follow'
             });
 
             const data = await response.json();
+            console.log('[AUTH] Hub response:', data);
+            
             if (data.ok) {
-                console.log('Psychologist registered in hub successfully');
+                console.log('[AUTH] Psychologist registered in hub successfully');
             } else {
-                console.error('Error registering psychologist in hub:', data.error);
+                console.error('[AUTH] Error registering psychologist in hub:', data.error);
             }
         } catch (error) {
-            console.error('Error registering psychologist to hub:', error);
+            console.error('[AUTH] Error registering psychologist to hub:', error);
         }
     }
     
@@ -824,15 +826,47 @@ let alertPollingInterval = null;
 
 async function updateAlertsCounter() {
     try {
+        console.log('[DASHBOARD] Updating alerts counter');
         const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
-        const response = await fetch(`${hubUrl}?action=listar`);
+        console.log('[DASHBOARD] Hub URL:', hubUrl);
+        
+        const response = await fetch(`${hubUrl}?action=listar`, {
+            mode: 'cors',
+            redirect: 'follow'
+        });
+        console.log('[DASHBOARD] Response status:', response.status);
+        
+        if (!response.ok) {
+            console.error('[DASHBOARD] Hub returned error status:', response.status);
+            const counterElement = document.getElementById('alerts-count');
+            if (counterElement) {
+                counterElement.textContent = 'Error de conexión';
+            }
+            return;
+        }
+        
+        const contentType = response.headers.get('content-type');
+        console.log('[DASHBOARD] Response content-type:', contentType);
+        
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error('[DASHBOARD] Hub did not return JSON');
+            const counterElement = document.getElementById('alerts-count');
+            if (counterElement) {
+                counterElement.textContent = 'Error de conexión';
+            }
+            return;
+        }
+        
         const data = await response.json();
+        console.log('[DASHBOARD] Hub response:', data);
         
         if (data.ok && data.alertas) {
             const pendingAlerts = data.alertas.filter(alerta => {
                 const estado = alerta.estado?.toLowerCase() || 'pendiente';
                 return estado === 'pendiente' || estado === 'en_seguimiento';
             });
+            
+            console.log('[DASHBOARD] Pending alerts:', pendingAlerts.length);
             
             const counterElement = document.getElementById('alerts-count');
             if (counterElement) {
@@ -851,9 +885,19 @@ async function updateAlertsCounter() {
             if ('Notification' in window && Notification.permission === 'default') {
                 await Notification.requestPermission();
             }
+        } else {
+            console.error('[DASHBOARD] Hub response invalid:', data);
+            const counterElement = document.getElementById('alerts-count');
+            if (counterElement) {
+                counterElement.textContent = 'Error de conexión';
+            }
         }
     } catch (error) {
-        console.error('Error updating alerts counter:', error);
+        console.error('[DASHBOARD] Error updating alerts counter:', error);
+        const counterElement = document.getElementById('alerts-count');
+        if (counterElement) {
+            counterElement.textContent = 'Error de conexión';
+        }
     }
 }
 

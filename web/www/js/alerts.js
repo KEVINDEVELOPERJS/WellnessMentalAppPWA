@@ -37,20 +37,31 @@ const AlertsModule = {
 
     async fetchAlertsFromHub() {
         try {
+            console.log('[ALERTS PANEL] Fetching alerts from hub');
+            console.log('[ALERTS PANEL] Hub URL:', this.hubUrl);
             const url = `${this.hubUrl}?action=listar`;
-            const response = await fetch(url);
+            console.log('[ALERTS PANEL] Request URL:', url);
+            
+            const response = await fetch(url, {
+                mode: 'cors',
+                redirect: 'follow'
+            });
             const data = await response.json();
             
+            console.log('[ALERTS PANEL] Hub response:', data);
+            
             if (data.ok && data.alertas) {
+                console.log('[ALERTS PANEL] Raw alerts from hub:', data.alertas);
                 this.alerts = this.transformHubAlerts(data.alertas);
+                console.log('[ALERTS PANEL] Transformed alerts:', this.alerts);
                 this.saveAlerts();
-                console.log(`Loaded ${this.alerts.length} alerts from hub`);
+                console.log(`[ALERTS PANEL] Loaded ${this.alerts.length} alerts from hub`);
             } else {
-                console.error('Error fetching alerts from hub:', data.error);
+                console.error('[ALERTS PANEL] Error fetching alerts from hub:', data.error);
                 this.generateSampleAlerts();
             }
         } catch (error) {
-            console.error('Error connecting to hub:', error);
+            console.error('[ALERTS PANEL] Error connecting to hub:', error);
             this.generateSampleAlerts();
         }
     },

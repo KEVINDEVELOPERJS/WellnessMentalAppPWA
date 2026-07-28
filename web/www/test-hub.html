@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hub Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Conexión al Hub de Alertas</h1>
+    
+    <div class="test-section">
+        <h2>1. Listar Psicólogos</h2>
+        <button onclick="testListPsicologos()">Probar</button>
+        <pre id="psicologos-result">Esperando...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Listar Alertas</h2>
+        <button onclick="testListAlertas()">Probar</button>
+        <pre id="alertas-result">Esperando...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Registrar Psicólogo de Prueba</h2>
+        <input type="email" id="test-psicologo-email" placeholder="Email del psicólogo" value="test.psicologo@example.com">
+        <input type="text" id="test-psicologo-name" placeholder="Nombre" value="Psicólogo Test">
+        <button onclick="testRegisterPsicologo()">Registrar</button>
+        <pre id="register-result">Esperando...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Enviar Alerta de Prueba</h2>
+        <input type="email" id="test-alert-email" placeholder="Email estudiante" value="estudiante.test@example.com">
+        <input type="text" id="test-alert-name" placeholder="Nombre estudiante" value="Estudiante Test">
+        <select id="test-alert-risk">
+            <option value="alto">Riesgo Alto</option>
+            <option value="medio">Riesgo Medio</option>
+            <option value="bajo">Riesgo Bajo</option>
+        </select>
+        <button onclick="testSendAlert()">Enviar Alerta</button>
+        <pre id="send-result">Esperando...</pre>
+    </div>
+
+    <script>
+        const HUB_URL = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+
+        async function testListPsicologos() {
+            const result = document.getElementById('psicologos-result');
+            result.textContent = 'Cargando...';
+            
+            try {
+                const response = await fetch(`${HUB_URL}?action=listar_psicologos`, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.ok && data.psicologos && data.psicologos.length > 0) {
+                    result.parentElement.classList.add('success');
+                    result.parentElement.classList.remove('error');
+                } else {
+                    result.parentElement.classList.add('error');
+                    result.parentElement.classList.remove('success');
+                }
+            } catch (error) {
+                result.textContent = 'Error: ' + error.message;
+                result.parentElement.classList.add('error');
+            }
+        }
+
+        async function testListAlertas() {
+            const result = document.getElementById('alertas-result');
+            result.textContent = 'Cargando...';
+            
+            try {
+                const response = await fetch(`${HUB_URL}?action=listar`, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.ok && data.alertas) {
+                    result.parentElement.classList.add('success');
+                    result.parentElement.classList.remove('error');
+                } else {
+                    result.parentElement.classList.add('error');
+                    result.parentElement.classList.remove('success');
+                }
+            } catch (error) {
+                result.textContent = 'Error: ' + error.message;
+                result.parentElement.classList.add('error');
+            }
+        }
+
+        async function testRegisterPsicologo() {
+            const result = document.getElementById('register-result');
+            const email = document.getElementById('test-psicologo-email').value;
+            const name = document.getElementById('test-psicologo-name').value;
+            
+            result.textContent = 'Enviando...';
+            
+            try {
+                const psicologo = {
+                    email: email,
+                    nombre: name,
+                    especialidad: 'Psicología General',
+                    timestampRegistro: new Date().toISOString()
+                };
+                
+                const url = `${HUB_URL}?action=publicar_psicologo&psicologo=${encodeURIComponent(JSON.stringify(psicologo))}`;
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.ok) {
+                    result.parentElement.classList.add('success');
+                    result.parentElement.classList.remove('error');
+                } else {
+                    result.parentElement.classList.add('error');
+                    result.parentElement.classList.remove('success');
+                }
+            } catch (error) {
+                result.textContent = 'Error: ' + error.message;
+                result.parentElement.classList.add('error');
+            }
+        }
+
+        async function testSendAlert() {
+            const result = document.getElementById('send-result');
+            const email = document.getElementById('test-alert-email').value;
+            const name = document.getElementById('test-alert-name').value;
+            const risk = document.getElementById('test-alert-risk').value;
+            
+            result.textContent = 'Enviando...';
+            
+            try {
+                const alerta = {
+                    remoteId: `test_${Date.now()}`,
+                    emailEstudiante: email,
+                    nombreEstudiante: name,
+                    gradoEstudiante: '10°',
+                    tipo: 'evaluacion',
+                    nivelRiesgo: risk,
+                    timestamp: new Date().toISOString(),
+                    extracto: 'Alerta de prueba desde el panel de test',
+                    estado: 'PENDIENTE',
+                    notas: '',
+                    idReferencia: '',
+                    deviceOrigen: 'web',
+                    emailPsicologo: 'test.psicologo@example.com'
+                };
+                
+                const url = `${HUB_URL}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                const data = await response.json();
+                result.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.ok) {
+                    result.parentElement.classList.add('success');
+                    result.parentElement.classList.remove('error');
+                } else {
+                    result.parentElement.classList.add('error');
+                    result.parentElement.classList.remove('success');
+                }
+            } catch (error) {
+                result.textContent = 'Error: ' + error.message;
+                result.parentElement.classList.add('error');
+            }
+        }
+    </script>
+</body>
+</html>

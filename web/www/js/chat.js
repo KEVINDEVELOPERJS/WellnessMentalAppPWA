@@ -250,11 +250,20 @@ class ChatController {
     
     async createRiskAlert(userId, messageContent, riskLevel) {
         try {
+            console.log('[CHAT] Creating risk alert');
+            console.log('[CHAT] Risk level:', riskLevel);
+            console.log('[CHAT] Message:', messageContent.substring(0, 50));
+            
             const user = await this.db.get(DB_CONFIG.tables.users, userId);
-            if (!user) return { success: false };
+            if (!user) {
+                console.error('[CHAT] User not found:', userId);
+                return { success: false };
+            }
+            console.log('[CHAT] User found:', user.email, user.name);
 
             // Get psychologist email
             const psicologoEmail = await this.getPsicologoEmail();
+            console.log('[CHAT] Psychologist email:', psicologoEmail);
 
             // Save to local database
             const alert = {
@@ -270,13 +279,14 @@ class ChatController {
             };
             
             await this.db.add(DB_CONFIG.tables.alerts, alert);
+            console.log('[CHAT] Alert saved to local database');
 
             // Send to hub
             await this.sendAlertToHub(alert, psicologoEmail, this.currentSession?.id);
             
             return { success: true };
         } catch (error) {
-            console.error('Error creating risk alert:', error);
+            console.error('[CHAT] Error creating risk alert:', error);
             return { success: false };
         }
     }
@@ -285,7 +295,10 @@ class ChatController {
         try {
             // Try to get from hub first
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
-            const response = await fetch(`${hubUrl}?action=listar_psicologos`);
+            const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
+                mode: 'cors',
+                redirect: 'follow'
+            });
             const data = await response.json();
             
             if (data.ok && data.psicologos && data.psicologos.length > 0) {
@@ -311,30 +324,25 @@ class ChatController {
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
             
             const alerta = {
-                action: 'publicar',
-                alerta: {
-                    remoteId: `web_chat_${Date.now()}_${alert.userId}`,
-                    emailEstudiante: alert.emailEstudiante,
-                    nombreEstudiante: alert.nombreEstudiante,
-                    gradoEstudiante: alert.gradoEstudiante,
-                    tipo: 'chat',
-                    nivelRiesgo: alert.nivelRiesgo.toLowerCase(),
-                    timestamp: alert.timestamp,
-                    extracto: alert.extracto,
-                    estado: 'PENDIENTE',
-                    notas: '',
-                    idReferencia: chatId || '',
-                    deviceOrigen: 'web',
-                    emailPsicologo: psicologoEmail || ''
-                }
+                remoteId: `web_chat_${Date.now()}_${alert.userId}`,
+                emailEstudiante: alert.emailEstudiante,
+                nombreEstudiante: alert.nombreEstudiante,
+                gradoEstudiante: alert.gradoEstudiante,
+                tipo: 'chat',
+                nivelRiesgo: alert.nivelRiesgo.toLowerCase(),
+                timestamp: alert.timestamp,
+                extracto: alert.extracto,
+                estado: 'PENDIENTE',
+                notas: '',
+                idReferencia: chatId || '',
+                deviceOrigen: 'web',
+                emailPsicologo: psicologoEmail || ''
             };
 
-            const response = await fetch(hubUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(alerta)
+            const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
+            const response = await fetch(url, {
+                mode: 'cors',
+                redirect: 'follow'
             });
 
             const data = await response.json();
