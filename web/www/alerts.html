@@ -33,6 +33,16 @@
                     <button class="tab-btn active" data-risk="high">🔴 Alto Riesgo</button>
                     <button class="tab-btn" data-risk="medium">🟡 Riesgo Medio</button>
                     <button class="tab-btn" data-risk="low">🟢 Riesgo Bajo</button>
+                    <button class="tab-btn" data-risk="all">📋 Todas</button>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="status-filter">
+                    <select id="status-filter">
+                        <option value="all">Todos los estados</option>
+                        <option value="pending">⏳ Pendientes</option>
+                        <option value="resolved">✅ Resueltas</option>
+                    </select>
                 </div>
 
                 <!-- Alerts List -->
@@ -78,6 +88,12 @@
                                     <li>Programar sesión de terapia</li>
                                     <li>Informar a padres/tutores si es menor de edad</li>
                                 </ul>
+                            </div>
+
+                            <div class="alert-notes">
+                                <h4>Notas de Intervención</h4>
+                                <textarea id="alert-notes-input" placeholder="Documente las acciones tomadas..."></textarea>
+                                <button id="save-notes-btn" class="btn btn-secondary btn-small">Guardar Notas</button>
                             </div>
                         </div>
                         <div class="modal-actions">

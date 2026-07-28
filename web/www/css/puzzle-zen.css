@@ -148,31 +148,49 @@
 }
 
 .circle-0 {
-    top: 25px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) translateY(-90px);
 }
 
 .circle-1 {
     top: 50%;
-    right: 25px;
-    transform: translateY(-50%);
+    left: 50%;
+    transform: translate(-50%, -50%) translateX(90px);
 }
 
 .circle-2 {
-    bottom: 25px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%) translateY(90px);
 }
 
 .circle-3 {
     top: 50%;
-    left: 25px;
-    transform: translateY(-50%);
+    left: 50%;
+    transform: translate(-50%, -50%) translateX(-90px);
 }
 
-.circle:hover {
-    transform: scale(1.15) !important;
+.circle-0:hover {
+    transform: translate(-50%, -50%) translateY(-90px) scale(1.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    filter: brightness(1.1);
+}
+
+.circle-1:hover {
+    transform: translate(-50%, -50%) translateX(90px) scale(1.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    filter: brightness(1.1);
+}
+
+.circle-2:hover {
+    transform: translate(-50%, -50%) translateY(90px) scale(1.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+    filter: brightness(1.1);
+}
+
+.circle-3:hover {
+    transform: translate(-50%, -50%) translateX(-90px) scale(1.15);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.4);
     filter: brightness(1.1);
 }
@@ -240,19 +258,35 @@
     }
     
     .circle-0 {
-        top: 20px;
+        transform: translate(-50%, -50%) translateY(-75px);
+    }
+    
+    .circle-0:hover {
+        transform: translate(-50%, -50%) translateY(-75px) scale(1.15);
     }
     
     .circle-1 {
-        right: 20px;
+        transform: translate(-50%, -50%) translateX(75px);
+    }
+    
+    .circle-1:hover {
+        transform: translate(-50%, -50%) translateX(75px) scale(1.15);
     }
     
     .circle-2 {
-        bottom: 20px;
+        transform: translate(-50%, -50%) translateY(75px);
+    }
+    
+    .circle-2:hover {
+        transform: translate(-50%, -50%) translateY(75px) scale(1.15);
     }
     
     .circle-3 {
-        left: 20px;
+        transform: translate(-50%, -50%) translateX(-75px);
+    }
+    
+    .circle-3:hover {
+        transform: translate(-50%, -50%) translateX(-75px) scale(1.15);
     }
     
     .level-display {

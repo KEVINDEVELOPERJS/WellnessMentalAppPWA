@@ -240,6 +240,55 @@
     margin-bottom: 8px;
 }
 
+.status-filter {
+    margin-bottom: 20px;
+}
+
+.status-filter select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.status-filter select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.alert-notes {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 16px;
+}
+
+.alert-notes h4 {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 12px;
+}
+
+.alert-notes textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 12px;
+}
+
+.alert-notes textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
 @media (max-width: 768px) {
     .alerts-header h1 {
         font-size: 20px;
