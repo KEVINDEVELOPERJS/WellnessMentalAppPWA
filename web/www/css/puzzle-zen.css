@@ -79,13 +79,16 @@
 
 .puzzle-board {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 320px;
+    height: 320px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 50%;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border: 2px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .level-display {
@@ -100,21 +103,23 @@
     z-index: 10;
     pointer-events: none;
     transition: transform 0.1s ease-out;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px 16px;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 24px;
+    border-radius: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.5);
 }
 
 .circle {
     position: absolute;
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(5px);
+    z-index: 5;
 }
 
 .circle::before {
@@ -129,27 +134,40 @@
     pointer-events: none;
 }
 
+.circle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
 .circle-0 {
-    top: 20px;
+    top: 25px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .circle-1 {
     top: 50%;
-    right: 20px;
+    right: 25px;
     transform: translateY(-50%);
 }
 
 .circle-2 {
-    bottom: 20px;
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .circle-3 {
     top: 50%;
-    left: 20px;
+    left: 25px;
     transform: translateY(-50%);
 }
 
@@ -212,8 +230,8 @@
 
 @media (max-width: 768px) {
     .puzzle-board {
-        width: 250px;
-        height: 250px;
+        width: 280px;
+        height: 280px;
     }
     
     .circle {
@@ -222,23 +240,24 @@
     }
     
     .circle-0 {
-        top: 15px;
+        top: 20px;
     }
     
     .circle-1 {
-        right: 15px;
+        right: 20px;
     }
     
     .circle-2 {
-        bottom: 15px;
+        bottom: 20px;
     }
     
     .circle-3 {
-        left: 15px;
+        left: 20px;
     }
     
     .level-display {
         font-size: 20px;
+        padding: 10px 20px;
     }
     
     .game-header h1 {

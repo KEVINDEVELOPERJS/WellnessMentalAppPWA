@@ -39,6 +39,29 @@
     font-size: 32px;
     font-weight: 600;
     margin-right: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.edit-avatar-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+}
+
+.edit-avatar-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
 }
 
 .user-details h2 {

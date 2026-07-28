@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Arte Emocional - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/arte-emocional.css">
+    <link rel="apple-touch-icon" href="images/app-icon.jpeg">
+    <link rel="icon" type="image/jpeg" href="images/app-icon.jpeg">
+    <link rel="shortcut icon" href="images/app-icon.jpeg">
+</head>
+<body>
+    <div id="app">
+        <!-- Arte Emocional Game Screen -->
+        <div id="arte-emocional-screen" class="screen active">
+            <div class="arte-emocional-container">
+                <header class="game-header">
+                    <button id="back-to-games" class="btn btn-secondary btn-small">
+                        ← Volver
+                    </button>
+                    <h1>Arte Emocional</h1>
+                    <div class="game-stats">
+                        <span class="stat">🎨 <span id="emotion-count">0</span></span>
+                    </div>
+                </header>
+
+                <!-- Game Info -->
+                <div class="game-info">
+                    <p id="game-status">Selecciona una emoción y exprésala con colores</p>
+                </div>
+
+                <!-- Emotion Selection -->
+                <div class="emotion-selector" id="emotion-selector">
+                    <div class="emotion-card" data-emotion="alegria">
+                        <div class="emotion-icon">😊</div>
+                        <div class="emotion-label">Alegría</div>
+                    </div>
+                    <div class="emotion-card" data-emotion="tristeza">
+                        <div class="emotion-icon">😢</div>
+                        <div class="emotion-label">Tristeza</div>
+                    </div>
+                    <div class="emotion-card" data-emotion="calma">
+                        <div class="emotion-icon">😌</div>
+                        <div class="emotion-label">Calma</div>
+                    </div>
+                    <div class="emotion-card" data-emotion="energia">
+                        <div class="emotion-icon">⚡</div>
+                        <div class="emotion-label">Energía</div>
+                    </div>
+                    <div class="emotion-card" data-emotion="amor">
+                        <div class="emotion-icon">❤️</div>
+                        <div class="emotion-label">Amor</div>
+                    </div>
+                    <div class="emotion-card" data-emotion="miedo">
+                        <div class="emotion-icon">😨</div>
+                        <div class="emotion-label">Miedo</div>
+                    </div>
+                </div>
+
+                <!-- Canvas Area -->
+                <div class="canvas-container" id="canvas-container">
+                    <canvas id="art-canvas"></canvas>
+                    <div class="canvas-controls">
+                        <div class="color-palette" id="color-palette">
+                            <div class="color-swatch" data-color="#FF6B6B" style="background: #FF6B6B"></div>
+                            <div class="color-swatch" data-color="#4ECDC4" style="background: #4ECDC4"></div>
+                            <div class="color-swatch" data-color="#45B7D1" style="background: #45B7D1"></div>
+                            <div class="color-swatch" data-color="#96CEB4" style="background: #96CEB4"></div>
+                            <div class="color-swatch" data-color="#FFEAA7" style="background: #FFEAA7"></div>
+                            <div class="color-swatch" data-color="#DDA0DD" style="background: #DDA0DD"></div>
+                            <div class="color-swatch" data-color="#98D8C8" style="background: #98D8C8"></div>
+                            <div class="color-swatch" data-color="#F7DC6F" style="background: #F7DC6F"></div>
+                        </div>
+                        <div class="brush-controls">
+                            <button class="brush-btn" data-size="small">Pequeño</button>
+                            <button class="brush-btn active" data-size="medium">Medio</button>
+                            <button class="brush-btn" data-size="large">Grande</button>
+                        </div>
+                        <div class="action-controls">
+                            <button id="clear-canvas" class="btn btn-secondary">Limpiar</button>
+                            <button id="save-art" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Complete Modal -->
+                <div id="game-complete-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>¡Obra de Arte Completada!</h2>
+                            <button class="btn-close">×</button>
+                        </div>
+                        <div class="game-complete-content">
+                            <div class="complete-icon">🎨</div>
+                            <div class="complete-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Emoción expresada</span>
+                                    <span class="stat-value" id="final-emotion">Alegría</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Puntos Ganados</span>
+                                    <span class="stat-value" id="final-points">+30</span>
+                                </div>
+                            </div>
+                            <p class="complete-message">¡Excelente expresión artística! Has canalizado tu emoción a través del arte.</p>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary close-modal-btn">Cerrar</button>
+                            <button class="btn btn-primary restart-modal-btn">Nueva Emoción</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p>Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/game-fx-engine.js"></script>
+    <script src="js/arte-emocional.js"></script>
+</body>
+</html>

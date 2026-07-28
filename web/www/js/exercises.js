@@ -9,6 +9,8 @@ class ExercisesController {
         this.totalSeconds = 0;
         this.timerInterval = null;
         this.breathingInterval = null;
+        this.audioContext = null;
+        this.voiceEnabled = true;
     }
     
     async getExercises() {
@@ -116,6 +118,9 @@ class ExercisesController {
         // Add current phase class
         circle.classList.add(phase.action);
         phaseText.textContent = phase.name;
+        
+        // Play voice guidance
+        this.playVoiceGuidance(phase.name);
     }
     
     updateCountdown(count) {
@@ -220,6 +225,46 @@ class ExercisesController {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
         }
+    }
+    
+    initAudio() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('Audio not supported');
+            this.voiceEnabled = false;
+        }
+    }
+    
+    playVoiceGuidance(phaseName) {
+        if (!this.voiceEnabled || !this.audioContext) return;
+        
+        // Create a soothing voice-like sound using Web Audio API
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        // Set frequency based on phase (soothing tones)
+        const frequencies = {
+            'Inhala': 392, // G4 - gentle
+            'Mantén': 440, // A4 - steady
+            'Exhala': 349.23 // F4 - releasing
+        };
+        
+        oscillator.frequency.value = frequencies[phaseName] || 392;
+        oscillator.type = 'sine';
+        
+        // Create a gentle envelope for voice-like effect
+        const now = this.audioContext.currentTime;
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.15, now + 0.1); // Soft attack
+        gainNode.gain.linearRampToValueAtTime(0.12, now + 0.3); // Slight decay
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.6); // Gentle release
+        
+        oscillator.start(now);
+        oscillator.stop(now + 0.6);
     }
 }
 
@@ -349,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const initInterval = setInterval(() => {
         if (dbManager && authController) {
             exercisesController = new ExercisesController(dbManager);
+            exercisesController.initAudio();
             loadExercisesList();
             clearInterval(initInterval);
         }

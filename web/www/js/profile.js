@@ -81,6 +81,20 @@ class ProfileModule {
             window.location.href = 'index.html';
         });
 
+        // Avatar upload
+        const editAvatarBtn = document.getElementById('edit-avatar-btn');
+        const avatarUpload = document.getElementById('avatar-upload');
+        
+        if (editAvatarBtn && avatarUpload) {
+            editAvatarBtn.addEventListener('click', () => {
+                avatarUpload.click();
+            });
+            
+            avatarUpload.addEventListener('change', (e) => {
+                this.handleAvatarUpload(e);
+            });
+        }
+
         // Notification toggles
         document.getElementById('notif-evaluations').addEventListener('change', (e) => {
             this.notifications.evaluations = e.target.checked;
@@ -188,6 +202,9 @@ class ProfileModule {
         document.getElementById('user-initials').textContent = this.user.name.split(' ').map(n => n[0]).join('').toUpperCase();
         document.getElementById('user-name').textContent = this.user.name;
         document.getElementById('user-role').textContent = this.user.role === 'estudiante' ? 'Estudiante' : 'Psicólogo';
+        
+        // Load saved avatar
+        this.loadAvatar();
 
         // Stats
         document.getElementById('stat-days').textContent = this.stats.daysActive;
@@ -351,6 +368,56 @@ class ProfileModule {
         this.stats[statName]++;
         this.saveStats();
         this.render();
+    }
+    
+    handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showToast('Por favor selecciona una imagen válida');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('La imagen no debe superar 5MB');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imageData = e.target.result;
+            
+            // Save to localStorage
+            localStorage.setItem('user_avatar', imageData);
+            
+            // Update UI
+            this.loadAvatar();
+            
+            showToast('Foto de perfil actualizada', 'success');
+        };
+        reader.onerror = () => {
+            showToast('Error al cargar la imagen', 'error');
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    loadAvatar() {
+        const savedAvatar = localStorage.getItem('user_avatar');
+        const avatarContainer = document.getElementById('user-avatar-container');
+        const initials = document.getElementById('user-initials');
+        
+        if (savedAvatar && avatarContainer) {
+            avatarContainer.style.backgroundImage = `url(${savedAvatar})`;
+            avatarContainer.style.backgroundSize = 'cover';
+            avatarContainer.style.backgroundPosition = 'center';
+            initials.style.display = 'none';
+        } else if (avatarContainer && initials) {
+            avatarContainer.style.backgroundImage = 'none';
+            initials.style.display = 'block';
+        }
     }
 }
 

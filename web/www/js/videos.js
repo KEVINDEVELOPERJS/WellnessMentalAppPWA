@@ -3,22 +3,22 @@ const VideosModule = {
     videos: [
         {
             id: 1,
-            title: 'Kiara en un espejismo de vida',
+            title: 'Kiara en el espejismo de la vida',
             description: '',
             duration: '0:00',
             category: 'Historia',
             color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            videoFile: 'videos/video1.mp4',
+            videoFile: 'videos/kiara en el espejismo de la vida.mp4',
             tips: []
         },
         {
             id: 2,
-            title: 'La importancia de salud mental desde lo básico',
+            title: 'La importancia de la salud mental desde lo básico',
             description: '',
             duration: '0:00',
             category: 'Historia',
             color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-            videoFile: 'videos/video2.mp4',
+            videoFile: 'videos/la importancia de la salud mental desde lo basico.mp4',
             tips: []
         },
         {
@@ -28,7 +28,7 @@ const VideosModule = {
             duration: '0:00',
             category: 'Historia',
             color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-            videoFile: 'videos/video3.mp4',
+            videoFile: 'videos/una madre y sus soles en medio del diciplinamiento emocional.mp4',
             tips: []
         },
         {
@@ -38,7 +38,7 @@ const VideosModule = {
             duration: '0:00',
             category: 'Historia',
             color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-            videoFile: 'videos/video4.mp4',
+            videoFile: 'videos/las cicatrices que se pueden volver traumas.mp4',
             tips: []
         },
         {
@@ -48,17 +48,17 @@ const VideosModule = {
             duration: '0:00',
             category: 'Historia',
             color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-            videoFile: 'videos/video5.mp4',
+            videoFile: 'videos/cuidar sin perderse .mp4',
             tips: []
         },
         {
             id: 6,
-            title: 'El camino hacia la sanación emocional',
+            title: 'Historias de salud mental',
             description: '',
             duration: '0:00',
             category: 'Historia',
             color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-            videoFile: 'videos/video6.mp4',
+            videoFile: 'videos/historias de salud mental.mp4',
             tips: []
         }
     ],
@@ -121,6 +121,9 @@ const VideosModule = {
         const videoSource = videoPlayer.querySelector('source');
         videoSource.src = video.videoFile;
         videoPlayer.load();
+        
+        // Set volume to maximum (1.0)
+        videoPlayer.volume = 1.0;
 
         this.showVideoPlayerScreen();
 

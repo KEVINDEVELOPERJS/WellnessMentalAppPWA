@@ -1,0 +1,125 @@
+/* Arte Emocional Game Styles */
+.arte-emocional-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.emotion-selector {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.emotion-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+}
+
+.emotion-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.emotion-card.selected {
+    border-color: #FFD700;
+    transform: scale(1.05);
+}
+
+.emotion-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.emotion-label {
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.canvas-container {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#art-canvas {
+    width: 100%;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.canvas-controls {
+    margin-top: 15px;
+}
+
+.color-palette {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+
+.color-swatch.selected {
+    border-color: #333;
+    transform: scale(1.15);
+}
+
+.brush-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.brush-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.brush-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+.brush-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.action-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.action-controls .btn {
+    flex: 1;
+}

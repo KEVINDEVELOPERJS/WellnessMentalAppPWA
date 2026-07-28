@@ -103,6 +103,7 @@ const RitmoCalmaModule = {
         this.lastResult = null;
         this.pulseScale = 1;
         this.feedbackAlpha = 0;
+        this.rhythmBeatTime = 0;
         
         this.fx.init();
         this.playStartTone();
@@ -111,6 +112,7 @@ const RitmoCalmaModule = {
         this.updateComboText();
         this.startAnimation();
         this.startTimer();
+        this.startRhythmIndicator();
         
         document.getElementById('start-btn').classList.add('hidden');
         document.getElementById('restart-btn').classList.remove('hidden');
@@ -131,6 +133,10 @@ const RitmoCalmaModule = {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
             this.timerInterval = null;
+        }
+        if (this.rhythmInterval) {
+            clearInterval(this.rhythmInterval);
+            this.rhythmInterval = null;
         }
     },
     
@@ -225,6 +231,55 @@ const RitmoCalmaModule = {
                 this.endGame();
             }
         }, 1000);
+    },
+    
+    startRhythmIndicator() {
+        // Create a constant rhythm beat to help players time their taps
+        const beatInterval = 600; // 600ms = ~100 BPM (calm rhythm)
+        this.rhythmInterval = setInterval(() => {
+            if (!this.isPlaying) return;
+            
+            this.rhythmBeatTime++;
+            
+            // Play a subtle beat sound
+            this.playRhythmBeat();
+            
+            // Visual indicator for rhythm
+            this.showRhythmPulse();
+        }, beatInterval);
+    },
+    
+    playRhythmBeat() {
+        if (!this.audioContext) return;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.value = 261.63; // C4 - gentle base tone
+        oscillator.type = 'sine';
+        
+        const now = this.audioContext.currentTime;
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.08, now + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+        
+        oscillator.start(now);
+        oscillator.stop(now + 0.1);
+    },
+    
+    showRhythmPulse() {
+        const gameBoard = document.getElementById('game-board');
+        if (!gameBoard) return;
+        
+        // Add a subtle pulse effect to the game board
+        gameBoard.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.3)';
+        
+        setTimeout(() => {
+            gameBoard.style.boxShadow = 'none';
+        }, 100);
     },
     
     updateIndicatorPosition() {
