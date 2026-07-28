@@ -387,10 +387,48 @@ class AuthController {
                 fechaActualizacion: Utils.now()
             });
             
+            // Register psychologist in hub if role is psychologist
+            if (userData.role === 'psicologo') {
+                await this.registerPsicologoToHub(user);
+            }
+            
             return { success: true, user: { ...user, id: userId } };
         } catch (error) {
             console.error('Registration error:', error);
             return { success: false, error: 'Error al registrar usuario' };
+        }
+    }
+    
+    async registerPsicologoToHub(user) {
+        try {
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            
+            const psicologo = {
+                action: 'publicar_psicologo',
+                psicologo: {
+                    email: user.email,
+                    nombre: user.name,
+                    especialidad: 'Psicología General',
+                    timestampRegistro: Utils.now()
+                }
+            };
+
+            const response = await fetch(hubUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(psicologo)
+            });
+
+            const data = await response.json();
+            if (data.ok) {
+                console.log('Psychologist registered in hub successfully');
+            } else {
+                console.error('Error registering psychologist in hub:', data.error);
+            }
+        } catch (error) {
+            console.error('Error registering psychologist to hub:', error);
         }
     }
     

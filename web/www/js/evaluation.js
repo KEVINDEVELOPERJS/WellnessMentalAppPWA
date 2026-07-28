@@ -240,6 +240,9 @@ class EvaluationController {
             const user = await this.db.get(DB_CONFIG.tables.users, userId);
             if (!user) return;
 
+            // Get psychologist email
+            const psicologoEmail = await this.getPsicologoEmail();
+
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
             
             const alerta = {
@@ -257,7 +260,7 @@ class EvaluationController {
                     notas: '',
                     idReferencia: resultId,
                     deviceOrigen: 'web',
-                    emailPsicologo: ''
+                    emailPsicologo: psicologoEmail || ''
                 }
             };
 
@@ -277,6 +280,31 @@ class EvaluationController {
             }
         } catch (error) {
             console.error('Error sending alert to hub:', error);
+        }
+    }
+
+    async getPsicologoEmail() {
+        try {
+            // Try to get from hub first
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const response = await fetch(`${hubUrl}?action=listar_psicologos`);
+            const data = await response.json();
+            
+            if (data.ok && data.psicologos && data.psicologos.length > 0) {
+                return data.psicologos[0].email;
+            }
+            
+            // Fallback: get from local database
+            const allUsers = await this.db.getAll(DB_CONFIG.tables.users);
+            const psicologo = allUsers.find(u => u.role === 'psicologo');
+            if (psicologo) {
+                return psicologo.email;
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Error getting psychologist email:', error);
+            return null;
         }
     }
     

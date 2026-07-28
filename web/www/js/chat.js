@@ -251,7 +251,12 @@ class ChatController {
     async createRiskAlert(userId, messageContent, riskLevel) {
         try {
             const user = await this.db.get(DB_CONFIG.tables.users, userId);
-            
+            if (!user) return { success: false };
+
+            // Get psychologist email
+            const psicologoEmail = await this.getPsicologoEmail();
+
+            // Save to local database
             const alert = {
                 userId,
                 tipo: 'chat_ia',
@@ -265,11 +270,81 @@ class ChatController {
             };
             
             await this.db.add(DB_CONFIG.tables.alerts, alert);
+
+            // Send to hub
+            await this.sendAlertToHub(alert, psicologoEmail, this.currentSession?.id);
             
             return { success: true };
         } catch (error) {
             console.error('Error creating risk alert:', error);
             return { success: false };
+        }
+    }
+
+    async getPsicologoEmail() {
+        try {
+            // Try to get from hub first
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const response = await fetch(`${hubUrl}?action=listar_psicologos`);
+            const data = await response.json();
+            
+            if (data.ok && data.psicologos && data.psicologos.length > 0) {
+                return data.psicologos[0].email;
+            }
+            
+            // Fallback: get from local database
+            const allUsers = await this.db.getAll(DB_CONFIG.tables.users);
+            const psicologo = allUsers.find(u => u.role === 'psicologo');
+            if (psicologo) {
+                return psicologo.email;
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('Error getting psychologist email:', error);
+            return null;
+        }
+    }
+
+    async sendAlertToHub(alert, psicologoEmail, chatId) {
+        try {
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            
+            const alerta = {
+                action: 'publicar',
+                alerta: {
+                    remoteId: `web_chat_${Date.now()}_${alert.userId}`,
+                    emailEstudiante: alert.emailEstudiante,
+                    nombreEstudiante: alert.nombreEstudiante,
+                    gradoEstudiante: alert.gradoEstudiante,
+                    tipo: 'chat',
+                    nivelRiesgo: alert.nivelRiesgo.toLowerCase(),
+                    timestamp: alert.timestamp,
+                    extracto: alert.extracto,
+                    estado: 'PENDIENTE',
+                    notas: '',
+                    idReferencia: chatId || '',
+                    deviceOrigen: 'web',
+                    emailPsicologo: psicologoEmail || ''
+                }
+            };
+
+            const response = await fetch(hubUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(alerta)
+            });
+
+            const data = await response.json();
+            if (data.ok) {
+                console.log('Chat alert sent to hub successfully');
+            } else {
+                console.error('Error sending chat alert to hub:', data.error);
+            }
+        } catch (error) {
+            console.error('Error sending chat alert to hub:', error);
         }
     }
     
