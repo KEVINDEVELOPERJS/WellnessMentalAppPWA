@@ -434,6 +434,7 @@ class AuthController {
     }
     
     async logout() {
+        stopAlertPolling();
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
@@ -774,9 +775,85 @@ async function showDashboard() {
     // Show alerts card for psychologists
     if (user.role === 'psicologo') {
         document.getElementById('alerts-card').classList.remove('hidden');
+        await updateAlertsCounter();
     }
     
     Utils.showScreen('dashboard-screen');
+}
+
+let lastAlertCount = 0;
+let alertPollingInterval = null;
+
+async function updateAlertsCounter() {
+    try {
+        const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+        const response = await fetch(`${hubUrl}?action=listar`);
+        const data = await response.json();
+        
+        if (data.ok && data.alertas) {
+            const pendingAlerts = data.alertas.filter(alerta => {
+                const estado = alerta.estado?.toLowerCase() || 'pendiente';
+                return estado === 'pendiente' || estado === 'en_seguimiento';
+            });
+            
+            const counterElement = document.getElementById('alerts-count');
+            if (counterElement) {
+                counterElement.textContent = `${pendingAlerts.length} alertas pendientes`;
+            }
+            
+            // Check for new alerts and send notification
+            if (pendingAlerts.length > lastAlertCount && lastAlertCount > 0) {
+                const newAlerts = pendingAlerts.length - lastAlertCount;
+                sendWebNotification(newAlerts, pendingAlerts[0]);
+            }
+            
+            lastAlertCount = pendingAlerts.length;
+            
+            // Request notification permission for psychologists
+            if ('Notification' in window && Notification.permission === 'default') {
+                await Notification.requestPermission();
+            }
+        }
+    } catch (error) {
+        console.error('Error updating alerts counter:', error);
+    }
+}
+
+function sendWebNotification(count, latestAlert) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        const title = count === 1 ? 'Nueva Alerta de Riesgo' : `${count} Nuevas Alertas de Riesgo`;
+        const body = latestAlert ? 
+            `${latestAlert.nombreEstudiante} - ${latestAlert.nivelRiesgo.toUpperCase()}` : 
+            'Tienes alertas pendientes de revisar';
+        
+        const notification = new Notification(title, {
+            body: body,
+            icon: '/images/app-icon.jpeg',
+            badge: '/images/app-icon.jpeg',
+            tag: 'wellness-alerts',
+            requireInteraction: true
+        });
+        
+        notification.onclick = () => {
+            window.open('alerts.html', '_blank');
+            notification.close();
+        };
+    }
+}
+
+function startAlertPolling() {
+    // Update every 30 seconds
+    if (alertPollingInterval) {
+        clearInterval(alertPollingInterval);
+    }
+    alertPollingInterval = setInterval(updateAlertsCounter, 30000);
+}
+
+function stopAlertPolling() {
+    if (alertPollingInterval) {
+        clearInterval(alertPollingInterval);
+        alertPollingInterval = null;
+    }
 }
 
 // Event Listeners
@@ -803,6 +880,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 AppState.token = result.token;
                 Utils.showToast('Bienvenido de nuevo', 'success');
                 await showDashboard();
+                
+                // Start alert polling for psychologists
+                if (result.user.role === 'psicologo') {
+                    startAlertPolling();
+                }
             } else {
                 Utils.showToast(result.error, 'error');
             }

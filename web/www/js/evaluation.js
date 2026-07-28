@@ -222,10 +222,61 @@ class EvaluationController {
             // Add points for completing evaluation
             await this.addPointsForEvaluation(userId);
             
+            // Send alert to hub if risk is high or moderate
+            if (score.riskLevel === 'Alto' || score.riskLevel === 'Moderado') {
+                await this.sendAlertToHub(userId, result, score, resultId);
+            }
+            
             return { success: true, resultId };
         } catch (error) {
             console.error('Error saving results:', error);
             return { success: false, error: 'Error al guardar resultados' };
+        }
+    }
+
+    async sendAlertToHub(userId, result, score, resultId) {
+        try {
+            // Get user info
+            const user = await this.db.get(DB_CONFIG.tables.users, userId);
+            if (!user) return;
+
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            
+            const alerta = {
+                action: 'publicar',
+                alerta: {
+                    remoteId: `web_eval_${Date.now()}_${userId}`,
+                    emailEstudiante: user.email,
+                    nombreEstudiante: user.name,
+                    gradoEstudiante: user.grade || 'N/A',
+                    tipo: 'evaluacion',
+                    nivelRiesgo: score.riskLevel.toLowerCase(),
+                    timestamp: result.fecha,
+                    extracto: `Evaluación ${this.currentQuestionnaire.tipo}. Puntaje ${score.totalScore}. ${result.prediagnostico.substring(0, 50)}`,
+                    estado: 'PENDIENTE',
+                    notas: '',
+                    idReferencia: resultId,
+                    deviceOrigen: 'web',
+                    emailPsicologo: ''
+                }
+            };
+
+            const response = await fetch(hubUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(alerta)
+            });
+
+            const data = await response.json();
+            if (data.ok) {
+                console.log('Alert sent to hub successfully');
+            } else {
+                console.error('Error sending alert to hub:', data.error);
+            }
+        } catch (error) {
+            console.error('Error sending alert to hub:', error);
         }
     }
     
