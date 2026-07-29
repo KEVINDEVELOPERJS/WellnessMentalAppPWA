@@ -256,7 +256,7 @@ class EvaluationController {
                 console.error('[EVALUATION] No psychologist email found - alert will be sent but email notification may fail');
             }
 
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbzQpzgBXaROCzV0k3nKK28NEcMQDvaAHLi2Nj2y57MxhYrdvgnwQmKZqZ7Dg2Kq-Vyl/exec';
             
             const alerta = {
                 remoteId: `web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -319,7 +319,7 @@ class EvaluationController {
         try {
             console.log('[EVALUATION] Getting psychologist email from hub');
             // Try to get from hub first
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbzQpzgBXaROCzV0k3nKK28NEcMQDvaAHLi2Nj2y57MxhYrdvgnwQmKZqZ7Dg2Kq-Vyl/exec';
             const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
                 mode: 'cors',
                 redirect: 'follow'

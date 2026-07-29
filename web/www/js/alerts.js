@@ -19,7 +19,7 @@ const AlertsModule = {
 
     loadHubUrl() {
         // Load hub URL from config or use default
-        this.hubUrl = localStorage.getItem('alert_sync_url') || 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+        this.hubUrl = localStorage.getItem('alert_sync_url') || 'https://script.google.com/macros/s/AKfycbzQpzgBXaROCzV0k3nKK28NEcMQDvaAHLi2Nj2y57MxhYrdvgnwQmKZqZ7Dg2Kq-Vyl/exec';
         if (!this.hubUrl) {
             console.warn('Alert hub URL not configured. Using sample data.');
         }
