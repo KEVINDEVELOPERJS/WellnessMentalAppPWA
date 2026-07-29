@@ -50,9 +50,15 @@ const AlertsModule = {
                 mode: 'cors',
                 redirect: 'follow'
             });
+            
+            console.log('[ALERTS PANEL] Response status:', response.status);
+            console.log('[ALERTS PANEL] Response ok:', response.ok);
+            
             const data = await response.json();
             
             console.log('[ALERTS PANEL] Hub response:', data);
+            console.log('[ALERTS PANEL] Hub response ok:', data.ok);
+            console.log('[ALERTS PANEL] Hub alertas count:', data.alertas ? data.alertas.length : 0);
             
             if (data.ok && data.alertas) {
                 console.log('[ALERTS PANEL] Raw alerts from hub:', data.alertas);
@@ -75,27 +81,48 @@ const AlertsModule = {
             }
         } catch (error) {
             console.error('[ALERTS PANEL] Error connecting to hub:', error);
+            console.error('[ALERTS PANEL] Error details:', error.message);
             this.generateSampleAlerts();
         }
     },
 
     transformHubAlerts(hubAlerts) {
-        return hubAlerts.map(alerta => ({
-            id: alerta.remoteId || alerta.idReferencia || Date.now(),
-            studentName: alerta.nombreEstudiante || 'Estudiante',
-            date: this.formatDate(alerta.timestamp),
-            evaluation: alerta.tipo === 'evaluacion' ? 'Evaluación' : 'Chat IA',
-            score: this.extractScore(alerta.extracto),
-            maxScore: alerta.tipo === 'evaluacion' ? 21 : 10,
-            riskLevel: this.mapRiskLevel(alerta.nivelRiesgo),
-            description: alerta.extracto || 'Sin descripción',
-            recommendations: this.generateRecommendations(alerta.nivelRiesgo, alerta.tipo),
-            status: this.mapStatus(alerta.estado),
-            studentEmail: alerta.emailEstudiante,
-            grade: alerta.gradoEstudiante,
-            remoteId: alerta.remoteId,
-            notes: alerta.notas
-        }));
+        console.log('[ALERTS PANEL] Transforming', hubAlerts.length, 'alerts from hub');
+        const transformed = hubAlerts.map(alerta => {
+            const riskLevel = this.mapRiskLevel(alerta.nivelRiesgo);
+            console.log('[ALERTS PANEL] Alert:', {
+                remoteId: alerta.remoteId,
+                device: alerta.deviceOrigen,
+                student: alerta.nombreEstudiante,
+                risk: alerta.nivelRiesgo,
+                mappedRisk: riskLevel,
+                status: alerta.estado
+            });
+            return {
+                id: alerta.remoteId || alerta.idReferencia || Date.now(),
+                studentName: alerta.nombreEstudiante || 'Estudiante',
+                date: this.formatDate(alerta.timestamp),
+                evaluation: alerta.tipo === 'evaluacion' ? 'Evaluación' : 'Chat IA',
+                score: this.extractScore(alerta.extracto),
+                maxScore: alerta.tipo === 'evaluacion' ? 21 : 10,
+                riskLevel: riskLevel,
+                description: alerta.extracto || 'Sin descripción',
+                recommendations: this.generateRecommendations(alerta.nivelRiesgo, alerta.tipo),
+                status: this.mapStatus(alerta.estado),
+                studentEmail: alerta.emailEstudiante,
+                grade: alerta.gradoEstudiante,
+                remoteId: alerta.remoteId,
+                notes: alerta.notas,
+                deviceOrigen: alerta.deviceOrigen
+            };
+        });
+        
+        // Count by device origin
+        const webAlerts = transformed.filter(a => a.deviceOrigen === 'web').length;
+        const androidAlerts = transformed.filter(a => a.deviceOrigen !== 'web').length;
+        console.log(`[ALERTS PANEL] Transformed alerts: ${webAlerts} from web, ${androidAlerts} from Android`);
+        
+        return transformed;
     },
 
     mapRiskLevel(nivel) {
@@ -277,17 +304,35 @@ const AlertsModule = {
         const list = document.getElementById('alerts-list');
         const emptyState = document.getElementById('empty-state');
 
+        console.log('[ALERTS PANEL] Rendering alerts. Total alerts:', this.alerts.length);
+        console.log('[ALERTS PANEL] Current filters - Risk:', this.currentRiskFilter, 'Status:', this.currentStatusFilter);
+        
+        // Log all alerts before filtering
+        this.alerts.forEach(alert => {
+            console.log('[ALERTS PANEL] Alert before filter:', {
+                id: alert.id,
+                student: alert.studentName,
+                risk: alert.riskLevel,
+                status: alert.status,
+                device: alert.deviceOrigen
+            });
+        });
+
         const filteredAlerts = this.alerts.filter(alert => {
             // Risk filter
             if (this.currentRiskFilter !== 'all' && alert.riskLevel !== this.currentRiskFilter) {
+                console.log('[ALERTS PANEL] Filtered out by risk:', alert.studentName, alert.riskLevel, '!=', this.currentRiskFilter);
                 return false;
             }
             // Status filter
             if (this.currentStatusFilter !== 'all' && alert.status !== this.currentStatusFilter) {
+                console.log('[ALERTS PANEL] Filtered out by status:', alert.studentName, alert.status, '!=', this.currentStatusFilter);
                 return false;
             }
             return true;
         });
+
+        console.log('[ALERTS PANEL] Alerts after filtering:', filteredAlerts.length);
 
         if (filteredAlerts.length === 0) {
             list.classList.add('hidden');
@@ -484,6 +529,62 @@ const AlertsModule = {
         });
         
         header.appendChild(configBtn);
+
+        // Add test button
+        const testBtn = document.createElement('button');
+        testBtn.className = 'btn btn-secondary btn-small';
+        testBtn.textContent = '🧪';
+        testBtn.style.marginLeft = '5px';
+        testBtn.title = 'Probar conexión al Hub';
+        
+        testBtn.addEventListener('click', async () => {
+            await this.testHubConnection();
+        });
+        
+        header.appendChild(testBtn);
+    },
+
+    async testHubConnection() {
+        try {
+            console.log('[ALERTS PANEL] Testing hub connection...');
+            const response = await fetch(this.hubUrl);
+            const data = await response.json();
+            
+            console.log('[ALERTS PANEL] Hub test response:', data);
+            
+            if (data.ok) {
+                this.showToast('Hub conectado correctamente', 'success');
+                
+                // Now check for alerts
+                const listResponse = await fetch(`${this.hubUrl}?action=listar`);
+                const listData = await listResponse.json();
+                
+                let message = `Hub Status: OK\nMensaje: ${data.mensaje || 'Hub activo'}\n\n`;
+                
+                if (listData.ok && listData.alertas) {
+                    message += `Alertas en hub: ${listData.alertas.length}\n`;
+                    if (listData.alertas.length > 0) {
+                        message += `\nÚltima alerta:\n`;
+                        const lastAlert = listData.alertas[0];
+                        message += `- Estudiante: ${lastAlert.nombreEstudiante}\n`;
+                        message += `- Nivel: ${lastAlert.nivelRiesgo}\n`;
+                        message += `- Fecha: ${lastAlert.timestamp}\n`;
+                        message += `- Email Psicólogo: ${lastAlert.emailPsicologo || 'No asignado'}\n`;
+                    }
+                } else {
+                    message += `Error al listar alertas: ${listData.error || 'Desconocido'}`;
+                }
+                
+                alert(message);
+            } else {
+                this.showToast('Error en conexión al hub', 'error');
+                alert(`Hub Error: ${data.error || 'Error desconocido'}`);
+            }
+        } catch (error) {
+            console.error('[ALERTS PANEL] Hub connection test failed:', error);
+            this.showToast('Error al probar conexión', 'error');
+            alert(`Error de conexión: ${error.message}\n\nVerifica:\n1. La URL del hub es correcta\n2. El hub está accesible públicamente\n3. No hay bloqueo CORS\n4. El Google Apps Script está desplegado como "Cualquier persona"`);
+        }
     },
 
     async updateAlertStatusOnHub(remoteId, newStatus, notes) {
