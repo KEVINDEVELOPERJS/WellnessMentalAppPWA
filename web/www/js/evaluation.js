@@ -259,7 +259,7 @@ class EvaluationController {
             const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
             
             const alerta = {
-                remoteId: `web_eval_${Date.now()}_${userId}`,
+                remoteId: `web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 emailEstudiante: user.email,
                 nombreEstudiante: user.name,
                 gradoEstudiante: user.grade || 'N/A',
@@ -288,9 +288,13 @@ class EvaluationController {
 
             console.log('[EVALUATION] Response status:', response.status);
             console.log('[EVALUATION] Response ok:', response.ok);
+            console.log('[EVALUATION] Response headers:', response.headers);
 
             const data = await response.json();
             console.log('[EVALUATION] Hub response:', data);
+            console.log('[EVALUATION] Hub response ok:', data.ok);
+            console.log('[EVALUATION] Hub response remoteId:', data.remoteId);
+            console.log('[EVALUATION] Hub response error:', data.error);
             
             if (data.ok) {
                 console.log('[EVALUATION] Alert sent to hub successfully');
@@ -302,6 +306,7 @@ class EvaluationController {
                 }
             } else {
                 console.error('[EVALUATION] Error sending alert to hub:', data.error);
+                console.error('[EVALUATION] Full error response:', JSON.stringify(data));
                 Utils.showToast('Error al enviar alerta al hub', 'error');
             }
         } catch (error) {

@@ -542,6 +542,19 @@ const AlertsModule = {
         });
         
         header.appendChild(testBtn);
+
+        // Add send test alert button
+        const sendTestBtn = document.createElement('button');
+        sendTestBtn.className = 'btn btn-secondary btn-small';
+        sendTestBtn.textContent = '📤';
+        sendTestBtn.style.marginLeft = '5px';
+        sendTestBtn.title = 'Enviar alerta de prueba al hub';
+        
+        sendTestBtn.addEventListener('click', async () => {
+            await this.sendTestAlert();
+        });
+        
+        header.appendChild(sendTestBtn);
     },
 
     async testHubConnection() {
@@ -563,11 +576,17 @@ const AlertsModule = {
                 
                 if (listData.ok && listData.alertas) {
                     message += `Alertas en hub: ${listData.alertas.length}\n`;
+                    const webAlerts = listData.alertas.filter(a => a.deviceOrigen === 'web').length;
+                    const androidAlerts = listData.alertas.filter(a => a.deviceOrigen !== 'web').length;
+                    message += `- De web: ${webAlerts}\n`;
+                    message += `- De Android: ${androidAlerts}\n`;
+                    
                     if (listData.alertas.length > 0) {
                         message += `\nÚltima alerta:\n`;
                         const lastAlert = listData.alertas[0];
                         message += `- Estudiante: ${lastAlert.nombreEstudiante}\n`;
                         message += `- Nivel: ${lastAlert.nivelRiesgo}\n`;
+                        message += `- Dispositivo: ${lastAlert.deviceOrigen || 'N/A'}\n`;
                         message += `- Fecha: ${lastAlert.timestamp}\n`;
                         message += `- Email Psicólogo: ${lastAlert.emailPsicologo || 'No asignado'}\n`;
                     }
@@ -584,6 +603,57 @@ const AlertsModule = {
             console.error('[ALERTS PANEL] Hub connection test failed:', error);
             this.showToast('Error al probar conexión', 'error');
             alert(`Error de conexión: ${error.message}\n\nVerifica:\n1. La URL del hub es correcta\n2. El hub está accesible públicamente\n3. No hay bloqueo CORS\n4. El Google Apps Script está desplegado como "Cualquier persona"`);
+        }
+    },
+
+    async sendTestAlert() {
+        try {
+            const testAlert = {
+                remoteId: `test_web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                emailEstudiante: 'test@estudiante.com',
+                nombreEstudiante: 'Estudiante de Prueba',
+                gradoEstudiante: '11',
+                tipo: 'evaluacion',
+                nivelRiesgo: 'alto',
+                timestamp: new Date().toISOString(),
+                extracto: 'Evaluación de prueba. Puntaje 21. Prueba de alerta desde web.',
+                estado: 'PENDIENTE',
+                notas: '',
+                idReferencia: 0,
+                deviceOrigen: 'web',
+                emailPsicologo: 'riverahoyoskevinfernando6@gmail.com'
+            };
+
+            console.log('[ALERTS PANEL] Sending test alert to hub:', testAlert);
+            
+            const url = `${this.hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(testAlert))}`;
+            console.log('[ALERTS PANEL] Test alert URL:', url);
+            
+            const response = await fetch(url, {
+                mode: 'cors',
+                redirect: 'follow'
+            });
+            
+            const data = await response.json();
+            console.log('[ALERTS PANEL] Test alert response:', data);
+            
+            if (data.ok) {
+                this.showToast('Alerta de prueba enviada al hub', 'success');
+                alert(`Alerta de prueba enviada exitosamente\nRemote ID: ${data.remoteId}\n\nAhora haz clic en 🧪 para verificar si aparece en el hub.`);
+                
+                // Refresh alerts after a short delay
+                setTimeout(() => {
+                    this.loadAlerts();
+                    this.renderAlerts();
+                }, 2000);
+            } else {
+                this.showToast('Error al enviar alerta de prueba', 'error');
+                alert(`Error al enviar alerta de prueba:\n${data.error || 'Error desconocido'}`);
+            }
+        } catch (error) {
+            console.error('[ALERTS PANEL] Error sending test alert:', error);
+            this.showToast('Error al enviar alerta de prueba', 'error');
+            alert(`Error: ${error.message}`);
         }
     },
 
