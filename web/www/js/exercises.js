@@ -237,9 +237,62 @@ class ExercisesController {
     }
     
     playVoiceGuidance(phaseName) {
-        if (!this.voiceEnabled || !this.audioContext) return;
+        if (!this.voiceEnabled) return;
         
-        // Create a soothing voice-like sound using Web Audio API
+        console.log('Playing audio for phase:', phaseName);
+        
+        // Use actual audio files for inhalation and exhalation
+        const audioFiles = {
+            'Inhala': 'audio/INHALA.m4a',
+            'Exhala': 'audio/EXHALA.m4a'
+        };
+        
+        const audioFile = audioFiles[phaseName];
+        if (audioFile) {
+            try {
+                const audio = new Audio(audioFile);
+                audio.volume = 0.7;
+                audio.currentTime = 0;
+                
+                audio.addEventListener('error', (e) => {
+                    console.error('Audio error:', e);
+                    this.playFallbackSound(phaseName);
+                });
+                
+                audio.addEventListener('canplaythrough', () => {
+                    console.log('Audio ready to play:', audioFile);
+                });
+                
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => console.log('Audio playing successfully'))
+                        .catch(e => {
+                            console.error('Audio play failed:', e);
+                            this.playFallbackSound(phaseName);
+                        });
+                }
+            } catch (e) {
+                console.error('Audio creation failed:', e);
+                this.playFallbackSound(phaseName);
+            }
+        } else {
+            // Fallback to oscillator for other phases like 'Mantén'
+            this.playFallbackSound(phaseName);
+        }
+    }
+    
+    playFallbackSound(phaseName) {
+        // Fallback to oscillator for all phases
+        if (!this.audioContext) {
+            try {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Audio not supported');
+                return;
+            }
+        }
+        
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
         

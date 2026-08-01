@@ -239,6 +239,32 @@ const PuzzleZenModule = {
                 this.fx.triggerFlash('#F44336', 0.3);
             }
             
+            // End the game immediately when user makes a mistake
+            this.isPlaying = false;
+            setTimeout(() => this.endGame(), 600);
+            return;
+        }
+        
+        // Check if sequence complete
+        if (this.userSequence.length === this.sequence.length) {
+            this.level++;
+            this.updateStats();
+            this.updateStatus('¡Perfecto! Siguiente nivel...');
+            
+            // Efecto de éxito
+            const board = document.getElementById('puzzle-board');
+            if (board) {
+                const rect = board.getBoundingClientRect();
+                this.fx.spawnParticleBurst(rect.width / 2, rect.height / 2, '#4CAF50', 20, 1);
+                this.fx.spawnScorePopup(rect.width / 2, rect.height / 2 - 30, '¡Perfecto!', '#4CAF50');
+            }
+            
+            setTimeout(() => this.addStepAndShow(), 800);
+        }
+    },
+                this.fx.triggerFlash('#F44336', 0.3);
+            }
+            
             setTimeout(() => this.endGame(), 600);
             return;
         }
@@ -276,9 +302,10 @@ const PuzzleZenModule = {
     
     endGame() {
         this.isPlaying = false;
+        this.isShowingSequence = false;
         
-        // Calculate points
-        const points = this.level * 10 + 50;
+        // Calculate points based on level reached (current level - 1 since error occurred)
+        const points = (this.level - 1) * 10 + 50;
         
         document.getElementById('final-level').textContent = this.level - 1;
         document.getElementById('final-points').textContent = `+${points}`;
