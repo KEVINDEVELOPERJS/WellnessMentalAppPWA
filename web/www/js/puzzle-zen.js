@@ -74,10 +74,17 @@ const PuzzleZenModule = {
     },
     
     renderInitialBoard() {
+        const transforms = [
+            'translate(-50%, -50%) translateY(-100px)',
+            'translate(-50%, -50%) translateX(100px)',
+            'translate(-50%, -50%) translateY(100px)',
+            'translate(-50%, -50%) translateX(-100px)'
+        ];
+        
         document.querySelectorAll('.circle').forEach((circle, index) => {
             circle.style.background = this.colors[index];
             circle.style.opacity = '0.6';
-            circle.style.transform = 'scale(1)';
+            circle.style.transform = `${transforms[index]} scale(1)`;
             circle.style.boxShadow = 'none';
         });
         
@@ -93,6 +100,7 @@ const PuzzleZenModule = {
         this.sequence = [];
         this.userSequence = [];
         this.fx.init();
+        this.renderInitialBoard(); // Ensure circles are properly positioned on start
         this.updateStats();
         this.addStepAndShow();
         
