@@ -187,13 +187,22 @@ const PuzzleZenModule = {
         this.activeCircle = index;
         this.activeScale = 1;
         
+        // Get the original transform based on circle index
+        const transforms = [
+            'translate(-50%, -50%) translateY(-100px)',
+            'translate(-50%, -50%) translateX(100px)',
+            'translate(-50%, -50%) translateY(100px)',
+            'translate(-50%, -50%) translateX(-100px)'
+        ];
+        const originalTransform = transforms[index] || transforms[0];
+        
         // Animación de pulso con overshoot como en Android
         const animate = () => {
             if (this.activeScale < 1.35) {
                 this.activeScale += 0.07;
                 if (this.activeScale > 1.35) this.activeScale = 1.35;
                 circle.style.opacity = '1';
-                circle.style.transform = `scale(${this.activeScale})`;
+                circle.style.transform = `${originalTransform} scale(${this.activeScale})`;
                 circle.style.boxShadow = `0 0 30px ${this.colors[index]}, 0 0 60px ${this.colors[index]}`;
                 circle.style.transition = 'all 0.1s ease-out';
                 requestAnimationFrame(animate);
@@ -209,7 +218,7 @@ const PuzzleZenModule = {
                 this.activeScale -= 0.035;
                 if (this.activeScale < 1.0) this.activeScale = 1.0;
                 circle.style.opacity = this.isShowingSequence ? '0.4' : '0.6';
-                circle.style.transform = `scale(${this.activeScale})`;
+                circle.style.transform = `${originalTransform} scale(${this.activeScale})`;
                 circle.style.boxShadow = 'none';
                 requestAnimationFrame(decay);
             } else {

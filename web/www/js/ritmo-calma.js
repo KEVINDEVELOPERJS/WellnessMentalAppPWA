@@ -144,16 +144,64 @@ const RitmoCalmaModule = {
         const animate = () => {
             if (!this.isPlaying) return;
             
+            const previousAngle = this.angle;
             this.angle += this.speed;
             if (this.angle >= 360) this.angle = 0;
             
             this.updateIndicatorPosition();
             this.updatePulseAnimation();
             this.updateFeedback();
+            
+            // Check if indicator passed through combo zone (around 90 degrees)
+            this.checkComboZonePass(previousAngle, this.angle);
+            
             this.animationId = requestAnimationFrame(animate);
         };
         
         this.animationId = requestAnimationFrame(animate);
+    },
+    
+    checkComboZonePass(previousAngle, currentAngle) {
+        // Combo zone is around 90 degrees (top of circle)
+        // Check if we crossed 90 degrees
+        const comboZoneStart = 85;
+        const comboZoneEnd = 95;
+        
+        // Handle wrap-around at 360/0
+        const prev = previousAngle % 360;
+        const curr = currentAngle % 360;
+        
+        // Check if we crossed the combo zone
+        if ((prev < comboZoneStart && curr >= comboZoneStart && curr <= comboZoneEnd) ||
+            (prev > comboZoneEnd && curr <= comboZoneEnd && curr >= comboZoneStart) ||
+            (prev < comboZoneStart && curr > comboZoneEnd) || // wrapped around
+            (prev > comboZoneEnd && curr < comboZoneStart)) { // wrapped around
+            
+            // Play sound when passing through combo zone
+            this.playComboZoneSound();
+        }
+    },
+    
+    playComboZoneSound() {
+        if (!this.audioContext) return;
+        
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        // Subtle rhythm beat sound
+        oscillator.frequency.value = 261.63; // C4 - gentle base tone
+        oscillator.type = 'sine';
+        
+        const now = this.audioContext.currentTime;
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(0.08, now + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, now + 0.1);
+        
+        oscillator.start(now);
+        oscillator.stop(now + 0.1);
     },
 
     updatePulseAnimation() {
