@@ -241,10 +241,7 @@ const RitmoCalmaModule = {
             
             this.rhythmBeatTime++;
             
-            // Play a subtle beat sound
-            this.playRhythmBeat();
-            
-            // Visual indicator for rhythm
+            // Visual indicator for rhythm only (no sound)
             this.showRhythmPulse();
         }, beatInterval);
     },
@@ -366,7 +363,7 @@ const RitmoCalmaModule = {
                 this.score = Math.max(0, this.score - 5);
                 this.feedbackText = 'Fallaste';
                 this.feedbackAlpha = 1;
-                this.playTone('MISS');
+                // No sound on miss, only visual feedback
                 this.fx.triggerShake(8);
                 this.fx.triggerFlash('#F44336', 0.3);
                 break;

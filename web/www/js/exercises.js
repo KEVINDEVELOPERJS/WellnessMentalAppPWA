@@ -241,10 +241,11 @@ class ExercisesController {
         
         console.log('Playing audio for phase:', phaseName);
         
-        // Use actual audio files for inhalation and exhalation
+        // Use actual audio files for inhalation, exhalation, and hold
         const audioFiles = {
             'Inhala': 'audio/INHALA.m4a',
-            'Exhala': 'audio/EXHALA.m4a'
+            'Exhala': 'audio/EXHALA.m4a',
+            'Mantén': 'audio/MANTEN.mp4'
         };
         
         const audioFile = audioFiles[phaseName];
@@ -277,7 +278,7 @@ class ExercisesController {
                 this.playFallbackSound(phaseName);
             }
         } else {
-            // Fallback to oscillator for other phases like 'Mantén'
+            // Fallback to oscillator for other phases
             this.playFallbackSound(phaseName);
         }
     }
