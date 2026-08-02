@@ -46,7 +46,7 @@ const AlertsModule = {
         
         // Allow access for development if role is not set
         if (!this.userRol) {
-            console.warn('[ALERTS] No role set, allowing access for development');
+            console.log('[ALERTS] No role set, setting default role for development');
             this.userRol = 'psicologo';
             return true;
         }
@@ -106,11 +106,7 @@ const AlertsModule = {
 
     async syncAndLoad(showToast = false) {
         if (!this.hubAvailable()) {
-            this.showHubWarning('No hay hub de sincronización configurado');
-            if (showToast) {
-                this.showToast('Toca el banner para configurar el hub');
-                this.showHubConfigModal();
-            }
+            console.log('[ALERTS] Hub not available, loading from local fallback');
             // Load from local database as fallback
             await this.loadAlertsFromDatabase();
             return;
@@ -125,12 +121,10 @@ const AlertsModule = {
             this.showAlerts();
             
             if (result.error) {
-                this.showHubWarning(result.error || 'Hub inaccesible');
                 if (showToast) {
                     this.showToast(`Error de sincronización: ${result.error}`);
                 }
             } else {
-                this.hideHubWarning();
                 if (showToast) {
                     this.showToast(`Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`);
                 }
@@ -138,7 +132,6 @@ const AlertsModule = {
         } catch (error) {
             console.error('[ALERTS] Sync error:', error);
             this.setSyncButtonState(true, 'Sincronizar ahora');
-            this.showHubWarning('Error de sincronización');
             if (showToast) {
                 this.showToast('Error al sincronizar alertas');
             }
@@ -261,14 +254,16 @@ const AlertsModule = {
             // Load from HubClient fallback
             try {
                 const data = await HubClient.listAlerts();
+                console.log('[ALERTS] HubClient response:', data);
                 if (data.ok && data.alertas) {
                     const allAlerts = this.transformHubAlerts(data.alertas);
+                    console.log('[ALERTS] All alerts from HubClient:', allAlerts);
                     // Filter only high risk alerts for main alerts page
                     this.alerts = allAlerts.filter(alert => {
                         const risk = alert.nivelRiesgo?.toLowerCase() || '';
                         return risk.includes('alto');
                     });
-                    console.log('[ALERTS] Loaded alerts from HubClient fallback:', this.alerts.length);
+                    console.log('[ALERTS] Filtered high risk alerts:', this.alerts.length);
                     this.showAlerts();
                 } else {
                     console.warn('[ALERTS] No alerts from HubClient fallback');
@@ -288,12 +283,13 @@ const AlertsModule = {
 
             request.onsuccess = () => {
                 const allAlerts = request.result || [];
+                console.log('[ALERTS] All alerts from database:', allAlerts);
                 // Filter only high risk alerts for main alerts page
                 this.alerts = allAlerts.filter(alert => {
                     const risk = alert.nivelRiesgo?.toLowerCase() || '';
                     return risk.includes('alto');
                 });
-                console.log('[ALERTS] Loaded alerts from database:', this.alerts.length);
+                console.log('[ALERTS] Filtered high risk alerts:', this.alerts.length);
                 this.showAlerts();
                 resolve();
             };
@@ -323,7 +319,7 @@ const AlertsModule = {
             const highestRisk = this.getHighestRiskLevel(pendingAlerts);
             headerCard.className = 'alerts-header-card risk-' + highestRisk;
         } else {
-            headerCard.className = 'alerts-header-card';
+            headerCard.className = 'alerts-header-card risk-high';
         }
         
         console.log('[ALERTS] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');
