@@ -8,7 +8,7 @@ const AppState = {
 // Database Configuration
 const DB_CONFIG = {
     name: 'wellness_mental',
-    version: 1,
+    version: 2,
     tables: {
         users: 'users',
         questionnaires: 'questionnaires',
@@ -152,6 +152,9 @@ class DatabaseManager {
             
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
+                const oldVersion = event.oldVersion || 0;
+                
+                console.log(`Database upgrade from version ${oldVersion} to ${DB_CONFIG.version}`);
                 
                 // Users table
                 if (!db.objectStoreNames.contains(DB_CONFIG.tables.users)) {
@@ -714,7 +717,11 @@ async function initApp() {
 async function seedInitialData() {
     // Seed questionnaires
     const questionnaires = await dbManager.getAll(DB_CONFIG.tables.questionnaires);
-    if (questionnaires.length === 0) {
+    
+    // Check if PSS-10 exists, if not add it
+    const hasPSS10 = questionnaires.some(q => q.tipo === 'PSS-10');
+    
+    if (questionnaires.length === 0 || !hasPSS10) {
         const gad7 = {
             id: 1,
             titulo: 'GAD-7',
@@ -735,52 +742,98 @@ async function seedInitialData() {
             estado: 'publicado'
         };
         
-        await dbManager.add(DB_CONFIG.tables.questionnaires, gad7);
-        await dbManager.add(DB_CONFIG.tables.questionnaires, phq9);
+        const pss10 = {
+            id: 3,
+            titulo: 'PSS-10',
+            descripcion: 'Escala de Estrés Percibido',
+            instrucciones: 'Para cada pregunta, elija la opción que mejor describa sus pensamientos y sentimientos durante el último mes.',
+            categoria: 'estres',
+            tipo: 'PSS-10',
+            estado: 'publicado'
+        };
+        
+        if (questionnaires.length === 0) {
+            await dbManager.add(DB_CONFIG.tables.questionnaires, gad7);
+            await dbManager.add(DB_CONFIG.tables.questionnaires, phq9);
+        }
+        
+        if (!hasPSS10) {
+            await dbManager.add(DB_CONFIG.tables.questionnaires, pss10);
+        }
         
         // Seed questions for GAD-7
-        const gad7Questions = [
-            'Sentirse nervioso/a, ansioso/a o con los nervios de punta',
-            'No poder dejar de preocuparse o no poder controlar la preocupación',
-            'Preocuparse demasiado por diferentes cosas',
-            'Dificultad para relajarse',
-            'Estar tan inquieto/a que le resulta difícil quedarse quieto/a',
-            'Molestarse o irritarse con facilidad',
-            'Sentir miedo como si algo terrible fuera a suceder'
-        ];
-        
-        gad7Questions.forEach((texto, index) => {
-            dbManager.add(DB_CONFIG.tables.questions, {
-                questionnaireId: 1,
-                texto,
-                orden: index + 1,
-                peso: 1.0,
-                tipoRespuesta: 'likert_4'
+        if (questionnaires.length === 0) {
+            const gad7Questions = [
+                'Sentirse nervioso/a, ansioso/a o con los nervios de punta',
+                'No poder dejar de preocuparse o no poder controlar la preocupación',
+                'Preocuparse demasiado por diferentes cosas',
+                'Dificultad para relajarse',
+                'Estar tan inquieto/a que le resulta difícil quedarse quieto/a',
+                'Molestarse o irritarse con facilidad',
+                'Sentir miedo como si algo terrible fuera a suceder'
+            ];
+            
+            gad7Questions.forEach((texto, index) => {
+                dbManager.add(DB_CONFIG.tables.questions, {
+                    questionnaireId: 1,
+                    texto,
+                    orden: index + 1,
+                    peso: 1.0,
+                    tipoRespuesta: 'likert_4'
+                });
             });
-        });
+        }
         
         // Seed questions for PHQ-9
-        const phq9Questions = [
-            'Poco interés o placer en hacer las cosas',
-            'Sentirse decaído/a, deprimido/a o sin esperanzas',
-            'Dificultad para quedarse o permanecer dormido/a, o dormir demasiado',
-            'Sentirse cansado/a o con poca energía',
-            'Poco apetito o comer en exceso',
-            'Sentirse mal consigo mismo/a o que es un fracaso',
-            'Dificultad para concentrarse en cosas como leer o ver televisión',
-            'Moverse o hablar tan lento que otros lo noten, o lo contrario: muy inquieto/a',
-            'Pensamientos de que estaría mejor muerto/a o de hacerse daño'
-        ];
-        
-        phq9Questions.forEach((texto, index) => {
-            dbManager.add(DB_CONFIG.tables.questions, {
-                questionnaireId: 2,
-                texto,
-                orden: index + 1,
-                peso: 1.0,
-                tipoRespuesta: 'likert_4'
+        if (questionnaires.length === 0) {
+            const phq9Questions = [
+                'Poco interés o placer en hacer las cosas',
+                'Sentirse decaído/a, deprimido/a o sin esperanzas',
+                'Dificultad para quedarse o permanecer dormido/a, o dormir demasiado',
+                'Sentirse cansado/a o con poca energía',
+                'Poco apetito o comer en exceso',
+                'Sentirse mal consigo mismo/a o que es un fracaso',
+                'Dificultad para concentrarse en cosas como leer o ver televisión',
+                'Moverse o hablar tan lento que otros lo noten, o lo contrario: muy inquieto/a',
+                'Pensamientos de que estaría mejor muerto/a o de hacerse daño'
+            ];
+            
+            phq9Questions.forEach((texto, index) => {
+                dbManager.add(DB_CONFIG.tables.questions, {
+                    questionnaireId: 2,
+                    texto,
+                    orden: index + 1,
+                    peso: 1.0,
+                    tipoRespuesta: 'likert_4'
+                });
             });
-        });
+        }
+        
+        // Seed questions for PSS-10 only if not exists
+        if (!hasPSS10) {
+            const pss10Questions = [
+                'En el último mes, ¿con qué frecuencia ha sentido que no tenía control sobre las cosas importantes en su vida?',
+                'En el último mes, ¿con qué frecuencia ha sentido que no podía controlar todas las cosas que necesitaba hacer?',
+                'En el último mes, ¿con qué frecuencia ha sentido que no podía hacer frente a todas las cosas que tenía que hacer?',
+                'En el último mes, ¿con qué frecuencia ha sentido que las dificultades se acumulaban tanto que no podía superarlas?',
+                'En el último mes, ¿con qué frecuencia ha sentido que tenía todo bajo control?',
+                'En el último mes, ¿con qué frecuencia ha sentido que confiaba en que las cosas saldrían bien?',
+                'En el último mes, ¿con qué frecuencia ha sentido que podía manejar sus problemas personales?',
+                'En el último mes, ¿con qué frecuencia ha sentido que tenía todo bajo control?',
+                'En el último mes, ¿con qué frecuencia ha sentido que las cosas iban como quería?',
+                'En el último mes, ¿con qué frecuencia ha sentido que podía manejar sus problemas personales?'
+            ];
+            
+            pss10Questions.forEach((texto, index) => {
+                dbManager.add(DB_CONFIG.tables.questions, {
+                    questionnaireId: 3,
+                    texto,
+                    orden: index + 1,
+                    peso: 1.0,
+                    tipoRespuesta: 'likert_5'
+                });
+            });
+        }
         
         // Seed exercises
         const exercises = [
