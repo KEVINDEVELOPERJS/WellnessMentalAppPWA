@@ -256,8 +256,6 @@ class EvaluationController {
                 console.error('[EVALUATION] No psychologist email found - alert will be sent but email notification may fail');
             }
 
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbzQpzgBXaROCzV0k3nKK28NEcMQDvaAHLi2Nj2y57MxhYrdvgnwQmKZqZ7Dg2Kq-Vyl/exec';
-            
             const alerta = {
                 remoteId: `web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
                 emailEstudiante: user.email,
@@ -277,20 +275,10 @@ class EvaluationController {
             console.log('[EVALUATION] Sending alert to hub:', JSON.stringify(alerta));
             console.log('[EVALUATION] Alert risk level for email trigger:', alerta.nivelRiesgo);
             console.log('[EVALUATION] Psychologist email for email trigger:', alerta.emailPsicologo);
-
-            const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
-            console.log('[EVALUATION] Full request URL:', url);
             
-            const response = await fetch(url, {
-                mode: 'cors',
-                redirect: 'follow'
-            });
-
-            console.log('[EVALUATION] Response status:', response.status);
-            console.log('[EVALUATION] Response ok:', response.ok);
-            console.log('[EVALUATION] Response headers:', response.headers);
-
-            const data = await response.json();
+            // Use HubClient to send alert with automatic CORS handling
+            const data = await HubClient.publishAlert(alerta);
+            
             console.log('[EVALUATION] Hub response:', data);
             console.log('[EVALUATION] Hub response ok:', data.ok);
             console.log('[EVALUATION] Hub response remoteId:', data.remoteId);
@@ -307,7 +295,7 @@ class EvaluationController {
             } else {
                 console.error('[EVALUATION] Error sending alert to hub:', data.error);
                 console.error('[EVALUATION] Full error response:', JSON.stringify(data));
-                Utils.showToast('Error al enviar alerta al hub', 'error');
+                Utils.showToast('Error al enviar alerta al hub: ' + (data.error || 'Error de conexión'), 'error');
             }
         } catch (error) {
             console.error('[EVALUATION] Error sending alert to hub:', error);
@@ -318,13 +306,9 @@ class EvaluationController {
     async getPsicologoEmail() {
         try {
             console.log('[EVALUATION] Getting psychologist email from hub');
-            // Try to get from hub first
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbzQpzgBXaROCzV0k3nKK28NEcMQDvaAHLi2Nj2y57MxhYrdvgnwQmKZqZ7Dg2Kq-Vyl/exec';
-            const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
-                mode: 'cors',
-                redirect: 'follow'
-            });
-            const data = await response.json();
+            
+            // Try to get from hub first using HubClient
+            const data = await HubClient.listPsychologists();
             
             console.log('[EVALUATION] Hub psychologists response:', data);
             
@@ -346,6 +330,17 @@ class EvaluationController {
             return null;
         } catch (error) {
             console.error('[EVALUATION] Error getting psychologist email:', error);
+            // Fallback to local database on error
+            try {
+                const allUsers = await this.db.getAll(DB_CONFIG.tables.users);
+                const psicologo = allUsers.find(u => u.role === 'psicologo');
+                if (psicologo) {
+                    console.log('[EVALUATION] Found psychologist in local database (fallback):', psicologo.email);
+                    return psicologo.email;
+                }
+            } catch (dbError) {
+                console.error('[EVALUATION] Error accessing local database:', dbError);
+            }
             return null;
         }
     }

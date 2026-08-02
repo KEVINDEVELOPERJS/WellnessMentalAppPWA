@@ -86,13 +86,8 @@ const AlertsModule = {
         }
 
         try {
-            const url = `${this.hubUrl}?action=listar`;
-            const response = await fetch(url, {
-                mode: 'cors',
-                redirect: 'follow'
-            });
-            
-            const data = await response.json();
+            console.log('[ALERTS] Fetching alerts using HubClient');
+            const data = await HubClient.listAlerts();
             
             if (data.ok && data.alertas) {
                 const previousCount = this.alerts.length;
@@ -121,6 +116,7 @@ const AlertsModule = {
                 };
             }
         } catch (error) {
+            console.error('[ALERTS] Sync error:', error);
             return { 
                 error: error.message, 
                 synced: 0, 
@@ -328,24 +324,8 @@ const AlertsModule = {
         if (!this.hubUrl || !remoteId) return false;
         
         try {
-            const payload = {
-                action: 'actualizar',
-                remoteId: remoteId,
-                estado: estado,
-                notas: notas || '',
-                timestampActualizacion: new Date().toISOString()
-            };
-            
-            const response = await fetch(this.hubUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            const data = await response.json();
-            return data.ok === true;
+            const result = await HubClient.updateAlertStatus(remoteId, estado, notas);
+            return result.ok === true;
         } catch (error) {
             console.error('[ALERTS] Error updating alert status on hub:', error);
             return false;
