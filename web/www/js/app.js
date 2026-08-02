@@ -845,47 +845,23 @@ let alertPollingInterval = null;
 
 async function updateAlertsCounter() {
     try {
-        console.log('[DASHBOARD] Updating alerts counter');
-        const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
-        console.log('[DASHBOARD] Hub URL:', hubUrl);
+        console.log('[DASHBOARD] Updating alerts counter using HubClient');
         
-        const response = await fetch(`${hubUrl}?action=listar`, {
-            mode: 'cors',
-            redirect: 'follow'
-        });
-        console.log('[DASHBOARD] Response status:', response.status);
-        
-        if (!response.ok) {
-            console.error('[DASHBOARD] Hub returned error status:', response.status);
-            const counterElement = document.getElementById('alerts-count');
-            if (counterElement) {
-                counterElement.textContent = 'Error de conexión';
-            }
-            return;
-        }
-        
-        const contentType = response.headers.get('content-type');
-        console.log('[DASHBOARD] Response content-type:', contentType);
-        
-        if (!contentType || !contentType.includes('application/json')) {
-            console.error('[DASHBOARD] Hub did not return JSON');
-            const counterElement = document.getElementById('alerts-count');
-            if (counterElement) {
-                counterElement.textContent = 'Error de conexión';
-            }
-            return;
-        }
-        
-        const data = await response.json();
-        console.log('[DASHBOARD] Hub response:', data);
+        const data = await HubClient.listAlerts();
         
         if (data.ok && data.alertas) {
-            const pendingAlerts = data.alertas.filter(alerta => {
+            // Filter only high risk alerts
+            const highRiskAlerts = data.alertas.filter(alerta => {
+                const nivel = alerta.nivelRiesgo?.toLowerCase() || '';
+                return nivel.includes('alto');
+            });
+            
+            const pendingAlerts = highRiskAlerts.filter(alerta => {
                 const estado = alerta.estado?.toLowerCase() || 'pendiente';
                 return estado === 'pendiente' || estado === 'en_seguimiento';
             });
             
-            console.log('[DASHBOARD] Pending alerts:', pendingAlerts.length);
+            console.log('[DASHBOARD] High risk pending alerts:', pendingAlerts.length, 'of', highRiskAlerts.length, 'total');
             
             const counterElement = document.getElementById('alerts-count');
             if (counterElement) {
@@ -905,7 +881,7 @@ async function updateAlertsCounter() {
                 await Notification.requestPermission();
             }
         } else {
-            console.error('[DASHBOARD] Hub response invalid:', data);
+            console.error('[DASHBOARD] Hub error:', data.error);
             const counterElement = document.getElementById('alerts-count');
             if (counterElement) {
                 counterElement.textContent = 'Error de conexión';
@@ -944,24 +920,9 @@ function sendWebNotification(count, latestAlert) {
 
 async function updateAlertsLowMediumCounter() {
     try {
-        console.log('[DASHBOARD] Updating alerts low/medium counter');
-        const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        console.log('[DASHBOARD] Updating alerts low/medium counter using HubClient');
         
-        const response = await fetch(`${hubUrl}?action=listar`, {
-            mode: 'cors',
-            redirect: 'follow'
-        });
-        
-        if (!response.ok) {
-            console.error('[DASHBOARD] Hub returned error status:', response.status);
-            const counterElement = document.getElementById('alerts-low-medium-count');
-            if (counterElement) {
-                counterElement.textContent = 'Error de conexión';
-            }
-            return;
-        }
-        
-        const data = await response.json();
+        const data = await HubClient.listAlerts();
         
         if (data.ok && data.alertas) {
             // Filter only low/medium risk alerts
@@ -981,6 +942,12 @@ async function updateAlertsLowMediumCounter() {
             }
             
             console.log('[DASHBOARD] Low/medium alerts:', pendientes.length, 'pending of', lowMediumAlerts.length, 'total');
+        } else {
+            console.error('[DASHBOARD] Hub error:', data.error);
+            const counterElement = document.getElementById('alerts-low-medium-count');
+            if (counterElement) {
+                counterElement.textContent = 'Error de conexión';
+            }
         }
     } catch (error) {
         console.error('[DASHBOARD] Error updating low/medium alerts counter:', error);
