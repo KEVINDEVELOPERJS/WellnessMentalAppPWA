@@ -284,14 +284,42 @@ const AlertsModule = {
             request.onsuccess = () => {
                 const allAlerts = request.result || [];
                 console.log('[ALERTS] All alerts from database:', allAlerts);
-                // Filter only high risk alerts for main alerts page
-                this.alerts = allAlerts.filter(alert => {
-                    const risk = alert.nivelRiesgo?.toLowerCase() || '';
-                    return risk.includes('alto');
-                });
-                console.log('[ALERTS] Filtered high risk alerts:', this.alerts.length);
-                this.showAlerts();
-                resolve();
+                
+                // If database is empty, load from HubClient fallback
+                if (allAlerts.length === 0) {
+                    console.log('[ALERTS] Database is empty, loading from HubClient fallback');
+                    HubClient.listAlerts().then(data => {
+                        console.log('[ALERTS] HubClient response:', data);
+                        if (data.ok && data.alertas) {
+                            const hubAlerts = this.transformHubAlerts(data.alertas);
+                            console.log('[ALERTS] All alerts from HubClient:', hubAlerts);
+                            // Filter only high risk alerts for main alerts page
+                            this.alerts = hubAlerts.filter(alert => {
+                                const risk = alert.nivelRiesgo?.toLowerCase() || '';
+                                return risk.includes('alto');
+                            });
+                            console.log('[ALERTS] Filtered high risk alerts:', this.alerts.length);
+                            this.showAlerts();
+                        } else {
+                            console.warn('[ALERTS] No alerts from HubClient fallback');
+                            this.showAlerts();
+                        }
+                        resolve();
+                    }).catch(error => {
+                        console.error('[ALERTS] Error loading from HubClient fallback:', error);
+                        this.showAlerts();
+                        resolve();
+                    });
+                } else {
+                    // Filter only high risk alerts for main alerts page
+                    this.alerts = allAlerts.filter(alert => {
+                        const risk = alert.nivelRiesgo?.toLowerCase() || '';
+                        return risk.includes('alto');
+                    });
+                    console.log('[ALERTS] Filtered high risk alerts:', this.alerts.length);
+                    this.showAlerts();
+                    resolve();
+                }
             };
 
             request.onerror = () => {
