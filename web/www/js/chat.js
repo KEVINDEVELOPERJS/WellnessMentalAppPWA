@@ -294,7 +294,7 @@ class ChatController {
     async getPsicologoEmail() {
         try {
             // Try to get from hub first
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
             const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
                 mode: 'cors',
                 redirect: 'follow'
@@ -321,7 +321,7 @@ class ChatController {
 
     async sendAlertToHub(alert, psicologoEmail, chatId) {
         try {
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
             
             const alerta = {
                 remoteId: `web_chat_${Date.now()}_${alert.userId}`,

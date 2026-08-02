@@ -404,7 +404,7 @@ class AuthController {
             console.log('[AUTH] Registering psychologist to hub');
             console.log('[AUTH] Psychologist:', user.email, user.name);
             
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+            const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
             
             const psicologo = {
                 email: user.email,
@@ -827,7 +827,7 @@ let alertPollingInterval = null;
 async function updateAlertsCounter() {
     try {
         console.log('[DASHBOARD] Updating alerts counter');
-        const hubUrl = 'https://script.google.com/macros/s/AKfycbyLUvV6UxvwSqraxhDSODl_ZZ0Yjw7q0fS2T1w19_h2VQEV8y_g8IePLQDVEcPYmPvZuA/exec';
+        const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
         console.log('[DASHBOARD] Hub URL:', hubUrl);
         
         const response = await fetch(`${hubUrl}?action=listar`, {
