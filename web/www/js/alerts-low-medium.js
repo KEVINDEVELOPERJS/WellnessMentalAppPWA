@@ -257,14 +257,42 @@ const AlertsLowMediumModule = {
             request.onsuccess = () => {
                 const allAlerts = request.result || [];
                 console.log('[ALERTS-LOW-MEDIUM] All alerts from database:', allAlerts);
-                // Filter only low and medium risk alerts
-                this.alerts = allAlerts.filter(alert => {
-                    const risk = alert.nivelRiesgo?.toLowerCase() || '';
-                    return risk.includes('bajo') || risk.includes('medio');
-                });
-                console.log('[ALERTS-LOW-MEDIUM] Filtered low/medium risk alerts:', this.alerts.length);
-                this.showAlerts();
-                resolve();
+                
+                // If database is empty, load from HubClient fallback
+                if (allAlerts.length === 0) {
+                    console.log('[ALERTS-LOW-MEDIUM] Database is empty, loading from HubClient fallback');
+                    HubClient.listAlerts().then(data => {
+                        console.log('[ALERTS-LOW-MEDIUM] HubClient response:', data);
+                        if (data.ok && data.alertas) {
+                            const hubAlerts = this.transformHubAlerts(data.alertas);
+                            console.log('[ALERTS-LOW-MEDIUM] All alerts from HubClient:', hubAlerts);
+                            // Filter only low and medium risk alerts
+                            this.alerts = hubAlerts.filter(alert => {
+                                const risk = alert.nivelRiesgo?.toLowerCase() || '';
+                                return risk.includes('bajo') || risk.includes('medio');
+                            });
+                            console.log('[ALERTS-LOW-MEDIUM] Filtered low/medium risk alerts:', this.alerts.length);
+                            this.showAlerts();
+                        } else {
+                            console.warn('[ALERTS-LOW-MEDIUM] No alerts from HubClient fallback');
+                            this.showAlerts();
+                        }
+                        resolve();
+                    }).catch(error => {
+                        console.error('[ALERTS-LOW-MEDIUM] Error loading from HubClient fallback:', error);
+                        this.showAlerts();
+                        resolve();
+                    });
+                } else {
+                    // Filter only low and medium risk alerts
+                    this.alerts = allAlerts.filter(alert => {
+                        const risk = alert.nivelRiesgo?.toLowerCase() || '';
+                        return risk.includes('bajo') || risk.includes('medio');
+                    });
+                    console.log('[ALERTS-LOW-MEDIUM] Filtered low/medium risk alerts:', this.alerts.length);
+                    this.showAlerts();
+                    resolve();
+                }
             };
 
             request.onerror = () => {
