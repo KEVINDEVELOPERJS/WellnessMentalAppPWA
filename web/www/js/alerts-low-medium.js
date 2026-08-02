@@ -46,7 +46,7 @@ const AlertsLowMediumModule = {
         
         // Allow access for development if role is not set
         if (!this.userRol) {
-            console.warn('[ALERTS-LOW-MEDIUM] No role set, allowing access for development');
+            console.log('[ALERTS-LOW-MEDIUM] No role set, setting default role for development');
             this.userRol = 'psicologo';
             return true;
         }
@@ -94,6 +94,7 @@ const AlertsLowMediumModule = {
 
     async syncAndLoad(showToast = false) {
         if (!this.hubAvailable()) {
+            console.log('[ALERTS-LOW-MEDIUM] Hub not available, loading from local fallback');
             // Load from local database as fallback
             await this.loadAlertsFromDatabase();
             return;
@@ -226,14 +227,16 @@ const AlertsLowMediumModule = {
             // Load from HubClient fallback
             try {
                 const data = await HubClient.listAlerts();
+                console.log('[ALERTS-LOW-MEDIUM] HubClient response:', data);
                 if (data.ok && data.alertas) {
                     const allAlerts = this.transformHubAlerts(data.alertas);
+                    console.log('[ALERTS-LOW-MEDIUM] All alerts from HubClient:', allAlerts);
                     // Filter only low and medium risk alerts
                     this.alerts = allAlerts.filter(alert => {
                         const risk = alert.nivelRiesgo?.toLowerCase() || '';
                         return risk.includes('bajo') || risk.includes('medio');
                     });
-                    console.log('[ALERTS-LOW-MEDIUM] Loaded alerts from HubClient fallback:', this.alerts.length);
+                    console.log('[ALERTS-LOW-MEDIUM] Filtered low/medium risk alerts:', this.alerts.length);
                     this.showAlerts();
                 } else {
                     console.warn('[ALERTS-LOW-MEDIUM] No alerts from HubClient fallback');
@@ -253,12 +256,13 @@ const AlertsLowMediumModule = {
 
             request.onsuccess = () => {
                 const allAlerts = request.result || [];
+                console.log('[ALERTS-LOW-MEDIUM] All alerts from database:', allAlerts);
                 // Filter only low and medium risk alerts
                 this.alerts = allAlerts.filter(alert => {
                     const risk = alert.nivelRiesgo?.toLowerCase() || '';
                     return risk.includes('bajo') || risk.includes('medio');
                 });
-                console.log('[ALERTS-LOW-MEDIUM] Loaded alerts from database:', this.alerts.length);
+                console.log('[ALERTS-LOW-MEDIUM] Filtered low/medium risk alerts:', this.alerts.length);
                 this.showAlerts();
                 resolve();
             };
@@ -285,9 +289,9 @@ const AlertsLowMediumModule = {
         
         // Set header card color based on highest risk level (always medium for this module)
         if (pendingAlerts.length > 0) {
-            headerCard.className = 'alerts-header-card risk-medium';
+            headerCard.className = 'alerts-header-card';
         } else {
-            headerCard.className = 'alerts-header-card risk-medium';
+            headerCard.className = 'alerts-header-card';
         }
         
         console.log('[ALERTS-LOW-MEDIUM] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');

@@ -18,6 +18,11 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* Blue toolbar for low/medium alerts page */
+.alerts-low-medium-screen .alerts-toolbar {
+    background: #1976D2;
+}
+
 .btn-back {
     background: none;
     border: none;
@@ -64,6 +69,11 @@
     border: 2px solid #4CAF50;
 }
 
+/* Blue header for low/medium alerts page */
+.alerts-low-medium-screen .alerts-header-card {
+    border: 2px solid #1976D2;
+}
+
 .header-content {
     display: flex;
     align-items: center;
@@ -75,6 +85,11 @@
     font-size: 16px;
     font-weight: bold;
     color: #B71C1C;
+}
+
+/* Override for low/medium screen */
+.alerts-low-medium-screen .alert-counter {
+    color: #1976D2;
 }
 
 .btn-sync {
