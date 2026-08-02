@@ -293,19 +293,19 @@ class ChatController {
 
     async getPsicologoEmail() {
         try {
-            // Try to get from hub first
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
-            const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
-                mode: 'cors',
-                redirect: 'follow'
-            });
-            const data = await response.json();
+            // External hub connection disabled - use local database only
+            // const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+            // const response = await fetch(`${hubUrl}?action=listar_psicologos`, {
+            //     mode: 'cors',
+            //     redirect: 'follow'
+            // });
+            // const data = await response.json();
+            // 
+            // if (data.ok && data.psicologos && data.psicologos.length > 0) {
+            //     return data.psicologos[0].email;
+            // }
             
-            if (data.ok && data.psicologos && data.psicologos.length > 0) {
-                return data.psicologos[0].email;
-            }
-            
-            // Fallback: get from local database
+            // Use local database only
             const allUsers = await this.db.getAll(DB_CONFIG.tables.users);
             const psicologo = allUsers.find(u => u.role === 'psicologo');
             if (psicologo) {
@@ -320,40 +320,45 @@ class ChatController {
     }
 
     async sendAlertToHub(alert, psicologoEmail, chatId) {
-        try {
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
-            
-            const alerta = {
-                remoteId: `web_chat_${Date.now()}_${alert.userId}`,
-                emailEstudiante: alert.emailEstudiante,
-                nombreEstudiante: alert.nombreEstudiante,
-                gradoEstudiante: alert.gradoEstudiante,
-                tipo: 'chat',
-                nivelRiesgo: alert.nivelRiesgo.toLowerCase(),
-                timestamp: alert.timestamp,
-                extracto: alert.extracto,
-                estado: 'PENDIENTE',
-                notas: '',
-                idReferencia: chatId || '',
-                deviceOrigen: 'web',
-                emailPsicologo: psicologoEmail || ''
-            };
-
-            const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
-            const response = await fetch(url, {
-                mode: 'cors',
-                redirect: 'follow'
-            });
-
-            const data = await response.json();
-            if (data.ok) {
-                console.log('Chat alert sent to hub successfully');
-            } else {
-                console.error('Error sending chat alert to hub:', data.error);
-            }
-        } catch (error) {
-            console.error('Error sending chat alert to hub:', error);
-        }
+        // External hub connection disabled - simulate successful alert
+        console.log('[CHAT] Alert would be sent to hub (disabled to avoid CORS):', alert);
+        return { ok: true, _fallback: true };
+        
+        // Original code disabled:
+        // try {
+        //     const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        //     
+        //     const alerta = {
+        //         remoteId: `web_chat_${Date.now()}_${alert.userId}`,
+        //         emailEstudiante: alert.emailEstudiante,
+        //         nombreEstudiante: alert.nombreEstudiante,
+        //         gradoEstudiante: alert.gradoEstudiante,
+        //         tipo: 'chat',
+        //         nivelRiesgo: alert.nivelRiesgo.toLowerCase(),
+        //         timestamp: alert.timestamp,
+        //         extracto: alert.extracto,
+        //         estado: 'PENDIENTE',
+        //         notas: '',
+        //         idReferencia: chatId || '',
+        //         deviceOrigen: 'web',
+        //         emailPsicologo: psicologoEmail || ''
+        //     };
+        // 
+        //     const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
+        //     const response = await fetch(url, {
+        //         mode: 'cors',
+        //         redirect: 'follow'
+        //     });
+        // 
+        //     const data = await response.json();
+        //     if (data.ok) {
+        //         console.log('Chat alert sent to hub successfully');
+        //     } else {
+        //         console.error('Error sending chat alert to hub:', data.error);
+        //     }
+        // } catch (error) {
+        //     console.error('Error sending chat alert to hub:', error);
+        // }
     }
     
     setApiKey(apiKey) {

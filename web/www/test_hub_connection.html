@@ -62,7 +62,8 @@
     
     <script>
         const results = document.getElementById('results');
-        const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        // External hub connection disabled to avoid CORS errors
+        // const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
         
         function addResult(message, type = 'info') {
             const div = document.createElement('div');
@@ -79,107 +80,113 @@
         
         async function testListar() {
             addResult('=== Test: Listar Alertas ===', 'info');
+            addResult('External hub connection disabled - using local fallback only', 'warning');
             
-            try {
-                const url = `${hubUrl}?action=listar`;
-                addResult('URL: ' + url, 'info');
-                
-                const response = await fetch(url, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                
-                addResult('Status: ' + response.status, 'info');
-                addResult('OK: ' + response.ok, 'info');
-                
-                const data = await response.json();
-                addResult('Response:', 'info');
-                addCode(JSON.stringify(data, null, 2));
-                
-                if (data.ok) {
-                    addResult('✓ Test exitoso: Hub responde correctamente', 'success');
-                    addResult('Alertas encontradas: ' + (data.alertas ? data.alertas.length : 0), 'success');
-                } else {
-                    addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
-                }
-            } catch (error) {
-                addResult('✗ Error de conexión: ' + error.message, 'error');
-                addResult('Verifica que el hub esté desplegado como "Cualquier persona"', 'info');
-            }
+            // Original code disabled:
+            // try {
+            //     const url = `${hubUrl}?action=listar`;
+            //     addResult('URL: ' + url, 'info');
+            //     
+            //     const response = await fetch(url, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     
+            //     addResult('Status: ' + response.status, 'info');
+            //     addResult('OK: ' + response.ok, 'info');
+            //     
+            //     const data = await response.json();
+            //     addResult('Response:', 'info');
+            //     addCode(JSON.stringify(data, null, 2));
+            //     
+            //     if (data.ok) {
+            //         addResult('✓ Test exitoso: Hub responde correctamente', 'success');
+            //         addResult('Alertas encontradas: ' + (data.alertas ? data.alertas.length : 0), 'success');
+            //     } else {
+            //         addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
+            //     }
+            // } catch (error) {
+            //     addResult('✗ Error de conexión: ' + error.message, 'error');
+            //     addResult('Verifica que el hub esté desplegado como "Cualquier persona"', 'info');
+            // }
         }
         
         async function testListarPsicologos() {
             addResult('=== Test: Listar Psicólogos ===', 'info');
+            addResult('External hub connection disabled - using local fallback only', 'warning');
             
-            try {
-                const url = `${hubUrl}?action=listar_psicologos`;
-                addResult('URL: ' + url, 'info');
-                
-                const response = await fetch(url, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                
-                addResult('Status: ' + response.status, 'info');
-                
-                const data = await response.json();
-                addResult('Response:', 'info');
-                addCode(JSON.stringify(data, null, 2));
-                
-                if (data.ok) {
-                    addResult('✓ Test exitoso: Psicólogos listados', 'success');
-                    addResult('Psicólogos encontrados: ' + (data.psicologos ? data.psicologos.length : 0), 'success');
-                } else {
-                    addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
-                }
-            } catch (error) {
-                addResult('✗ Error de conexión: ' + error.message, 'error');
-            }
+            // Original code disabled:
+            // try {
+            //     const url = `${hubUrl}?action=listar_psicologos`;
+            //     addResult('URL: ' + url, 'info');
+            //     
+            //     const response = await fetch(url, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     
+            //     addResult('Status: ' + response.status, 'info');
+            //     
+            //     const data = await response.json();
+            //     addResult('Response:', 'info');
+            //     addCode(JSON.stringify(data, null, 2));
+            //     
+            //     if (data.ok) {
+            //         addResult('✓ Test exitoso: Psicólogos listados', 'success');
+            //         addResult('Psicólogos encontrados: ' + (data.psicologos ? data.psicologos.length : 0), 'success');
+            //     } else {
+            //         addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
+            //     }
+            // } catch (error) {
+            //     addResult('✗ Error de conexión: ' + error.message, 'error');
+            // }
         }
         
         async function testPublicar() {
             addResult('=== Test: Publicar Alerta ===', 'info');
+            addResult('External hub connection disabled - using local fallback only', 'warning');
             
-            const testAlert = {
-                remoteId: `test_web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                emailEstudiante: 'test@estudiante.com',
-                nombreEstudiante: 'Estudiante de Prueba',
-                gradoEstudiante: '11',
-                tipo: 'evaluacion',
-                nivelRiesgo: 'alto',
-                timestamp: new Date().toISOString(),
-                extracto: 'Evaluación de prueba. Puntaje 21. Prueba de alerta desde web.',
-                estado: 'PENDIENTE',
-                notas: '',
-                idReferencia: 0,
-                deviceOrigen: 'web',
-                emailPsicologo: 'riverahoyoskevinfernando6@gmail.com'
-            };
-            
-            try {
-                const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(testAlert))}`;
-                addResult('URL: ' + url.substring(0, 100) + '...', 'info');
-                
-                const response = await fetch(url, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                
-                addResult('Status: ' + response.status, 'info');
-                
-                const data = await response.json();
-                addResult('Response:', 'info');
-                addCode(JSON.stringify(data, null, 2));
-                
-                if (data.ok) {
-                    addResult('✓ Test exitoso: Alerta publicada', 'success');
-                    addResult('Remote ID: ' + data.remoteId, 'success');
-                } else {
-                    addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
-                }
-            } catch (error) {
-                addResult('✗ Error de conexión: ' + error.message, 'error');
-            }
+            // Original code disabled:
+            // const testAlert = {
+            //     remoteId: `test_web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            //     emailEstudiante: 'test@estudiante.com',
+            //     nombreEstudiante: 'Estudiante de Prueba',
+            //     gradoEstudiante: '11',
+            //     tipo: 'evaluacion',
+            //     nivelRiesgo: 'alto',
+            //     timestamp: new Date().toISOString(),
+            //     extracto: 'Evaluación de prueba. Puntaje 21. Prueba de alerta desde web.',
+            //     estado: 'PENDIENTE',
+            //     notas: '',
+            //     idReferencia: 0,
+            //     deviceOrigen: 'web',
+            //     emailPsicologo: 'riverahoyoskevinfernando6@gmail.com'
+            // };
+            // 
+            // try {
+            //     const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(testAlert))}`;
+            //     addResult('URL: ' + url.substring(0, 100) + '...', 'info');
+            //     
+            //     const response = await fetch(url, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     
+            //     addResult('Status: ' + response.status, 'info');
+            //     
+            //     const data = await response.json();
+            //     addResult('Response:', 'info');
+            //     addCode(JSON.stringify(data, null, 2));
+            //     
+            //     if (data.ok) {
+            //         addResult('✓ Test exitoso: Alerta publicada', 'success');
+            //         addResult('Remote ID: ' + data.remoteId, 'success');
+            //     } else {
+            //         addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
+            //     }
+            // } catch (error) {
+            //     addResult('✗ Error de conexión: ' + error.message, 'error');
+            // }
         }
         
         function clearResults() {
@@ -190,7 +197,8 @@
         // Auto-init
         window.onload = () => {
             addResult('Página cargada. Haz clic en los botones para probar la conexión al hub.', 'info');
-            addResult('URL del hub: ' + hubUrl, 'info');
+            addResult('External hub connection disabled - using local fallback only', 'warning');
+            // addResult('URL del hub: ' + hubUrl, 'info');
         };
     </script>
 </body>

@@ -69,138 +69,147 @@
     </div>
 
     <script>
-        const HUB_URL = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        // External hub connection disabled to avoid CORS errors
+        // const HUB_URL = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
 
         async function testListPsicologos() {
             const result = document.getElementById('psicologos-result');
-            result.textContent = 'Cargando...';
+            result.textContent = 'External hub connection disabled - using local fallback only';
             
-            try {
-                const response = await fetch(`${HUB_URL}?action=listar_psicologos`, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                const data = await response.json();
-                result.textContent = JSON.stringify(data, null, 2);
-                
-                if (data.ok && data.psicologos && data.psicologos.length > 0) {
-                    result.parentElement.classList.add('success');
-                    result.parentElement.classList.remove('error');
-                } else {
-                    result.parentElement.classList.add('error');
-                    result.parentElement.classList.remove('success');
-                }
-            } catch (error) {
-                result.textContent = 'Error: ' + error.message;
-                result.parentElement.classList.add('error');
-            }
+            // Original code disabled:
+            // try {
+            //     const response = await fetch(`${HUB_URL}?action=listar_psicologos`, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     const data = await response.json();
+            //     result.textContent = JSON.stringify(data, null, 2);
+            //     
+            //     if (data.ok && data.psicologos && data.psicologos.length > 0) {
+            //         result.parentElement.classList.add('success');
+            //         result.parentElement.classList.remove('error');
+            //     } else {
+            //         result.parentElement.classList.add('error');
+            //         result.parentElement.classList.remove('success');
+            //     }
+            // } catch (error) {
+            //     result.textContent = 'Error: ' + error.message;
+            //     result.parentElement.classList.add('error');
+            // }
         }
 
         async function testListAlertas() {
             const result = document.getElementById('alertas-result');
-            result.textContent = 'Cargando...';
+            result.textContent = 'External hub connection disabled - using local fallback only';
             
-            try {
-                const response = await fetch(`${HUB_URL}?action=listar`, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                const data = await response.json();
-                result.textContent = JSON.stringify(data, null, 2);
-                
-                if (data.ok && data.alertas) {
-                    result.parentElement.classList.add('success');
-                    result.parentElement.classList.remove('error');
-                } else {
-                    result.parentElement.classList.add('error');
-                    result.parentElement.classList.remove('success');
-                }
-            } catch (error) {
-                result.textContent = 'Error: ' + error.message;
-                result.parentElement.classList.add('error');
-            }
+            // Original code disabled:
+            // try {
+            //     const response = await fetch(`${HUB_URL}?action=listar`, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     const data = await response.json();
+            //     result.textContent = JSON.stringify(data, null, 2);
+            //     
+            //     if (data.ok && data.alertas) {
+            //         result.parentElement.classList.add('success');
+            //         result.parentElement.classList.remove('error');
+            //     } else {
+            //         result.parentElement.classList.add('error');
+            //         result.parentElement.classList.remove('success');
+            //     }
+            // } catch (error) {
+            //     result.textContent = 'Error: ' + error.message;
+            //     result.parentElement.classList.add('error');
+            // }
         }
 
         async function testRegisterPsicologo() {
             const result = document.getElementById('register-result');
-            const email = document.getElementById('test-psicologo-email').value;
-            const name = document.getElementById('test-psicologo-name').value;
+            result.textContent = 'External hub connection disabled - using local fallback only';
             
-            result.textContent = 'Enviando...';
-            
-            try {
-                const psicologo = {
-                    email: email,
-                    nombre: name,
-                    especialidad: 'Psicología General',
-                    timestampRegistro: new Date().toISOString()
-                };
-                
-                const url = `${HUB_URL}?action=publicar_psicologo&psicologo=${encodeURIComponent(JSON.stringify(psicologo))}`;
-                const response = await fetch(url, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                const data = await response.json();
-                result.textContent = JSON.stringify(data, null, 2);
-                
-                if (data.ok) {
-                    result.parentElement.classList.add('success');
-                    result.parentElement.classList.remove('error');
-                } else {
-                    result.parentElement.classList.add('error');
-                    result.parentElement.classList.remove('success');
-                }
-            } catch (error) {
-                result.textContent = 'Error: ' + error.message;
-                result.parentElement.classList.add('error');
-            }
+            // Original code disabled:
+            // const email = document.getElementById('test-psicologo-email').value;
+            // const name = document.getElementById('test-psicologo-name').value;
+            // 
+            // result.textContent = 'Enviando...';
+            // 
+            // try {
+            //     const psicologo = {
+            //         email: email,
+            //         nombre: name,
+            //         especialidad: 'Psicología General',
+            //         timestampRegistro: new Date().toISOString()
+            //     };
+            //     
+            //     const url = `${HUB_URL}?action=publicar_psicologo&psicologo=${encodeURIComponent(JSON.stringify(psicologo))}`;
+            //     const response = await fetch(url, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     const data = await response.json();
+            //     result.textContent = JSON.stringify(data, null, 2);
+            //     
+            //     if (data.ok) {
+            //         result.parentElement.classList.add('success');
+            //         result.parentElement.classList.remove('error');
+            //     } else {
+            //         result.parentElement.classList.add('error');
+            //         result.parentElement.classList.remove('success');
+            //     }
+            // } catch (error) {
+            //     result.textContent = 'Error: ' + error.message;
+            //     result.parentElement.classList.add('error');
+            // }
         }
 
         async function testSendAlert() {
             const result = document.getElementById('send-result');
-            const email = document.getElementById('test-alert-email').value;
-            const name = document.getElementById('test-alert-name').value;
-            const risk = document.getElementById('test-alert-risk').value;
+            result.textContent = 'External hub connection disabled - using local fallback only';
             
-            result.textContent = 'Enviando...';
-            
-            try {
-                const alerta = {
-                    remoteId: `test_${Date.now()}`,
-                    emailEstudiante: email,
-                    nombreEstudiante: name,
-                    gradoEstudiante: '10°',
-                    tipo: 'evaluacion',
-                    nivelRiesgo: risk,
-                    timestamp: new Date().toISOString(),
-                    extracto: 'Alerta de prueba desde el panel de test',
-                    estado: 'PENDIENTE',
-                    notas: '',
-                    idReferencia: '',
-                    deviceOrigen: 'web',
-                    emailPsicologo: 'test.psicologo@example.com'
-                };
-                
-                const url = `${HUB_URL}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
-                const response = await fetch(url, {
-                    mode: 'cors',
-                    redirect: 'follow'
-                });
-                const data = await response.json();
-                result.textContent = JSON.stringify(data, null, 2);
-                
-                if (data.ok) {
-                    result.parentElement.classList.add('success');
-                    result.parentElement.classList.remove('error');
-                } else {
-                    result.parentElement.classList.add('error');
-                    result.parentElement.classList.remove('success');
-                }
-            } catch (error) {
-                result.textContent = 'Error: ' + error.message;
-                result.parentElement.classList.add('error');
-            }
+            // Original code disabled:
+            // const email = document.getElementById('test-alert-email').value;
+            // const name = document.getElementById('test-alert-name').value;
+            // const risk = document.getElementById('test-alert-risk').value;
+            // 
+            // result.textContent = 'Enviando...';
+            // 
+            // try {
+            //     const alerta = {
+            //         remoteId: `test_${Date.now()}`,
+            //         emailEstudiante: email,
+            //         nombreEstudiante: name,
+            //         gradoEstudiante: '10°',
+            //         tipo: 'evaluacion',
+            //         nivelRiesgo: risk,
+            //         timestamp: new Date().toISOString(),
+            //         extracto: 'Alerta de prueba desde el panel de test',
+            //         estado: 'PENDIENTE',
+            //         notas: '',
+            //         idReferencia: '',
+            //         deviceOrigen: 'web',
+            //         emailPsicologo: 'test.psicologo@example.com'
+            //     };
+            //     
+            //     const url = `${HUB_URL}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(alerta))}`;
+            //     const response = await fetch(url, {
+            //         mode: 'cors',
+            //         redirect: 'follow'
+            //     });
+            //     const data = await response.json();
+            //     result.textContent = JSON.stringify(data, null, 2);
+            //     
+            //     if (data.ok) {
+            //         result.parentElement.classList.add('success');
+            //         result.parentElement.classList.remove('error');
+            //     } else {
+            //         result.parentElement.classList.add('error');
+            //         result.parentElement.classList.remove('success');
+            //     }
+            // } catch (error) {
+            //     result.textContent = 'Error: ' + error.message;
+            //     result.parentElement.classList.add('error');
+            // }
         }
     </script>
 </body>

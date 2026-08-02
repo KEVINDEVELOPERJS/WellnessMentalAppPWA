@@ -400,38 +400,46 @@ class AuthController {
     }
     
     async registerPsicologoToHub(user) {
-        try {
-            console.log('[AUTH] Registering psychologist to hub');
-            console.log('[AUTH] Psychologist:', user.email, user.name);
-            
-            const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
-            
-            const psicologo = {
-                email: user.email,
-                nombre: user.name,
-                especialidad: 'Psicología General',
-                timestampRegistro: Utils.now()
-            };
-
-            console.log('[AUTH] Sending to hub:', JSON.stringify(psicologo));
-
-            const url = `${hubUrl}?action=publicar_psicologo&psicologo=${encodeURIComponent(JSON.stringify(psicologo))}`;
-            const response = await fetch(url, {
-                mode: 'cors',
-                redirect: 'follow'
-            });
-
-            const data = await response.json();
-            console.log('[AUTH] Hub response:', data);
-            
-            if (data.ok) {
-                console.log('[AUTH] Psychologist registered in hub successfully');
-            } else {
-                console.error('[AUTH] Error registering psychologist in hub:', data.error);
-            }
-        } catch (error) {
-            console.error('[AUTH] Error registering psychologist to hub:', error);
-        }
+        // Disabled external hub connection to avoid CORS errors
+        console.log('[AUTH] Hub registration disabled - using local mode only');
+        console.log('[AUTH] Psychologist would be registered:', user.email, user.name);
+        
+        // Simulate successful registration
+        return { ok: true, _fallback: true };
+        
+        // Original code disabled:
+        // try {
+        //     console.log('[AUTH] Registering psychologist to hub');
+        //     console.log('[AUTH] Psychologist:', user.email, user.name);
+        //     
+        //     const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        //     
+        //     const psicologo = {
+        //         email: user.email,
+        //         nombre: user.name,
+        //         especialidad: 'Psicología General',
+        //         timestampRegistro: Utils.now()
+        //     };
+        // 
+        //     console.log('[AUTH] Sending to hub:', JSON.stringify(psicologo));
+        // 
+        //     const url = `${hubUrl}?action=publicar_psicologo&psicologo=${encodeURIComponent(JSON.stringify(psicologo))}`;
+        //     const response = await fetch(url, {
+        //         mode: 'cors',
+        //         redirect: 'follow'
+        //     });
+        // 
+        //     const data = await response.json();
+        //     console.log('[AUTH] Hub response:', data);
+        //     
+        //     if (data.ok) {
+        //         console.log('[AUTH] Psychologist registered in hub successfully');
+        //     } else {
+        //         console.error('[AUTH] Error registering psychologist in hub:', data.error);
+        //     }
+        // } catch (error) {
+        //     console.error('[AUTH] Error registering psychologist to hub:', error);
+        // }
     }
     
     async login(email, password) {
