@@ -1,128 +1,153 @@
-// Alerts Module for Psychologists
+// Alerts Module for Psychologists - Based on Android AlertasPsicologoActivity
 const AlertsModule = {
-    currentRiskFilter: 'high',
-    currentStatusFilter: 'all',
     alerts: [],
     selectedAlert: null,
-    hubUrl: '', // Will be loaded from config
+    hubUrl: '',
     pollingInterval: null,
-    lastAlertCount: 0,
+    userRol: null,
 
     init() {
+        this.checkUserRole();
         this.loadHubUrl();
-        this.loadAlerts();
         this.setupEventListeners();
-        this.renderAlerts();
-        this.startPolling();
-        this.requestNotificationPermission();
+        this.syncAndLoad();
+        this.startPeriodicUpdate();
+        this.showHubWarningIfMissing();
+    },
+
+    checkUserRole() {
+        // Check if user is psychologist
+        const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+        this.userRol = userData.rol;
+        
+        if (this.userRol !== 'psicologo') {
+            console.error('Access denied: User is not a psychologist');
+            this.showToast('Acceso denegado: Solo psicólogos pueden ver esta página');
+            // Redirect to dashboard
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+            return false;
+        }
+        return true;
     },
 
     loadHubUrl() {
-        // Load hub URL from config or use default
-        this.hubUrl = localStorage.getItem('alert_sync_url') || 'https://script.google.com/macros/s/AKfycbzQpzgBXaROCzV0k3nKK28NEcMQDvaAHLi2Nj2y57MxhYrdvgnwQmKZqZ7Dg2Kq-Vyl/exec';
-        if (!this.hubUrl) {
-            console.warn('Alert hub URL not configured. Using sample data.');
-        }
+        this.hubUrl = localStorage.getItem('alert_sync_url') || '';
+        console.log('[ALERTS] Hub URL loaded:', this.hubUrl ? 'Configured' : 'Not configured');
     },
 
-    async loadAlerts() {
-        if (this.hubUrl) {
-            await this.fetchAlertsFromHub();
-        } else {
-            // Load from localStorage or generate sample alerts
-            const storedAlerts = localStorage.getItem('psychologist_alerts');
-            if (storedAlerts) {
-                this.alerts = JSON.parse(storedAlerts);
+    async syncAndLoad(showToast = false) {
+        if (!this.hubAvailable()) {
+            this.showHubWarning('No hay hub de sincronización configurado');
+            if (showToast) {
+                this.showToast('Toca el banner para configurar el hub');
+                this.showHubConfigModal();
+            }
+            return;
+        }
+
+        this.setSyncButtonState(false, 'Sincronizando...');
+        
+        try {
+            const result = await this.syncRemoteAlerts();
+            
+            this.setSyncButtonState(true, 'Sincronizar ahora');
+            this.showAlerts();
+            
+            if (result.error) {
+                this.showHubWarning(result.error || 'Hub inaccesible');
+                if (showToast) {
+                    this.showToast(`Error de sincronización: ${result.error}`);
+                }
             } else {
-                this.generateSampleAlerts();
+                this.hideHubWarning();
+                if (showToast) {
+                    this.showToast(`Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`);
+                }
+            }
+        } catch (error) {
+            console.error('[ALERTS] Sync error:', error);
+            this.setSyncButtonState(true, 'Sincronizar ahora');
+            this.showHubWarning('Error de sincronización');
+            if (showToast) {
+                this.showToast('Error al sincronizar alertas');
             }
         }
     },
 
-    async fetchAlertsFromHub() {
+    hubAvailable() {
+        return this.hubUrl && this.hubUrl.trim() !== '';
+    },
+
+    async syncRemoteAlerts() {
+        if (!this.hubAvailable()) {
+            return { error: 'Hub no configurado', synced: 0, new: 0, hubAccessible: false };
+        }
+
         try {
-            console.log('[ALERTS PANEL] Fetching alerts from hub');
-            console.log('[ALERTS PANEL] Hub URL:', this.hubUrl);
             const url = `${this.hubUrl}?action=listar`;
-            console.log('[ALERTS PANEL] Request URL:', url);
-            
             const response = await fetch(url, {
                 mode: 'cors',
                 redirect: 'follow'
             });
             
-            console.log('[ALERTS PANEL] Response status:', response.status);
-            console.log('[ALERTS PANEL] Response ok:', response.ok);
-            
             const data = await response.json();
             
-            console.log('[ALERTS PANEL] Hub response:', data);
-            console.log('[ALERTS PANEL] Hub response ok:', data.ok);
-            console.log('[ALERTS PANEL] Hub alertas count:', data.alertas ? data.alertas.length : 0);
-            
             if (data.ok && data.alertas) {
-                console.log('[ALERTS PANEL] Raw alerts from hub:', data.alertas);
                 const previousCount = this.alerts.length;
                 this.alerts = this.transformHubAlerts(data.alertas);
-                console.log('[ALERTS PANEL] Transformed alerts:', this.alerts);
                 this.saveAlerts();
                 
-                // Check for new alerts and notify
-                if (this.alerts.length > previousCount && previousCount > 0) {
-                    const newAlerts = this.alerts.length - previousCount;
-                    console.log(`[ALERTS PANEL] ${newAlerts} new alert(s) detected`);
+                const newAlerts = this.alerts.length - previousCount;
+                
+                // Notify new alerts
+                if (newAlerts > 0 && previousCount > 0) {
                     this.notifyNewAlerts(newAlerts);
                 }
                 
-                console.log(`[ALERTS PANEL] Loaded ${this.alerts.length} alerts from hub`);
+                return { 
+                    synced: this.alerts.length, 
+                    new: newAlerts, 
+                    hubAccessible: true,
+                    error: null
+                };
             } else {
-                console.error('[ALERTS PANEL] Error fetching alerts from hub:', data.error);
-                this.generateSampleAlerts();
+                return { 
+                    error: data.error || 'Error del hub', 
+                    synced: 0, 
+                    new: 0, 
+                    hubAccessible: false 
+                };
             }
         } catch (error) {
-            console.error('[ALERTS PANEL] Error connecting to hub:', error);
-            console.error('[ALERTS PANEL] Error details:', error.message);
-            this.generateSampleAlerts();
+            return { 
+                error: error.message, 
+                synced: 0, 
+                new: 0, 
+                hubAccessible: false 
+            };
         }
     },
 
     transformHubAlerts(hubAlerts) {
-        console.log('[ALERTS PANEL] Transforming', hubAlerts.length, 'alerts from hub');
-        const transformed = hubAlerts.map(alerta => {
+        return hubAlerts.map(alerta => {
             const riskLevel = this.mapRiskLevel(alerta.nivelRiesgo);
-            console.log('[ALERTS PANEL] Alert:', {
-                remoteId: alerta.remoteId,
-                device: alerta.deviceOrigen,
-                student: alerta.nombreEstudiante,
-                risk: alerta.nivelRiesgo,
-                mappedRisk: riskLevel,
-                status: alerta.estado
-            });
             return {
                 id: alerta.remoteId || alerta.idReferencia || Date.now(),
                 studentName: alerta.nombreEstudiante || 'Estudiante',
+                grade: alerta.gradoEstudiante || '—',
                 date: this.formatDate(alerta.timestamp),
-                evaluation: alerta.tipo === 'evaluacion' ? 'Evaluación' : 'Chat IA',
-                score: this.extractScore(alerta.extracto),
-                maxScore: alerta.tipo === 'evaluacion' ? 21 : 10,
+                type: alerta.tipo === 'evaluacion' ? 'Evaluación psicológica' : 'Chat con IA',
+                extract: alerta.extracto || 'Sin descripción',
                 riskLevel: riskLevel,
-                description: alerta.extracto || 'Sin descripción',
-                recommendations: this.generateRecommendations(alerta.nivelRiesgo, alerta.tipo),
                 status: this.mapStatus(alerta.estado),
-                studentEmail: alerta.emailEstudiante,
-                grade: alerta.gradoEstudiante,
                 remoteId: alerta.remoteId,
-                notes: alerta.notas,
-                deviceOrigen: alerta.deviceOrigen
+                notes: alerta.notas || '',
+                deviceOrigen: alerta.deviceOrigen,
+                emailEstudiante: alerta.emailEstudiante
             };
         });
-        
-        // Count by device origin
-        const webAlerts = transformed.filter(a => a.deviceOrigen === 'web').length;
-        const androidAlerts = transformed.filter(a => a.deviceOrigen !== 'web').length;
-        console.log(`[ALERTS PANEL] Transformed alerts: ${webAlerts} from web, ${androidAlerts} from Android`);
-        
-        return transformed;
     },
 
     mapRiskLevel(nivel) {
@@ -134,8 +159,7 @@ const AlertsModule = {
 
     mapStatus(estado) {
         const status = estado?.toLowerCase() || 'pendiente';
-        if (status.includes('atendida') || status.includes('resuelta')) return 'resolved';
-        if (status.includes('seguimiento')) return 'pending';
+        if (status.includes('atendida') || status.includes('resuelta') || status.includes('derivada')) return 'resolved';
         return 'pending';
     },
 
@@ -149,60 +173,322 @@ const AlertsModule = {
         }
     },
 
-    extractScore(extracto) {
-        if (!extracto) return 0;
-        const match = extracto.match(/Puntaje\s+(\d+)/);
-        return match ? parseInt(match[1]) : 0;
+    showAlerts() {
+        const list = document.getElementById('alerts-list');
+        const emptyState = document.getElementById('empty-state');
+        const pendingCount = document.getElementById('pending-count');
+        
+        const pendingAlerts = this.alerts.filter(a => a.status === 'pending');
+        pendingCount.textContent = pendingAlerts.length;
+        
+        console.log('[ALERTS] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');
+        
+        if (this.alerts.length === 0) {
+            list.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            return;
+        }
+        
+        list.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        
+        list.innerHTML = this.alerts.map(alert => `
+            <div class="alert-item risk-${alert.riskLevel} ${alert.status === 'resolved' ? 'resolved' : ''}" data-alert-id="${alert.id}">
+                <div class="alert-item-content">
+                    <div class="alert-item-student">${alert.studentName}</div>
+                    <div class="alert-item-grade">Grado: ${alert.grade}</div>
+                    <div class="alert-item-type">${alert.type}</div>
+                    <div class="alert-item-extract">${alert.extract}</div>
+                    <div class="alert-item-date">${alert.date}</div>
+                </div>
+                <div class="alert-item-status">${alert.status === 'pending' ? 'PENDIENTE' : 'ATENDIDA'}</div>
+            </div>
+        `).join('');
+        
+        // Add click listeners
+        list.querySelectorAll('.alert-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const alertId = parseInt(item.dataset.alertId);
+                this.showAlertDetail(alertId);
+            });
+        });
     },
 
-    generateRecommendations(nivelRiesgo, tipo) {
-        const nivel = nivelRiesgo?.toLowerCase() || 'bajo';
-        const recommendations = [];
+    showAlertDetail(alertId) {
+        const alert = this.alerts.find(a => a.id === alertId);
+        if (!alert) return;
         
-        if (nivel.includes('alto')) {
-            recommendations.push('Contactar al estudiante de inmediato');
-            recommendations.push('Programar sesión de terapia prioritaria');
-            recommendations.push('Informar a padres/tutores si es menor de edad');
-            recommendations.push('Documentar intervención en notas');
-        } else if (nivel.includes('medio')) {
-            recommendations.push('Programar sesión de evaluación');
-            recommendations.push('Monitorear progreso semanalmente');
-            recommendations.push('Considerar actividades de bienestar adicionales');
+        this.selectedAlert = alert;
+        
+        const riskBadge = document.getElementById('alert-risk-badge');
+        riskBadge.textContent = this.getRiskLabel(alert.riskLevel);
+        riskBadge.className = `alert-risk-badge ${alert.riskLevel}`;
+        
+        document.getElementById('alert-student').textContent = alert.studentName;
+        document.getElementById('alert-grade').textContent = alert.grade;
+        document.getElementById('alert-date').textContent = alert.date;
+        document.getElementById('alert-type').textContent = alert.type;
+        document.getElementById('alert-extract-text').textContent = alert.extract;
+        
+        const notesInput = document.getElementById('alert-notes-input');
+        notesInput.value = alert.notes || '';
+        
+        const markResolvedBtn = document.querySelector('#alert-detail-modal .mark-resolved-btn');
+        if (alert.status === 'resolved') {
+            markResolvedBtn.textContent = 'Marcar como Pendiente';
+            markResolvedBtn.onclick = () => this.markAsPending();
         } else {
-            recommendations.push('Continuar monitoreo regular');
-            recommendations.push('Reevaluar en próximo check-in');
+            markResolvedBtn.textContent = 'Marcar como Atendida';
+            markResolvedBtn.onclick = () => this.markAsResolved();
         }
         
-        if (tipo === 'chat') {
-            recommendations.push('Revisar historial de chat completo');
-        }
-        
-        return recommendations;
+        document.getElementById('alert-detail-modal').classList.remove('hidden');
     },
 
-    generateSampleAlerts() {
-        this.alerts = [
-            {
-                id: 1,
-                studentName: 'María García',
-                date: '24/07/2026',
-                evaluation: 'GAD-7',
-                score: 15,
-                maxScore: 21,
-                riskLevel: 'high',
-                description: 'La estudiante muestra niveles elevados de ansiedad generalizada que requieren atención inmediata.',
-                recommendations: [
-                    'Contactar a la estudiante para seguimiento prioritario',
-                    'Programar sesión de terapia esta semana',
-                    'Informar a padres/tutores (menor de edad)'
-                ],
-                status: 'pending'
-            },
-            {
-                id: 2,
-                studentName: 'Carlos López',
-                date: '23/07/2026',
-                evaluation: 'PHQ-9',
+    hideAlertDetailModal() {
+        document.getElementById('alert-detail-modal').classList.add('hidden');
+        this.selectedAlert = null;
+    },
+
+    getRiskLabel(riskLevel) {
+        const labels = {
+            high: '🔴 Riesgo Alto',
+            medium: '🟡 Riesgo Medio',
+            low: '🟢 Riesgo Bajo'
+        };
+        return labels[riskLevel] || riskLevel;
+    },
+
+    async markAsResolved() {
+        if (!this.selectedAlert) return;
+        
+        this.selectedAlert.status = 'resolved';
+        this.saveAlerts();
+        
+        if (this.selectedAlert.remoteId) {
+            const success = await this.updateAlertStatusOnHub(this.selectedAlert.remoteId, 'ATENDIDA', this.selectedAlert.notes);
+            if (success) {
+                this.showToast('Alerta marcada como atendida y sincronizada');
+            } else {
+                this.showToast('Alerta marcada como atendida (error de sincronización)');
+            }
+        } else {
+            this.showToast('Alerta marcada como atendida');
+        }
+        
+        this.showAlerts();
+        this.hideAlertDetailModal();
+    },
+
+    async markAsPending() {
+        if (!this.selectedAlert) return;
+        
+        this.selectedAlert.status = 'pending';
+        this.saveAlerts();
+        
+        if (this.selectedAlert.remoteId) {
+            const success = await this.updateAlertStatusOnHub(this.selectedAlert.remoteId, 'PENDIENTE', this.selectedAlert.notes);
+            if (success) {
+                this.showToast('Alerta marcada como pendiente y sincronizada');
+            } else {
+                this.showToast('Alerta marcada como pendiente (error de sincronización)');
+            }
+        } else {
+            this.showToast('Alerta marcada como pendiente');
+        }
+        
+        this.showAlerts();
+        this.hideAlertDetailModal();
+    },
+
+    async saveNotes() {
+        if (!this.selectedAlert) return;
+        
+        const notesInput = document.getElementById('alert-notes-input');
+        this.selectedAlert.notes = notesInput.value;
+        this.saveAlerts();
+        
+        if (this.selectedAlert.remoteId) {
+            const success = await this.updateAlertStatusOnHub(
+                this.selectedAlert.remoteId, 
+                this.selectedAlert.status === 'resolved' ? 'ATENDIDA' : 'PENDIENTE',
+                this.selectedAlert.notes
+            );
+            if (success) {
+                this.showToast('Notas guardadas y sincronizadas');
+            } else {
+                this.showToast('Notas guardadas (error de sincronización)');
+            }
+        } else {
+            this.showToast('Notas guardadas');
+        }
+    },
+
+    async updateAlertStatusOnHub(remoteId, estado, notas) {
+        if (!this.hubUrl || !remoteId) return false;
+        
+        try {
+            const payload = {
+                action: 'actualizar',
+                remoteId: remoteId,
+                estado: estado,
+                notas: notas || '',
+                timestampActualizacion: new Date().toISOString()
+            };
+            
+            const response = await fetch(this.hubUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await response.json();
+            return data.ok === true;
+        } catch (error) {
+            console.error('[ALERTS] Error updating alert status on hub:', error);
+            return false;
+        }
+    },
+
+    saveAlerts() {
+        localStorage.setItem('psychologist_alerts', JSON.stringify(this.alerts));
+    },
+
+    startPeriodicUpdate() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+        
+        this.pollingInterval = setInterval(() => {
+            if (!document.hidden) {
+                this.showAlerts();
+            }
+        }, 30000); // 30 seconds like Android
+        
+        console.log('[ALERTS] Started periodic update (30s interval)');
+    },
+
+    setupEventListeners() {
+        // Back button
+        document.getElementById('back-to-dashboard').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+        
+        // Config hub button
+        document.getElementById('config-hub-btn').addEventListener('click', () => {
+            this.showHubConfigModal();
+        });
+        
+        // Sync now button
+        document.getElementById('sync-now-btn').addEventListener('click', () => {
+            this.syncAndLoad(true);
+        });
+        
+        // Sync warning click
+        document.getElementById('sync-warning').addEventListener('click', () => {
+            this.showHubConfigModal();
+        });
+        
+        // Modal close buttons
+        document.querySelectorAll('.btn-close, .close-modal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.hideAlertDetailModal();
+                this.hideHubConfigModal();
+            });
+        });
+        
+        // Save notes button
+        document.getElementById('save-notes-btn').addEventListener('click', () => {
+            this.saveNotes();
+        });
+        
+        // Save hub config button
+        document.querySelector('.save-hub-config-btn').addEventListener('click', () => {
+            this.saveHubConfig();
+        });
+    },
+
+    showHubConfigModal() {
+        const hubUrlInput = document.getElementById('hub-url-input');
+        hubUrlInput.value = this.hubUrl;
+        document.getElementById('hub-config-modal').classList.remove('hidden');
+    },
+
+    hideHubConfigModal() {
+        document.getElementById('hub-config-modal').classList.add('hidden');
+    },
+
+    saveHubConfig() {
+        const hubUrlInput = document.getElementById('hub-url-input');
+        const url = hubUrlInput.value.trim();
+        
+        this.hubUrl = url;
+        localStorage.setItem('alert_sync_url', url);
+        
+        this.hideHubConfigModal();
+        this.showToast('URL del hub configurada');
+        this.syncAndLoad(true);
+    },
+
+    showHubWarning(message) {
+        const warning = document.getElementById('sync-warning');
+        const warningText = document.getElementById('sync-warning-text');
+        warningText.textContent = message;
+        warning.classList.remove('hidden');
+    },
+
+    hideHubWarning() {
+        document.getElementById('sync-warning').classList.add('hidden');
+    },
+
+    showHubWarningIfMissing() {
+        if (!this.hubAvailable()) {
+            this.showHubWarning('No hay hub de sincronización configurado');
+        }
+    },
+
+    setSyncButtonState(enabled, text) {
+        const btn = document.getElementById('sync-now-btn');
+        btn.disabled = !enabled;
+        btn.textContent = text;
+    },
+
+    notifyNewAlerts(count) {
+        this.showToast(`${count} nueva(s) alerta(s) recibida(s)`);
+        
+        // Request notification permission and show notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Nuevas Alertas de Riesgo', {
+                body: `${count} nueva(s) alerta(s) de riesgo recibida(s)`,
+                icon: '/images/app-icon.jpeg'
+            });
+        }
+    },
+
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    },
+
+    showToast(message) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        toastMessage.textContent = message;
+        toast.classList.remove('hidden');
+        
+        setTimeout(() => {
+            toast.classList.add('hidden');
+        }, 3000);
+    }
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    AlertsModule.init();
+});
                 score: 12,
                 maxScore: 27,
                 riskLevel: 'medium',

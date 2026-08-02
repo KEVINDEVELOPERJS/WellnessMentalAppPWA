@@ -18,31 +18,32 @@
         <!-- Alerts Screen -->
         <div id="alerts-screen" class="screen active">
             <div class="alerts-container">
-                <header class="alerts-header">
-                    <button id="back-to-dashboard" class="btn btn-secondary btn-small">
-                        ← Volver
+                <!-- Toolbar -->
+                <div class="alerts-toolbar">
+                    <button id="back-to-dashboard" class="btn-back">
+                        ←
                     </button>
-                    <h1>Alertas de Riesgo</h1>
-                    <button id="refresh-btn" class="btn btn-secondary btn-small">
-                        🔄
+                    <h1 class="toolbar-title">Alertas de Riesgo</h1>
+                    <button id="config-hub-btn" class="btn-config">
+                        ⚙️
                     </button>
-                </header>
-
-                <!-- Risk Level Tabs -->
-                <div class="risk-tabs">
-                    <button class="tab-btn active" data-risk="high">🔴 Alto Riesgo</button>
-                    <button class="tab-btn" data-risk="medium">🟡 Riesgo Medio</button>
-                    <button class="tab-btn" data-risk="low">🟢 Riesgo Bajo</button>
-                    <button class="tab-btn" data-risk="all">📋 Todas</button>
                 </div>
 
-                <!-- Status Filter -->
-                <div class="status-filter">
-                    <select id="status-filter">
-                        <option value="all">Todos los estados</option>
-                        <option value="pending">⏳ Pendientes</option>
-                        <option value="resolved">✅ Resueltas</option>
-                    </select>
+                <!-- Sync Warning Banner -->
+                <div id="sync-warning" class="sync-warning hidden">
+                    <span id="sync-warning-text">No hay hub de sincronización configurado</span>
+                </div>
+
+                <!-- Header Card -->
+                <div class="alerts-header-card">
+                    <div class="header-content">
+                        <div class="alert-counter">
+                            <span id="pending-count">0</span> alertas pendientes
+                        </div>
+                        <button id="sync-now-btn" class="btn-sync">
+                            Sincronizar ahora
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Alerts List -->
@@ -52,9 +53,9 @@
 
                 <!-- Empty State -->
                 <div class="empty-state hidden" id="empty-state">
-                    <div class="empty-icon">✅</div>
+                    <div class="empty-icon">📋</div>
                     <h3>No hay alertas</h3>
-                    <p>No se han detectado alertas de riesgo en esta categoría.</p>
+                    <p>No se han detectado alertas de riesgo.</p>
                 </div>
 
                 <!-- Alert Detail Modal -->
@@ -71,23 +72,14 @@
                             
                             <div class="alert-info">
                                 <p><strong>Estudiante:</strong> <span id="alert-student">Juan Pérez</span></p>
+                                <p><strong>Grado:</strong> <span id="alert-grade">11°</span></p>
                                 <p><strong>Fecha:</strong> <span id="alert-date">24/07/2026</span></p>
-                                <p><strong>Evaluación:</strong> <span id="alert-evaluation">GAD-7</span></p>
-                                <p><strong>Puntaje:</strong> <span id="alert-score">15/21</span></p>
+                                <p><strong>Tipo:</strong> <span id="alert-type">Evaluación psicológica</span></p>
                             </div>
 
-                            <div class="alert-description">
-                                <h4>Descripción</h4>
-                                <p id="alert-description">El estudiante muestra niveles elevados de ansiedad que requieren atención inmediata.</p>
-                            </div>
-
-                            <div class="alert-recommendations">
-                                <h4>Recomendaciones</h4>
-                                <ul id="alert-recommendations-list">
-                                    <li>Contactar al estudiante para seguimiento</li>
-                                    <li>Programar sesión de terapia</li>
-                                    <li>Informar a padres/tutores si es menor de edad</li>
-                                </ul>
+                            <div class="alert-extract">
+                                <h4>Extracto</h4>
+                                <p id="alert-extract-text">Evaluación Alto. Puntaje 18. Niveles elevados de ansiedad...</p>
                             </div>
 
                             <div class="alert-notes">
@@ -98,7 +90,28 @@
                         </div>
                         <div class="modal-actions">
                             <button class="btn btn-secondary close-modal-btn">Cerrar</button>
-                            <button class="btn btn-primary mark-resolved-btn">Marcar como Resuelta</button>
+                            <button class="btn btn-primary mark-resolved-btn">Marcar como Atendida</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hub Config Modal -->
+                <div id="hub-config-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Configurar Hub de Sincronización</h2>
+                            <button class="btn-close">×</button>
+                        </div>
+                        <div class="hub-config-content">
+                            <label for="hub-url-input">URL del Hub (Google Apps Script):</label>
+                            <input type="text" id="hub-url-input" placeholder="https://script.google.com/macros/s/..." />
+                            <p class="hub-help-text">
+                                Ingresa la URL del Google Apps Script que actúa como hub de sincronización de alertas.
+                            </p>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary close-modal-btn">Cancelar</button>
+                            <button class="btn btn-primary save-hub-config-btn">Guardar</button>
                         </div>
                     </div>
                 </div>
@@ -108,7 +121,7 @@
         <!-- Loading Overlay -->
         <div id="loading-overlay" class="loading-overlay hidden">
             <div class="loading-spinner"></div>
-            <p>Cargando...</p>
+            <p id="loading-text">Cargando...</p>
         </div>
 
         <!-- Toast Notification -->
