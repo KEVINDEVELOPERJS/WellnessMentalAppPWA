@@ -878,7 +878,7 @@ async function showDashboard() {
         // Hide all student cards
         document.getElementById('check-in-card').classList.add('hidden');
         document.getElementById('evaluation-card').classList.add('hidden');
-        document.getElementById('chat-card').classList.add('hidden');
+
         document.getElementById('exercises-card').classList.add('hidden');
         document.getElementById('games-card').classList.add('hidden');
         document.getElementById('videos-card').classList.add('hidden');
@@ -1243,12 +1243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const chatBtn = document.getElementById('chat-btn');
-    if (chatBtn) {
-        chatBtn.addEventListener('click', () => {
-            window.location.href = 'chat.html';
-        });
-    }
+
     
     const exercisesBtn = document.getElementById('exercises-btn');
     if (exercisesBtn) {
