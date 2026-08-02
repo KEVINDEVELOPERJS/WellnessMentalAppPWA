@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#5BA3B8">
+    <title>Alertas Bajo/Medio - Wellness Mental</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/alerts.css">
+    <link rel="apple-touch-icon" href="images/app-icon.jpeg">
+    <link rel="icon" type="image/jpeg" href="images/app-icon.jpeg">
+    <link rel="shortcut icon" href="images/app-icon.jpeg">
+</head>
+<body>
+    <div id="app">
+        <!-- Alerts Low/Medium Screen -->
+        <div id="alerts-low-medium-screen" class="screen active">
+            <div class="alerts-container">
+                <!-- Toolbar -->
+                <div class="alerts-toolbar">
+                    <button id="back-to-dashboard" class="btn-back">
+                        ←
+                    </button>
+                    <h1 class="toolbar-title">Alertas Bajo/Medio</h1>
+                </div>
+
+                <!-- Header Card -->
+                <div class="alerts-header-card">
+                    <div class="header-content">
+                        <div class="alert-counter">
+                            <span id="pending-count">0</span> alertas pendientes
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts List -->
+                <div class="alerts-list" id="alerts-list">
+                    <!-- Alerts will be populated by JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state hidden" id="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No hay alertas</h3>
+                    <p>No se han detectado alertas de riesgo bajo/medio.</p>
+                </div>
+
+                <!-- Alert Detail Modal -->
+                <div id="alert-detail-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Detalle de Alerta</h2>
+                            <button class="btn-close">×</button>
+                        </div>
+                        <div class="alert-detail-content">
+                            <div class="alert-risk-badge" id="alert-risk-badge">
+                                🟡 Riesgo Medio
+                            </div>
+                            
+                            <div class="alert-info">
+                                <p><strong>Estudiante:</strong> <span id="alert-student">Juan Pérez</span></p>
+                                <p><strong>Grado:</strong> <span id="alert-grade">11°</span></p>
+                                <p><strong>Fecha:</strong> <span id="alert-date">24/07/2026</span></p>
+                                <p><strong>Tipo:</strong> <span id="alert-type">Evaluación psicológica</span></p>
+                            </div>
+
+                            <div class="alert-extract">
+                                <h4>Extracto</h4>
+                                <p id="alert-extract-text">Evaluación Medio. Puntaje 12. Niveles moderados de ansiedad...</p>
+                            </div>
+
+                            <div class="alert-notes">
+                                <h4>Notas de Intervención</h4>
+                                <textarea id="alert-notes-input" placeholder="Documente las acciones tomadas..."></textarea>
+                                <button id="save-notes-btn" class="btn btn-secondary btn-small">Guardar Notas</button>
+                            </div>
+                        </div>
+                        <div class="modal-actions">
+                            <button class="btn btn-secondary close-modal-btn">Cerrar</button>
+                            <button class="btn btn-primary mark-resolved-btn">Marcar como Atendida</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="loading-spinner"></div>
+            <p id="loading-text">Cargando...</p>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden">
+            <span id="toast-message"></span>
+        </div>
+    </div>
+
+    <script src="js/hub-client.js"></script>
+    <script src="js/alerts-low-medium.js"></script>
+</body>
+</html>

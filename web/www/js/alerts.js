@@ -574,6 +574,9 @@ const AlertsModule = {
     },
 
     setSyncButtonState(enabled, text) {
+        // Not implemented in this version
+        console.log('[ALERTS] Sync button state:', enabled, text);
+    },
         const btn = document.getElementById('sync-now-btn');
         btn.disabled = !enabled;
         btn.textContent = text;

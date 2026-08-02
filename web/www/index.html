@@ -258,11 +258,35 @@
                     <div class="card card-warning hidden" id="alerts-card">
                         <div class="card-icon">🚨</div>
                         <div class="card-content">
-                            <h3>Alertas de Riesgo</h3>
+                            <h3>Alertas de Riesgo Alto</h3>
                             <p id="alerts-count">0 alertas pendientes</p>
                         </div>
                         <button class="btn btn-card" id="alerts-btn">
                             Ver Alertas
+                        </button>
+                    </div>
+
+                    <!-- Alerts Low/Medium Card (Psychologist only) -->
+                    <div class="card card-secondary hidden" id="alerts-low-medium-card">
+                        <div class="card-icon">⚠️</div>
+                        <div class="card-content">
+                            <h3>Alertas de Riesgo Bajo/Medio</h3>
+                            <p id="alerts-low-medium-count">0 alertas pendientes</p>
+                        </div>
+                        <button class="btn btn-card" id="alerts-low-medium-btn">
+                            Ver Alertas
+                        </button>
+                    </div>
+
+                    <!-- Questionnaire Editor Card (Psychologist only) -->
+                    <div class="card card-primary hidden" id="questionnaire-editor-card">
+                        <div class="card-icon">📝</div>
+                        <div class="card-content">
+                            <h3>Editor de Cuestionario</h3>
+                            <p>Crear y editar cuestionarios</p>
+                        </div>
+                        <button class="btn btn-card" id="questionnaire-editor-btn">
+                            Editar
                         </button>
                     </div>
 

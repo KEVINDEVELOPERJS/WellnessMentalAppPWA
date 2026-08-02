@@ -812,16 +812,35 @@ async function showDashboard() {
     document.getElementById('user-greeting').textContent = `Hola, ${user.name}`;
     document.getElementById('user-role-badge').textContent = user.role === 'psicologo' ? 'Psicólogo' : 'Estudiante';
     
-    // Show alerts card for psychologists
+    // Show psychologist-specific cards and hide student cards
     if (user.role === 'psicologo') {
+        // Hide all student cards
+        document.getElementById('check-in-card').classList.add('hidden');
+        document.getElementById('evaluation-card').classList.add('hidden');
+        document.getElementById('chat-card').classList.add('hidden');
+        document.getElementById('exercises-card').classList.add('hidden');
+        document.getElementById('games-card').classList.add('hidden');
+        document.getElementById('videos-card').classList.add('hidden');
+        document.getElementById('active-breaks-card').classList.add('hidden');
+        document.getElementById('mental-garden-card').classList.add('hidden');
+        document.getElementById('parent-reports-card').classList.add('hidden');
+        document.getElementById('community-card').classList.add('hidden');
+        document.getElementById('profile-card').classList.add('hidden');
+        
+        // Show psychologist cards
         document.getElementById('alerts-card').classList.remove('hidden');
+        document.getElementById('alerts-low-medium-card').classList.remove('hidden');
+        document.getElementById('questionnaire-editor-card').classList.remove('hidden');
+        
         await updateAlertsCounter();
+        await updateAlertsLowMediumCounter();
     }
     
     Utils.showScreen('dashboard-screen');
 }
 
 let lastAlertCount = 0;
+let lastAlertLowMediumCount = 0;
 let alertPollingInterval = null;
 
 async function updateAlertsCounter() {
@@ -923,12 +942,64 @@ function sendWebNotification(count, latestAlert) {
     }
 }
 
+async function updateAlertsLowMediumCounter() {
+    try {
+        console.log('[DASHBOARD] Updating alerts low/medium counter');
+        const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        
+        const response = await fetch(`${hubUrl}?action=listar`, {
+            mode: 'cors',
+            redirect: 'follow'
+        });
+        
+        if (!response.ok) {
+            console.error('[DASHBOARD] Hub returned error status:', response.status);
+            const counterElement = document.getElementById('alerts-low-medium-count');
+            if (counterElement) {
+                counterElement.textContent = 'Error de conexión';
+            }
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.ok && data.alertas) {
+            // Filter only low/medium risk alerts
+            const lowMediumAlerts = data.alertas.filter(alerta => {
+                const nivel = alerta.nivelRiesgo?.toLowerCase() || '';
+                return nivel.includes('bajo') || nivel.includes('medio');
+            });
+            
+            const pendientes = lowMediumAlerts.filter(alerta => {
+                const estado = alerta.estado?.toLowerCase() || '';
+                return !estado.includes('atendida') && !estado.includes('resuelta') && !estado.includes('derivada');
+            });
+            
+            const counterElement = document.getElementById('alerts-low-medium-count');
+            if (counterElement) {
+                counterElement.textContent = `${pendientes.length} alertas pendientes`;
+            }
+            
+            console.log('[DASHBOARD] Low/medium alerts:', pendientes.length, 'pending of', lowMediumAlerts.length, 'total');
+        }
+    } catch (error) {
+        console.error('[DASHBOARD] Error updating low/medium alerts counter:', error);
+        const counterElement = document.getElementById('alerts-low-medium-count');
+        if (counterElement) {
+            counterElement.textContent = 'Error de conexión';
+        }
+    }
+}
+
 function startAlertPolling() {
     // Update every 30 seconds
     if (alertPollingInterval) {
         clearInterval(alertPollingInterval);
     }
-    alertPollingInterval = setInterval(updateAlertsCounter, 30000);
+    alertPollingInterval = setInterval(() => {
+        updateAlertsCounter();
+        updateAlertsLowMediumCounter();
+    }, 30000);
 }
 
 function stopAlertPolling() {
@@ -1201,6 +1272,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (alertsBtn) {
         alertsBtn.addEventListener('click', () => {
             window.location.href = 'alerts.html';
+        });
+    }
+    
+    const alertsLowMediumBtn = document.getElementById('alerts-low-medium-btn');
+    if (alertsLowMediumBtn) {
+        alertsLowMediumBtn.addEventListener('click', () => {
+            window.location.href = 'alerts-low-medium.html';
+        });
+    }
+    
+    const questionnaireEditorBtn = document.getElementById('questionnaire-editor-btn');
+    if (questionnaireEditorBtn) {
+        questionnaireEditorBtn.addEventListener('click', () => {
+            window.location.href = 'questionnaire-editor.html';
         });
     }
     
