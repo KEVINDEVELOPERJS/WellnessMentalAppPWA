@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - Alertas Psicólogo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #5BA3B8;
+            color: white;
+        }
+        .btn:hover {
+            background: #4A919F;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Simple: Módulo de Alertas (Sin Hub)</h1>
+    <div id="results"></div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn" onclick="testDatabase()">Probar Base de Datos</button>
+        <button class="btn" onclick="testAddAlert()">Agregar Alerta de Prueba</button>
+        <button class="btn" onclick="testLoadAlerts()">Cargar Alertas</button>
+        <button class="btn" onclick="clearDatabase()">Limpiar Base de Datos</button>
+    </div>
+    
+    <script>
+        const results = document.getElementById('results');
+        let db = null;
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        async function initDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('wellness_mental', 1);
+                
+                request.onerror = () => {
+                    addResult('Error abriendo base de datos: ' + request.error, 'error');
+                    reject(request.error);
+                };
+                
+                request.onsuccess = () => {
+                    db = request.result;
+                    addResult('Base de datos abierta exitosamente', 'success');
+                    resolve();
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('alerts')) {
+                        db.createObjectStore('alerts', { keyPath: 'id', autoIncrement: true });
+                        addResult('Tabla de alertas creada', 'success');
+                    }
+                };
+            });
+        }
+        
+        async function testDatabase() {
+            addResult('=== Iniciando prueba de base de datos ===', 'info');
+            try {
+                await initDatabase();
+                addResult('✓ Base de datos inicializada correctamente', 'success');
+            } catch (error) {
+                addResult('✗ Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function testAddAlert() {
+            addResult('=== Agregando alerta de prueba ===', 'info');
+            
+            if (!db) {
+                await initDatabase();
+            }
+            
+            const testAlert = {
+                nombreEstudiante: 'Estudiante de Prueba',
+                gradoEstudiante: '11°',
+                tipo: 'evaluacion',
+                nivelRiesgo: 'alto',
+                timestamp: new Date().toISOString(),
+                extracto: 'Evaluación de prueba. Puntaje 18. Niveles elevados de ansiedad.',
+                estado: 'PENDIENTE',
+                notas: '',
+                deviceOrigen: 'web'
+            };
+            
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(['alerts'], 'readwrite');
+                    const store = transaction.objectStore('alerts');
+                    const request = store.add(testAlert);
+                    
+                    request.onsuccess = () => {
+                        addResult('✓ Alerta agregada con ID: ' + request.result, 'success');
+                        resolve();
+                    };
+                    
+                    request.onerror = () => {
+                        addResult('✗ Error agregando alerta: ' + request.error, 'error');
+                        reject(request.error);
+                    };
+                });
+            } catch (error) {
+                addResult('✗ Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function testLoadAlerts() {
+            addResult('=== Cargando alertas ===', 'info');
+            
+            if (!db) {
+                await initDatabase();
+            }
+            
+            try {
+                const alerts = await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(['alerts'], 'readonly');
+                    const store = transaction.objectStore('alerts');
+                    const request = store.getAll();
+                    
+                    request.onsuccess = () => {
+                        resolve(request.result);
+                    };
+                    
+                    request.onerror = () => {
+                        reject(request.error);
+                    };
+                });
+                
+                addResult('✓ Total de alertas: ' + alerts.length, 'success');
+                
+                if (alerts.length > 0) {
+                    alerts.forEach((alert, index) => {
+                        addResult(`Alerta ${index + 1}: ${alert.nombreEstudiante} - ${alert.nivelRiesgo} - ${alert.estado}`, 'info');
+                    });
+                } else {
+                    addResult('No hay alertas en la base de datos', 'info');
+                }
+            } catch (error) {
+                addResult('✗ Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function clearDatabase() {
+            addResult('=== Limpiando base de datos ===', 'info');
+            
+            if (!db) {
+                await initDatabase();
+            }
+            
+            try {
+                await new Promise((resolve, reject) => {
+                    const transaction = db.transaction(['alerts'], 'readwrite');
+                    const store = transaction.objectStore('alerts');
+                    const request = store.clear();
+                    
+                    request.onsuccess = () => {
+                        addResult('✓ Base de datos limpiada', 'success');
+                        resolve();
+                    };
+                    
+                    request.onerror = () => {
+                        addResult('✗ Error limpiando base de datos: ' + request.error, 'error');
+                        reject(request.error);
+                    };
+                });
+            } catch (error) {
+                addResult('✗ Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Auto-init on load
+        window.onload = () => {
+            addResult('Página cargada. Haz clic en los botones para probar.', 'info');
+        };
+    </script>
+</body>
+</html>

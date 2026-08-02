@@ -46,40 +46,6 @@
     text-align: center;
 }
 
-.btn-config {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 8px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background 0.2s;
-}
-
-.btn-config:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* Sync Warning Banner - Yellow background */
-.sync-warning {
-    background: #FFC107;
-    color: #333;
-    padding: 12px 16px;
-    text-align: center;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.sync-warning.hidden {
-    display: none;
-}
-
 /* Header Card */
 .alerts-header-card {
     background: white;
@@ -93,36 +59,13 @@
 .header-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    justify-content: center;
 }
 
 .alert-counter {
-    flex: 1;
     font-size: 16px;
     font-weight: bold;
     color: #B71C1C;
-}
-
-.btn-sync {
-    background: none;
-    border: none;
-    color: #B71C1C;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 8px 16px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.btn-sync:hover {
-    background: rgba(183, 28, 28, 0.1);
-}
-
-.btn-sync:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 /* Alerts List */
@@ -447,41 +390,6 @@
 .btn-small {
     padding: 8px 12px;
     font-size: 12px;
-}
-
-/* Hub Config Modal */
-.hub-config-content {
-    padding: 20px;
-}
-
-.hub-config-content label {
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 8px;
-}
-
-.hub-config-content input {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 14px;
-    box-sizing: border-box;
-    margin-bottom: 12px;
-}
-
-.hub-config-content input:focus {
-    outline: none;
-    border-color: #5BA3B8;
-}
-
-.hub-help-text {
-    font-size: 12px;
-    color: #666;
-    line-height: 1.4;
-    margin: 0;
 }
 
 /* Loading Overlay */
