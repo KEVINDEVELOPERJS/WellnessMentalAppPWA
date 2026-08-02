@@ -5,11 +5,11 @@ const HubClient = {
     // Nueva URL del hub proporcionada por el usuario
     defaultHubUrl: 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec',
     
-    // CORS proxies to try
+    // CORS proxies to try - prioritize proxies to avoid CORS
     corsProxies: [
-        null, // Direct connection first
-        'https://corsproxy.io/?',
-        'https://api.allorigins.win/raw?url='
+        'https://corsproxy.io/?', // Try proxy first (most reliable)
+        'https://api.allorigins.win/raw?url=',
+        null // Direct connection last
     ],
     
     currentProxyIndex: 0,
