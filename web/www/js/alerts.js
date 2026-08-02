@@ -1,9 +1,10 @@
-// Alerts Module for Psychologists - Simplified Version (No Hub Dependencies)
-// Based on Android AlertasPsicologoActivity - Local database only
+// Alerts Module for Psychologists - Based on Android AlertasPsicologoActivity
+// With Hub Synchronization (like Android)
 
 const AlertsModule = {
     alerts: [],
     selectedAlert: null,
+    hubUrl: '',
     pollingInterval: null,
     userRol: null,
     db: null,
@@ -17,17 +18,20 @@ const AlertsModule = {
         // Initialize database
         await this.initDatabase();
         
+        // Load hub URL
+        this.loadHubUrl();
+        
         // Setup event listeners
         this.setupEventListeners();
         
-        // Load alerts from local database
-        await this.loadAlerts();
-        
-        // Render alerts
-        this.showAlerts();
+        // Sync and load alerts
+        await this.syncAndLoad();
         
         // Start periodic update (30 seconds like Android)
         this.startPeriodicUpdate();
+        
+        // Show hub warning if missing
+        this.showHubWarningIfMissing();
     },
 
     checkUserRole() {
@@ -69,7 +73,157 @@ const AlertsModule = {
         });
     },
 
-    async loadAlerts() {
+    loadHubUrl() {
+        this.hubUrl = HubClient.getHubUrl();
+        console.log('[ALERTS] Hub URL loaded:', this.hubUrl ? 'Configured' : 'Not configured');
+    },
+
+    async syncAndLoad(showToast = false) {
+        if (!this.hubAvailable()) {
+            this.showHubWarning('No hay hub de sincronización configurado');
+            if (showToast) {
+                this.showToast('Toca el banner para configurar el hub');
+                this.showHubConfigModal();
+            }
+            // Load from local database as fallback
+            await this.loadAlertsFromDatabase();
+            return;
+        }
+
+        this.setSyncButtonState(false, 'Sincronizando...');
+        
+        try {
+            const result = await this.syncRemoteAlerts();
+            
+            this.setSyncButtonState(true, 'Sincronizar ahora');
+            this.showAlerts();
+            
+            if (result.error) {
+                this.showHubWarning(result.error || 'Hub inaccesible');
+                if (showToast) {
+                    this.showToast(`Error de sincronización: ${result.error}`);
+                }
+            } else {
+                this.hideHubWarning();
+                if (showToast) {
+                    this.showToast(`Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`);
+                }
+            }
+        } catch (error) {
+            console.error('[ALERTS] Sync error:', error);
+            this.setSyncButtonState(true, 'Sincronizar ahora');
+            this.showHubWarning('Error de sincronización');
+            if (showToast) {
+                this.showToast('Error al sincronizar alertas');
+            }
+            // Fallback to local database
+            await this.loadAlertsFromDatabase();
+        }
+    },
+
+    hubAvailable() {
+        return this.hubUrl && this.hubUrl.trim() !== '';
+    },
+
+    async syncRemoteAlerts() {
+        try {
+            console.log('[ALERTS] Fetching alerts using HubClient');
+            const data = await HubClient.listAlerts();
+            
+            if (data.ok && data.alertas) {
+                const previousCount = this.alerts.length;
+                this.alerts = this.transformHubAlerts(data.alertas);
+                
+                // Save to local database
+                await this.saveAlertsToDatabase();
+                
+                const newAlerts = this.alerts.length - previousCount;
+                
+                // Notify new alerts
+                if (newAlerts > 0 && previousCount > 0) {
+                    this.notifyNewAlerts(newAlerts);
+                }
+                
+                return { 
+                    synced: this.alerts.length, 
+                    new: newAlerts, 
+                    hubAccessible: true,
+                    error: null
+                };
+            } else {
+                return { 
+                    error: data.error || 'Error del hub', 
+                    synced: 0, 
+                    new: 0, 
+                    hubAccessible: false 
+                };
+            }
+        } catch (error) {
+            console.error('[ALERTS] Sync error:', error);
+            return { 
+                error: error.message, 
+                synced: 0, 
+                new: 0, 
+                hubAccessible: false 
+            };
+        }
+    },
+
+    transformHubAlerts(hubAlerts) {
+        return hubAlerts.map(alerta => {
+            const riskLevel = this.mapRiskLevel(alerta.nivelRiesgo);
+            return {
+                id: alerta.remoteId || alerta.idReferencia || Date.now(),
+                nombreEstudiante: alerta.nombreEstudiante || 'Estudiante',
+                gradoEstudiante: alerta.gradoEstudiante || '—',
+                tipo: alerta.tipo,
+                nivelRiesgo: alerta.nivelRiesgo,
+                timestamp: alerta.timestamp,
+                extracto: alerta.extracto || 'Sin descripción',
+                estado: alerta.estado,
+                notas: alerta.notas || '',
+                deviceOrigen: alerta.deviceOrigen,
+                remoteId: alerta.remoteId
+            };
+        });
+    },
+
+    async saveAlertsToDatabase() {
+        if (!this.db) return;
+
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['alerts'], 'readwrite');
+            const store = transaction.objectStore('alerts');
+            
+            // Clear existing alerts
+            const clearRequest = store.clear();
+            
+            clearRequest.onsuccess = () => {
+                // Add new alerts
+                let completed = 0;
+                this.alerts.forEach(alert => {
+                    const request = store.add(alert);
+                    request.onsuccess = () => {
+                        completed++;
+                        if (completed === this.alerts.length) {
+                            console.log('[ALERTS] Alerts saved to database');
+                            resolve();
+                        }
+                    };
+                });
+                
+                if (this.alerts.length === 0) {
+                    resolve();
+                }
+            };
+            
+            clearRequest.onerror = () => {
+                reject(clearRequest.error);
+            };
+        });
+    },
+
+    async loadAlertsFromDatabase() {
         if (!this.db) {
             console.warn('[ALERTS] Database not initialized');
             return;
@@ -98,7 +252,11 @@ const AlertsModule = {
         const emptyState = document.getElementById('empty-state');
         const pendingCount = document.getElementById('pending-count');
         
-        const pendingAlerts = this.alerts.filter(a => a.estado === 'PENDIENTE' || a.estado === 'pendiente');
+        const pendingAlerts = this.alerts.filter(a => {
+            const status = a.estado?.toLowerCase() || 'pendiente';
+            return !status.includes('atendida') && !status.includes('resuelta') && !status.includes('derivada');
+        });
+        
         pendingCount.textContent = pendingAlerts.length;
         
         console.log('[ALERTS] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');
@@ -214,9 +372,25 @@ const AlertsModule = {
         if (!this.selectedAlert) return;
         
         this.selectedAlert.estado = 'ATENDIDA';
-        await this.updateAlertInDatabase(this.selectedAlert);
+        await this.updateAlertInDatabase();
         
-        this.showToast('Alerta marcada como atendida');
+        // Sync with hub if available
+        if (this.selectedAlert.remoteId && this.hubAvailable()) {
+            try {
+                const success = await HubClient.updateAlertStatus(this.selectedAlert.remoteId, 'ATENDIDA', this.selectedAlert.notas);
+                if (success) {
+                    this.showToast('Alerta marcada como atendida y sincronizada');
+                } else {
+                    this.showToast('Alerta marcada como atendida (error de sincronización)');
+                }
+            } catch (error) {
+                console.error('[ALERTS] Error syncing to hub:', error);
+                this.showToast('Alerta marcada como atendida');
+            }
+        } else {
+            this.showToast('Alerta marcada como atendida');
+        }
+        
         this.showAlerts();
         this.hideAlertDetailModal();
     },
@@ -225,9 +399,25 @@ const AlertsModule = {
         if (!this.selectedAlert) return;
         
         this.selectedAlert.estado = 'PENDIENTE';
-        await this.updateAlertInDatabase(this.selectedAlert);
+        await this.updateAlertInDatabase();
         
-        this.showToast('Alerta marcada como pendiente');
+        // Sync with hub if available
+        if (this.selectedAlert.remoteId && this.hubAvailable()) {
+            try {
+                const success = await HubClient.updateAlertStatus(this.selectedAlert.remoteId, 'PENDIENTE', this.selectedAlert.notas);
+                if (success) {
+                    this.showToast('Alerta marcada como pendiente y sincronizada');
+                } else {
+                    this.showToast('Alerta marcada como pendiente (error de sincronización)');
+                }
+            } catch (error) {
+                console.error('[ALERTS] Error syncing to hub:', error);
+                this.showToast('Alerta marcada como pendiente');
+            }
+        } else {
+            this.showToast('Alerta marcada como pendiente');
+        }
+        
         this.showAlerts();
         this.hideAlertDetailModal();
     },
@@ -237,18 +427,37 @@ const AlertsModule = {
         
         const notesInput = document.getElementById('alert-notes-input');
         this.selectedAlert.notas = notesInput.value;
-        await this.updateAlertInDatabase(this.selectedAlert);
+        await this.updateAlertInDatabase();
         
-        this.showToast('Notas guardadas');
+        // Sync with hub if available
+        if (this.selectedAlert.remoteId && this.hubAvailable()) {
+            try {
+                const success = await HubClient.updateAlertStatus(
+                    this.selectedAlert.remoteId, 
+                    this.selectedAlert.estado,
+                    this.selectedAlert.notas
+                );
+                if (success) {
+                    this.showToast('Notas guardadas y sincronizadas');
+                } else {
+                    this.showToast('Notas guardadas (error de sincronización)');
+                }
+            } catch (error) {
+                console.error('[ALERTS] Error syncing to hub:', error);
+                this.showToast('Notas guardadas');
+            }
+        } else {
+            this.showToast('Notas guardadas');
+        }
     },
 
-    async updateAlertInDatabase(alert) {
+    async updateAlertInDatabase() {
         if (!this.db) return;
 
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(['alerts'], 'readwrite');
             const store = transaction.objectStore('alerts');
-            const request = store.put(alert);
+            const request = store.put(this.selectedAlert);
 
             request.onsuccess = () => {
                 console.log('[ALERTS] Alert updated in database');
@@ -269,9 +478,7 @@ const AlertsModule = {
         
         this.pollingInterval = setInterval(() => {
             if (!document.hidden) {
-                this.loadAlerts().then(() => {
-                    this.showAlerts();
-                });
+                this.syncAndLoad();
             }
         }, 30000); // 30 seconds like Android
         
@@ -284,10 +491,26 @@ const AlertsModule = {
             window.location.href = 'index.html';
         });
         
+        // Config hub button
+        document.getElementById('config-hub-btn').addEventListener('click', () => {
+            this.showHubConfigModal();
+        });
+        
+        // Sync now button
+        document.getElementById('sync-now-btn').addEventListener('click', () => {
+            this.syncAndLoad(true);
+        });
+        
+        // Sync warning click
+        document.getElementById('sync-warning').addEventListener('click', () => {
+            this.showHubConfigModal();
+        });
+        
         // Modal close buttons
         document.querySelectorAll('.btn-close, .close-modal-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.hideAlertDetailModal();
+                this.hideHubConfigModal();
             });
         });
         
@@ -295,6 +518,74 @@ const AlertsModule = {
         document.getElementById('save-notes-btn').addEventListener('click', () => {
             this.saveNotes();
         });
+        
+        // Save hub config button
+        document.querySelector('.save-hub-config-btn').addEventListener('click', () => {
+            this.saveHubConfig();
+        });
+    },
+
+    showHubConfigModal() {
+        const hubUrlInput = document.getElementById('hub-url-input');
+        hubUrlInput.value = this.hubUrl;
+        document.getElementById('hub-config-modal').classList.remove('hidden');
+    },
+
+    hideHubConfigModal() {
+        document.getElementById('hub-config-modal').classList.add('hidden');
+    },
+
+    saveHubConfig() {
+        const hubUrlInput = document.getElementById('hub-url-input');
+        const url = hubUrlInput.value.trim();
+        
+        this.hubUrl = url;
+        localStorage.setItem('alert_sync_url', url);
+        
+        this.hideHubConfigModal();
+        this.showToast('URL del hub configurada');
+        this.syncAndLoad(true);
+    },
+
+    showHubWarning(message) {
+        const warning = document.getElementById('sync-warning');
+        const warningText = document.getElementById('sync-warning-text');
+        warningText.textContent = message;
+        warning.classList.remove('hidden');
+    },
+
+    hideHubWarning() {
+        document.getElementById('sync-warning').classList.add('hidden');
+    },
+
+    showHubWarningIfMissing() {
+        if (!this.hubAvailable()) {
+            this.showHubWarning('No hay hub de sincronización configurado');
+        }
+    },
+
+    setSyncButtonState(enabled, text) {
+        const btn = document.getElementById('sync-now-btn');
+        btn.disabled = !enabled;
+        btn.textContent = text;
+    },
+
+    notifyNewAlerts(count) {
+        this.showToast(`${count} nueva(s) alerta(s) recibida(s)`);
+        
+        // Request notification permission and show notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Nuevas Alertas de Riesgo', {
+                body: `${count} nueva(s) alerta(s) de riesgo recibida(s)`,
+                icon: '/images/app-icon.jpeg'
+            });
+        }
+    },
+
+    requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
     },
 
     showToast(message) {

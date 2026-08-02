@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hub Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #5BA3B8;
+            color: white;
+        }
+        .btn:hover {
+            background: #4A919F;
+        }
+        pre {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Conexión al Hub</h1>
+    <div id="results"></div>
+    
+    <div style="margin-top: 20px;">
+        <button class="btn" onclick="testListar()">Test: Listar Alertas</button>
+        <button class="btn" onclick="testListarPsicologos()">Test: Listar Psicólogos</button>
+        <button class="btn" onclick="testPublicar()">Test: Publicar Alerta</button>
+        <button class="btn" onclick="clearResults()">Limpiar Resultados</button>
+    </div>
+    
+    <script>
+        const results = document.getElementById('results');
+        const hubUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        function addCode(code) {
+            const pre = document.createElement('pre');
+            pre.textContent = code;
+            results.appendChild(pre);
+        }
+        
+        async function testListar() {
+            addResult('=== Test: Listar Alertas ===', 'info');
+            
+            try {
+                const url = `${hubUrl}?action=listar`;
+                addResult('URL: ' + url, 'info');
+                
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                
+                addResult('Status: ' + response.status, 'info');
+                addResult('OK: ' + response.ok, 'info');
+                
+                const data = await response.json();
+                addResult('Response:', 'info');
+                addCode(JSON.stringify(data, null, 2));
+                
+                if (data.ok) {
+                    addResult('✓ Test exitoso: Hub responde correctamente', 'success');
+                    addResult('Alertas encontradas: ' + (data.alertas ? data.alertas.length : 0), 'success');
+                } else {
+                    addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
+                }
+            } catch (error) {
+                addResult('✗ Error de conexión: ' + error.message, 'error');
+                addResult('Verifica que el hub esté desplegado como "Cualquier persona"', 'info');
+            }
+        }
+        
+        async function testListarPsicologos() {
+            addResult('=== Test: Listar Psicólogos ===', 'info');
+            
+            try {
+                const url = `${hubUrl}?action=listar_psicologos`;
+                addResult('URL: ' + url, 'info');
+                
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                
+                addResult('Status: ' + response.status, 'info');
+                
+                const data = await response.json();
+                addResult('Response:', 'info');
+                addCode(JSON.stringify(data, null, 2));
+                
+                if (data.ok) {
+                    addResult('✓ Test exitoso: Psicólogos listados', 'success');
+                    addResult('Psicólogos encontrados: ' + (data.psicologos ? data.psicologos.length : 0), 'success');
+                } else {
+                    addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
+                }
+            } catch (error) {
+                addResult('✗ Error de conexión: ' + error.message, 'error');
+            }
+        }
+        
+        async function testPublicar() {
+            addResult('=== Test: Publicar Alerta ===', 'info');
+            
+            const testAlert = {
+                remoteId: `test_web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                emailEstudiante: 'test@estudiante.com',
+                nombreEstudiante: 'Estudiante de Prueba',
+                gradoEstudiante: '11',
+                tipo: 'evaluacion',
+                nivelRiesgo: 'alto',
+                timestamp: new Date().toISOString(),
+                extracto: 'Evaluación de prueba. Puntaje 21. Prueba de alerta desde web.',
+                estado: 'PENDIENTE',
+                notas: '',
+                idReferencia: 0,
+                deviceOrigen: 'web',
+                emailPsicologo: 'riverahoyoskevinfernando6@gmail.com'
+            };
+            
+            try {
+                const url = `${hubUrl}?action=publicar&alerta=${encodeURIComponent(JSON.stringify(testAlert))}`;
+                addResult('URL: ' + url.substring(0, 100) + '...', 'info');
+                
+                const response = await fetch(url, {
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                
+                addResult('Status: ' + response.status, 'info');
+                
+                const data = await response.json();
+                addResult('Response:', 'info');
+                addCode(JSON.stringify(data, null, 2));
+                
+                if (data.ok) {
+                    addResult('✓ Test exitoso: Alerta publicada', 'success');
+                    addResult('Remote ID: ' + data.remoteId, 'success');
+                } else {
+                    addResult('✗ Error del hub: ' + (data.error || 'Error desconocido'), 'error');
+                }
+            } catch (error) {
+                addResult('✗ Error de conexión: ' + error.message, 'error');
+            }
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+            addResult('Resultados limpiados. Haz clic en los botones para probar.', 'info');
+        }
+        
+        // Auto-init
+        window.onload = () => {
+            addResult('Página cargada. Haz clic en los botones para probar la conexión al hub.', 'info');
+            addResult('URL del hub: ' + hubUrl, 'info');
+        };
+    </script>
+</body>
+</html>

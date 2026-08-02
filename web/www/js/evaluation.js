@@ -275,23 +275,48 @@ class EvaluationController {
             console.log('[EVALUATION] Saving alert to local database');
             console.log('[EVALUATION] Alert data:', JSON.stringify(alerta));
             
-            // Save alert to local database only
+            // Save alert to local database first
             try {
                 await this.db.add(DB_CONFIG.tables.alerts, {
                     ...alerta,
                     localCreatedAt: new Date().toISOString()
                 });
                 console.log('[EVALUATION] Alert saved successfully to local database');
-                
-                // Show toast to user
-                if (score.riskLevel === 'Alto') {
-                    Utils.showToast('Alerta de alto riesgo guardada', 'warning');
-                } else {
-                    Utils.showToast('Alerta guardada correctamente', 'success');
-                }
             } catch (localError) {
                 console.error('[EVALUATION] Error saving alert locally:', localError);
-                Utils.showToast('Error al guardar alerta localmente', 'error');
+            }
+            
+            // Try to send to hub if HubClient is available
+            if (typeof HubClient !== 'undefined') {
+                try {
+                    console.log('[EVALUATION] Sending alert to hub using HubClient');
+                    const data = await HubClient.publishAlert(alerta);
+                    
+                    console.log('[EVALUATION] Hub response:', data);
+                    console.log('[EVALUATION] Hub response ok:', data.ok);
+                    console.log('[EVALUATION] Hub response remoteId:', data.remoteId);
+                    
+                    if (data.ok) {
+                        console.log('[EVALUATION] Alert sent to hub successfully');
+                        console.log('[EVALUATION] Remote ID:', data.remoteId);
+                        
+                        // Show success toast to user
+                        if (score.riskLevel === 'Alto') {
+                            Utils.showToast('Alerta de alto riesgo enviada al psicólogo', 'warning');
+                        } else {
+                            Utils.showToast('Alerta enviada al psicólogo', 'success');
+                        }
+                    } else {
+                        console.error('[EVALUATION] Error sending alert to hub:', data.error);
+                        Utils.showToast('Alerta guardada localmente (error de conexión al hub)', 'warning');
+                    }
+                } catch (hubError) {
+                    console.error('[EVALUATION] Hub request failed:', hubError);
+                    Utils.showToast('Alerta guardada localmente (hub no disponible)', 'warning');
+                }
+            } else {
+                console.warn('[EVALUATION] HubClient not available, alert saved locally only');
+                Utils.showToast('Alerta guardada localmente', 'info');
             }
         } catch (error) {
             console.error('[EVALUATION] Error sending alert to hub:', error);
@@ -300,7 +325,7 @@ class EvaluationController {
     }
 
     async getPsicologoEmail() {
-        // Always use local database only - no hub dependencies
+        // Try local database first
         try {
             console.log('[EVALUATION] Getting psychologist email from local database');
             const allUsers = await this.db.getAll(DB_CONFIG.tables.users);
@@ -311,6 +336,23 @@ class EvaluationController {
             }
         } catch (dbError) {
             console.error('[EVALUATION] Error accessing local database:', dbError);
+        }
+        
+        // Try hub if HubClient is available
+        if (typeof HubClient !== 'undefined') {
+            try {
+                console.log('[EVALUATION] Getting psychologist email from hub');
+                const data = await HubClient.listPsychologists();
+                
+                console.log('[EVALUATION] Hub psychologists response:', data);
+                
+                if (data.ok && data.psicologos && data.psicologos.length > 0) {
+                    console.log('[EVALUATION] Found psychologist in hub:', data.psicologos[0].email);
+                    return data.psicologos[0].email;
+                }
+            } catch (hubError) {
+                console.warn('[EVALUATION] Hub request failed:', hubError.message);
+            }
         }
         
         // Fallback: Use default psychologist email
