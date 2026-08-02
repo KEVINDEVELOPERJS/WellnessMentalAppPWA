@@ -18,7 +18,16 @@ const HubClient = {
      * Get hub URL (from localStorage or default)
      */
     getHubUrl() {
-        return localStorage.getItem('alert_sync_url') || this.defaultHubUrl;
+        let url = localStorage.getItem('alert_sync_url');
+        
+        // If not in localStorage, set it automatically
+        if (!url) {
+            url = this.defaultHubUrl;
+            localStorage.setItem('alert_sync_url', url);
+            console.log('[HUB CLIENT] Hub URL configured automatically:', url);
+        }
+        
+        return url;
     },
     
     /**

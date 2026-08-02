@@ -76,6 +76,14 @@ const AlertsModule = {
     loadHubUrl() {
         this.hubUrl = HubClient.getHubUrl();
         console.log('[ALERTS] Hub URL loaded:', this.hubUrl ? 'Configured' : 'Not configured');
+        
+        // Force configure if not set
+        if (!this.hubUrl) {
+            const defaultUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+            localStorage.setItem('alert_sync_url', defaultUrl);
+            this.hubUrl = defaultUrl;
+            console.log('[ALERTS] Hub URL configured automatically:', defaultUrl);
+        }
     },
 
     async syncAndLoad(showToast = false) {
