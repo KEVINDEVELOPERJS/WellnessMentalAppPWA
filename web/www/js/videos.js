@@ -13,7 +13,7 @@ const VideosModule = {
         },
         {
             id: 2,
-            title: 'La importancia de la salud mental desde lo básico',
+            title: 'No hay salud mental sin salud física',
             description: '',
             duration: '0:00',
             category: 'Historia',
@@ -23,7 +23,7 @@ const VideosModule = {
         },
         {
             id: 3,
-            title: 'Una madre y sus soles en medio del disciplinamiento emocional',
+            title: 'Disciplinamiento y su efecto colateral',
             description: '',
             duration: '0:00',
             category: 'Historia',
@@ -53,7 +53,7 @@ const VideosModule = {
         },
         {
             id: 6,
-            title: 'Historias de salud mental',
+            title: 'Pantallas prendidas mentes y hogares apagados',
             description: '',
             duration: '0:00',
             category: 'Historia',

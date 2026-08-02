@@ -75,7 +75,6 @@ class GamesModule {
         const missionTemplates = [
             { title: 'Completar 1 ejercicio de respiración', reward: 10, type: 'exercise' },
             { title: 'Realizar 1 evaluación psicológica', reward: 15, type: 'evaluation' },
-            { title: 'Chatear con el asistente IA', reward: 5, type: 'chat' },
             { title: 'Hacer check-in emocional', reward: 5, type: 'checkin' },
             { title: 'Publicar en la comunidad', reward: 10, type: 'community' }
         ];

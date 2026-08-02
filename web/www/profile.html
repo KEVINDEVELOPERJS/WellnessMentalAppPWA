@@ -33,7 +33,10 @@
                         <button id="edit-avatar-btn" class="edit-avatar-btn">📷</button>
                     </div>
                     <div class="user-details">
-                        <h2 id="user-name">Usuario</h2>
+                        <div class="user-name-container">
+                            <h2 id="user-name">Usuario</h2>
+                            <button id="edit-username-btn" class="edit-username-btn">✏️</button>
+                        </div>
                         <p id="user-role" class="user-role">Estudiante</p>
                     </div>
                 </div>
@@ -53,12 +56,7 @@
                             <div class="stat-label">Ejercicios</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-icon">💬</div>
-                            <div class="stat-value" id="stat-chats">0</div>
-                            <div class="stat-label">Chats</div>
-                        </div>
-                        <div class="stat-box">
-                            <div class="stat-icon">📋</div>
+                            <div class="stat-icon"></div>
                             <div class="stat-value" id="stat-evaluations">0</div>
                             <div class="stat-label">Evaluaciones</div>
                         </div>
@@ -91,13 +89,6 @@
                         <span>Ejercicios</span>
                         <label class="switch">
                             <input type="checkbox" id="notif-exercises" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="setting-item">
-                        <span>Chat</span>
-                        <label class="switch">
-                            <input type="checkbox" id="notif-chat" checked>
                             <span class="slider"></span>
                         </label>
                     </div>

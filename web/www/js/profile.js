@@ -5,13 +5,11 @@ class ProfileModule {
         this.stats = {
             daysActive: 0,
             exercisesCompleted: 0,
-            chatsCount: 0,
             evaluationsCount: 0
         };
         this.notifications = {
             evaluations: true,
             exercises: true,
-            chat: true,
             reports: true,
             hour: 9,
             minute: 0
@@ -95,6 +93,14 @@ class ProfileModule {
             });
         }
 
+        // Username edit
+        const editUsernameBtn = document.getElementById('edit-username-btn');
+        if (editUsernameBtn) {
+            editUsernameBtn.addEventListener('click', () => {
+                this.editUsername();
+            });
+        }
+
         // Notification toggles
         document.getElementById('notif-evaluations').addEventListener('change', (e) => {
             this.notifications.evaluations = e.target.checked;
@@ -103,11 +109,6 @@ class ProfileModule {
 
         document.getElementById('notif-exercises').addEventListener('change', (e) => {
             this.notifications.exercises = e.target.checked;
-            this.saveNotifications();
-        });
-
-        document.getElementById('notif-chat').addEventListener('change', (e) => {
-            this.notifications.chat = e.target.checked;
             this.saveNotifications();
         });
 
@@ -209,7 +210,6 @@ class ProfileModule {
         // Stats
         document.getElementById('stat-days').textContent = this.stats.daysActive;
         document.getElementById('stat-exercises').textContent = this.stats.exercisesCompleted;
-        document.getElementById('stat-chats').textContent = this.stats.chatsCount;
         document.getElementById('stat-evaluations').textContent = this.stats.evaluationsCount;
 
         // Level and points (from games module)
@@ -225,7 +225,6 @@ class ProfileModule {
         // Notifications
         document.getElementById('notif-evaluations').checked = this.notifications.evaluations;
         document.getElementById('notif-exercises').checked = this.notifications.exercises;
-        document.getElementById('notif-chat').checked = this.notifications.chat;
         document.getElementById('notif-reports').checked = this.notifications.reports;
         this.updateTimeButton();
 
@@ -288,6 +287,31 @@ class ProfileModule {
         this.closeAllModals();
         document.getElementById('change-password-form').reset();
         showToast('Contraseña actualizada exitosamente');
+    }
+
+    editUsername() {
+        const currentName = document.getElementById('user-name').textContent;
+        const newName = prompt('Ingresa tu nuevo nombre de usuario:', currentName);
+        
+        if (newName && newName.trim() !== '') {
+            // Update display
+            document.getElementById('user-name').textContent = newName.trim();
+            
+            // Update localStorage
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            userData.name = newName.trim();
+            localStorage.setItem('user_data', JSON.stringify(userData));
+            
+            // Update user initials
+            this.updateUserInitials(newName.trim());
+            
+            showToast('Nombre de usuario actualizado');
+        }
+    }
+
+    updateUserInitials(name) {
+        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        document.getElementById('user-initials').textContent = initials || 'U';
     }
 
     generate2FACode() {
