@@ -262,6 +262,9 @@ const PuzzleZenModule = {
             return;
         }
         
+        // Show combo popup above the pressed circle
+        this.showComboPopup(index);
+        
         // Check if sequence complete
         if (this.userSequence.length === this.sequence.length) {
             this.level++;
@@ -273,10 +276,19 @@ const PuzzleZenModule = {
             if (board) {
                 const rect = board.getBoundingClientRect();
                 this.fx.spawnParticleBurst(rect.width / 2, rect.height / 2, '#4CAF50', 20, 1);
-                this.fx.spawnScorePopup(rect.width / 2, rect.height / 2 - 30, '¡Perfecto!', '#4CAF50');
             }
             
             setTimeout(() => this.addStepAndShow(), 800);
+        }
+    },
+    
+    showComboPopup(index) {
+        const popup = document.getElementById(`combo-popup-${index}`);
+        if (popup) {
+            popup.classList.add('show');
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 500);
         }
     },
     
