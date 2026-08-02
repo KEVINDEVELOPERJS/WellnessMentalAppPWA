@@ -178,7 +178,17 @@
 
 .alert-item.risk-medium {
     border-left: 4px solid #FFC107;
-    background: linear-gradient(to right, #FFF8E1 0%, #ffffff 20%);
+    background: linear-gradient(to right, #FFF8E1 0%, #FFF8E1 100%);
+}
+
+.alert-item.risk-low::before {
+    background: #FFC107;
+    width: 12px;
+}
+
+.alert-item.risk-low {
+    border-left: 4px solid #FFC107;
+    background: linear-gradient(to right, #FFF8E1 0%, #FFF8E1 100%);
 }
 
 .alert-item.risk-low::before {

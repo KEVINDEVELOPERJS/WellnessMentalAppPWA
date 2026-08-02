@@ -20,7 +20,7 @@ const HubClient = {
     // retryCount: 0,
     // maxRetries: 3,
     
-    // Sample data for local fallback - Two medium risk test alerts
+    // Sample data for local fallback - Mixed risk levels for different sections
     sampleAlerts: [
         {
             remoteId: 'sample-1',
@@ -28,9 +28,9 @@ const HubClient = {
             nombreEstudiante: 'María García',
             gradoEstudiante: '10°',
             tipo: 'evaluacion',
-            nivelRiesgo: 'medio',
+            nivelRiesgo: 'alto',
             timestamp: new Date().toISOString(),
-            extracto: 'Evaluación Medio. Puntaje 14. Niveles moderados de ansiedad detectados. Estudiante muestra signos de estrés académico.',
+            extracto: 'Evaluación Alto. Puntaje 18. Niveles elevados de ansiedad y depresión detectados.',
             estado: 'PENDIENTE',
             notas: '',
             deviceOrigen: 'web'
@@ -41,9 +41,61 @@ const HubClient = {
             nombreEstudiante: 'Juan Pérez',
             gradoEstudiante: '11°',
             tipo: 'chat',
-            nivelRiesgo: 'medio',
+            nivelRiesgo: 'alto',
             timestamp: new Date(Date.now() - 86400000).toISOString(),
+            extracto: 'Chat con IA - Estudiante expresa pensamientos preocupantes sobre el futuro.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'android'
+        },
+        {
+            remoteId: 'sample-3',
+            idReferencia: 'sample-3',
+            nombreEstudiante: 'Ana López',
+            gradoEstudiante: '9°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'medio',
+            timestamp: new Date(Date.now() - 172800000).toISOString(),
+            extracto: 'Evaluación Medio. Puntaje 14. Niveles moderados de ansiedad detectados. Estudiante muestra signos de estrés académico.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'web'
+        },
+        {
+            remoteId: 'sample-4',
+            idReferencia: 'sample-4',
+            nombreEstudiante: 'Carlos Rodríguez',
+            gradoEstudiante: '10°',
+            tipo: 'chat',
+            nivelRiesgo: 'medio',
+            timestamp: new Date(Date.now() - 259200000).toISOString(),
             extracto: 'Chat con IA - Estudiante expresa preocupación por exámenes finales y presión familiar.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'android'
+        },
+        {
+            remoteId: 'sample-5',
+            idReferencia: 'sample-5',
+            nombreEstudiante: 'Laura Martínez',
+            gradoEstudiante: '11°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'bajo',
+            timestamp: new Date(Date.now() - 345600000).toISOString(),
+            extracto: 'Evaluación Bajo. Puntaje 8. Niveles leves de ansiedad. Estudiante maneja bien el estrés.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'web'
+        },
+        {
+            remoteId: 'sample-6',
+            idReferencia: 'sample-6',
+            nombreEstudiante: 'Pedro Sánchez',
+            gradoEstudiante: '9°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'bajo',
+            timestamp: new Date(Date.now() - 432000000).toISOString(),
+            extracto: 'Evaluación Bajo. Puntaje 6. Sin signos significativos de estrés. Buen funcionamiento general.',
             estado: 'PENDIENTE',
             notas: '',
             deviceOrigen: 'android'

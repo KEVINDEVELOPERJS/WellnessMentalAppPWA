@@ -1,7 +1,7 @@
-// Alerts Module for Psychologists - Based on Android AlertasPsicologoActivity
-// With Hub Synchronization (like Android)
+// Alerts Module for Low/Medium Risk Alerts - Based on Android AlertasPsicologoActivity
+// Filters only low and medium risk alerts
 
-const AlertsModule = {
+const AlertsLowMediumModule = {
     alerts: [],
     selectedAlert: null,
     hubUrl: '',
@@ -10,7 +10,7 @@ const AlertsModule = {
     db: null,
 
     async init() {
-        console.log('[ALERTS] Initializing alerts module');
+        console.log('[ALERTS-LOW-MEDIUM] Initializing low/medium alerts module');
         
         try {
             // Check user role
@@ -31,9 +31,9 @@ const AlertsModule = {
             // Start periodic update (30 seconds like Android)
             this.startPeriodicUpdate();
             
-            console.log('[ALERTS] Initialization complete');
+            console.log('[ALERTS-LOW-MEDIUM] Initialization complete');
         } catch (error) {
-            console.error('[ALERTS] Initialization error:', error);
+            console.error('[ALERTS-LOW-MEDIUM] Initialization error:', error);
             this.showToast('Error al inicializar módulo de alertas');
         }
     },
@@ -42,17 +42,17 @@ const AlertsModule = {
         const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
         this.userRol = userData.rol;
         
-        console.log('[ALERTS] User role check:', this.userRol);
+        console.log('[ALERTS-LOW-MEDIUM] User role check:', this.userRol);
         
         // Allow access for development if role is not set
         if (!this.userRol) {
-            console.warn('[ALERTS] No role set, allowing access for development');
+            console.warn('[ALERTS-LOW-MEDIUM] No role set, allowing access for development');
             this.userRol = 'psicologo';
             return true;
         }
         
         if (this.userRol !== 'psicologo') {
-            console.error('[ALERTS] Access denied: User is not a psychologist');
+            console.error('[ALERTS-LOW-MEDIUM] Access denied: User is not a psychologist');
             this.showToast('Acceso denegado: Solo psicólogos pueden ver esta página');
             setTimeout(() => {
                 window.location.href = 'index.html';
@@ -67,13 +67,13 @@ const AlertsModule = {
             const request = indexedDB.open('wellness_mental', 1);
             
             request.onerror = () => {
-                console.error('[ALERTS] Error opening database:', request.error);
+                console.error('[ALERTS-LOW-MEDIUM] Error opening database:', request.error);
                 reject(request.error);
             };
             
             request.onsuccess = () => {
                 this.db = request.result;
-                console.log('[ALERTS] Database opened successfully');
+                console.log('[ALERTS-LOW-MEDIUM] Database opened successfully');
                 resolve();
             };
             
@@ -88,29 +88,12 @@ const AlertsModule = {
 
     loadHubUrl() {
         // Hub URL configuration disabled - using local fallback only
-        // this.hubUrl = HubClient.getHubUrl();
-        // console.log('[ALERTS] Hub URL loaded:', this.hubUrl ? 'Configured' : 'Not configured');
-        // 
-        // // Force configure if not set
-        // if (!this.hubUrl) {
-        //     const defaultUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
-        //     localStorage.setItem('alert_sync_url', defaultUrl);
-        //     this.hubUrl = defaultUrl;
-        //     console.log('[ALERTS] Hub URL configured automatically:', defaultUrl);
-        // }
-        
-        // Use local fallback mode
         this.hubUrl = null;
-        console.log('[ALERTS] Using local fallback mode only');
+        console.log('[ALERTS-LOW-MEDIUM] Using local fallback mode only');
     },
 
     async syncAndLoad(showToast = false) {
         if (!this.hubAvailable()) {
-            this.showHubWarning('No hay hub de sincronización configurado');
-            if (showToast) {
-                this.showToast('Toca el banner para configurar el hub');
-                this.showHubConfigModal();
-            }
             // Load from local database as fallback
             await this.loadAlertsFromDatabase();
             return;
@@ -125,20 +108,17 @@ const AlertsModule = {
             this.showAlerts();
             
             if (result.error) {
-                this.showHubWarning(result.error || 'Hub inaccesible');
                 if (showToast) {
                     this.showToast(`Error de sincronización: ${result.error}`);
                 }
             } else {
-                this.hideHubWarning();
                 if (showToast) {
                     this.showToast(`Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`);
                 }
             }
         } catch (error) {
-            console.error('[ALERTS] Sync error:', error);
+            console.error('[ALERTS-LOW-MEDIUM] Sync error:', error);
             this.setSyncButtonState(true, 'Sincronizar ahora');
-            this.showHubWarning('Error de sincronización');
             if (showToast) {
                 this.showToast('Error al sincronizar alertas');
             }
@@ -153,32 +133,23 @@ const AlertsModule = {
 
     async syncRemoteAlerts() {
         try {
-            console.log('[ALERTS] Fetching alerts using HubClient');
+            console.log('[ALERTS-LOW-MEDIUM] Fetching alerts using HubClient');
             const data = await HubClient.listAlerts();
             
             if (data.ok && data.alertas) {
                 const allAlerts = this.transformHubAlerts(data.alertas);
-                // Filter only high risk alerts for main alerts page
+                // Filter only low and medium risk alerts
                 this.alerts = allAlerts.filter(alert => {
                     const risk = alert.nivelRiesgo?.toLowerCase() || '';
-                    return risk.includes('alto');
+                    return risk.includes('bajo') || risk.includes('medio');
                 });
-                
-                const previousCount = this.alerts.length;
                 
                 // Save to local database
                 await this.saveAlertsToDatabase();
                 
-                const newAlerts = this.alerts.length - previousCount;
-                
-                // Notify new alerts
-                if (newAlerts > 0 && previousCount > 0) {
-                    this.notifyNewAlerts(newAlerts);
-                }
-                
                 return { 
                     synced: this.alerts.length, 
-                    new: newAlerts, 
+                    new: 0, 
                     hubAccessible: true,
                     error: null
                 };
@@ -191,7 +162,7 @@ const AlertsModule = {
                 };
             }
         } catch (error) {
-            console.error('[ALERTS] Sync error:', error);
+            console.error('[ALERTS-LOW-MEDIUM] Sync error:', error);
             return { 
                 error: error.message, 
                 synced: 0, 
@@ -234,48 +205,42 @@ const AlertsModule = {
                 // Add new alerts
                 let completed = 0;
                 this.alerts.forEach(alert => {
-                    const request = store.add(alert);
+                    const request = store.put(alert);
                     request.onsuccess = () => {
                         completed++;
                         if (completed === this.alerts.length) {
-                            console.log('[ALERTS] Alerts saved to database');
+                            console.log('[ALERTS-LOW-MEDIUM] Alerts saved to database');
                             resolve();
                         }
                     };
                 });
-                
-                if (this.alerts.length === 0) {
-                    resolve();
-                }
             };
             
-            clearRequest.onerror = () => {
-                reject(clearRequest.error);
-            };
+            clearRequest.onerror = () => reject(clearRequest.error);
         });
     },
 
     async loadAlertsFromDatabase() {
         if (!this.db) {
-            console.warn('[ALERTS] Database not initialized, loading from HubClient fallback');
+            console.warn('[ALERTS-LOW-MEDIUM] Database not initialized, loading from HubClient fallback');
             // Load from HubClient fallback
             try {
                 const data = await HubClient.listAlerts();
                 if (data.ok && data.alertas) {
                     const allAlerts = this.transformHubAlerts(data.alertas);
-                    // Filter only high risk alerts for main alerts page
+                    // Filter only low and medium risk alerts
                     this.alerts = allAlerts.filter(alert => {
                         const risk = alert.nivelRiesgo?.toLowerCase() || '';
-                        return risk.includes('alto');
+                        return risk.includes('bajo') || risk.includes('medio');
                     });
-                    console.log('[ALERTS] Loaded alerts from HubClient fallback:', this.alerts.length);
+                    console.log('[ALERTS-LOW-MEDIUM] Loaded alerts from HubClient fallback:', this.alerts.length);
                     this.showAlerts();
                 } else {
-                    console.warn('[ALERTS] No alerts from HubClient fallback');
+                    console.warn('[ALERTS-LOW-MEDIUM] No alerts from HubClient fallback');
                     this.showAlerts();
                 }
             } catch (error) {
-                console.error('[ALERTS] Error loading from HubClient fallback:', error);
+                console.error('[ALERTS-LOW-MEDIUM] Error loading from HubClient fallback:', error);
                 this.showAlerts();
             }
             return;
@@ -288,18 +253,18 @@ const AlertsModule = {
 
             request.onsuccess = () => {
                 const allAlerts = request.result || [];
-                // Filter only high risk alerts for main alerts page
+                // Filter only low and medium risk alerts
                 this.alerts = allAlerts.filter(alert => {
                     const risk = alert.nivelRiesgo?.toLowerCase() || '';
-                    return risk.includes('alto');
+                    return risk.includes('bajo') || risk.includes('medio');
                 });
-                console.log('[ALERTS] Loaded alerts from database:', this.alerts.length);
+                console.log('[ALERTS-LOW-MEDIUM] Loaded alerts from database:', this.alerts.length);
                 this.showAlerts();
                 resolve();
             };
 
             request.onerror = () => {
-                console.error('[ALERTS] Error loading alerts:', request.error);
+                console.error('[ALERTS-LOW-MEDIUM] Error loading alerts:', request.error);
                 reject(request.error);
             };
         });
@@ -318,15 +283,14 @@ const AlertsModule = {
         
         pendingCount.textContent = pendingAlerts.length;
         
-        // Set header card color based on highest risk level
+        // Set header card color based on highest risk level (always medium for this module)
         if (pendingAlerts.length > 0) {
-            const highestRisk = this.getHighestRiskLevel(pendingAlerts);
-            headerCard.className = 'alerts-header-card risk-' + highestRisk;
+            headerCard.className = 'alerts-header-card risk-medium';
         } else {
-            headerCard.className = 'alerts-header-card';
+            headerCard.className = 'alerts-header-card risk-medium';
         }
         
-        console.log('[ALERTS] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');
+        console.log('[ALERTS-LOW-MEDIUM] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');
         
         if (this.alerts.length === 0) {
             list.classList.add('hidden');
@@ -421,12 +385,13 @@ const AlertsModule = {
 
     mapStatus(estado) {
         const status = estado?.toLowerCase() || 'pendiente';
-        if (status.includes('atendida') || status.includes('resuelta') || status.includes('derivada')) return 'resolved';
+        if (status.includes('atendida') || status.includes('resuelta') || status.includes('derivada')) {
+            return 'resolved';
+        }
         return 'pending';
     },
 
     formatDate(isoString) {
-        if (!isoString) return new Date().toLocaleDateString('es-ES');
         try {
             const date = new Date(isoString);
             return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -441,22 +406,7 @@ const AlertsModule = {
         this.selectedAlert.estado = 'ATENDIDA';
         await this.updateAlertInDatabase();
         
-        // Sync with hub if available
-        if (this.selectedAlert.remoteId && this.hubAvailable()) {
-            try {
-                const success = await HubClient.updateAlertStatus(this.selectedAlert.remoteId, 'ATENDIDA', this.selectedAlert.notas);
-                if (success) {
-                    this.showToast('Alerta marcada como atendida y sincronizada');
-                } else {
-                    this.showToast('Alerta marcada como atendida (error de sincronización)');
-                }
-            } catch (error) {
-                console.error('[ALERTS] Error syncing to hub:', error);
-                this.showToast('Alerta marcada como atendida');
-            }
-        } else {
-            this.showToast('Alerta marcada como atendida');
-        }
+        this.showToast('Alerta marcada como atendida');
         
         this.showAlerts();
         this.hideAlertDetailModal();
@@ -468,22 +418,7 @@ const AlertsModule = {
         this.selectedAlert.estado = 'PENDIENTE';
         await this.updateAlertInDatabase();
         
-        // Sync with hub if available
-        if (this.selectedAlert.remoteId && this.hubAvailable()) {
-            try {
-                const success = await HubClient.updateAlertStatus(this.selectedAlert.remoteId, 'PENDIENTE', this.selectedAlert.notas);
-                if (success) {
-                    this.showToast('Alerta marcada como pendiente y sincronizada');
-                } else {
-                    this.showToast('Alerta marcada como pendiente (error de sincronización)');
-                }
-            } catch (error) {
-                console.error('[ALERTS] Error syncing to hub:', error);
-                this.showToast('Alerta marcada como pendiente');
-            }
-        } else {
-            this.showToast('Alerta marcada como pendiente');
-        }
+        this.showToast('Alerta marcada como pendiente');
         
         this.showAlerts();
         this.hideAlertDetailModal();
@@ -496,26 +431,7 @@ const AlertsModule = {
         this.selectedAlert.notas = notesInput.value;
         await this.updateAlertInDatabase();
         
-        // Sync with hub if available
-        if (this.selectedAlert.remoteId && this.hubAvailable()) {
-            try {
-                const success = await HubClient.updateAlertStatus(
-                    this.selectedAlert.remoteId, 
-                    this.selectedAlert.estado,
-                    this.selectedAlert.notas
-                );
-                if (success) {
-                    this.showToast('Notas guardadas y sincronizadas');
-                } else {
-                    this.showToast('Notas guardadas (error de sincronización)');
-                }
-            } catch (error) {
-                console.error('[ALERTS] Error syncing to hub:', error);
-                this.showToast('Notas guardadas');
-            }
-        } else {
-            this.showToast('Notas guardadas');
-        }
+        this.showToast('Notas guardadas');
     },
 
     async updateAlertInDatabase() {
@@ -527,29 +443,12 @@ const AlertsModule = {
             const request = store.put(this.selectedAlert);
 
             request.onsuccess = () => {
-                console.log('[ALERTS] Alert updated in database');
+                console.log('[ALERTS-LOW-MEDIUM] Alert updated in database');
                 resolve();
             };
 
-            request.onerror = () => {
-                console.error('[ALERTS] Error updating alert:', request.error);
-                reject(request.error);
-            };
+            request.onerror = () => reject(request.error);
         });
-    },
-
-    startPeriodicUpdate() {
-        if (this.pollingInterval) {
-            clearInterval(this.pollingInterval);
-        }
-        
-        this.pollingInterval = setInterval(() => {
-            if (!document.hidden) {
-                this.syncAndLoad();
-            }
-        }, 30000); // 30 seconds like Android
-        
-        console.log('[ALERTS] Started periodic update (30s interval)');
     },
 
     setupEventListeners() {
@@ -559,21 +458,29 @@ const AlertsModule = {
             backBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('[ALERTS] Back button clicked, navigating to dashboard');
+                console.log('[ALERTS-LOW-MEDIUM] Back button clicked, navigating to dashboard');
                 window.location.href = 'index.html';
             });
         } else {
-            console.warn('[ALERTS] Back button not found');
+            console.warn('[ALERTS-LOW-MEDIUM] Back button not found');
         }
-        
-        // Modal close buttons
-        document.querySelectorAll('.btn-close, .close-modal-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+
+        // Close modal button
+        const closeBtn = document.querySelector('.btn-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
                 this.hideAlertDetailModal();
-                this.hideHubConfigModal();
             });
-        });
-        
+        }
+
+        // Close modal button (secondary)
+        const closeModalBtn = document.querySelector('.close-modal-btn');
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                this.hideAlertDetailModal();
+            });
+        }
+
         // Save notes button
         const saveNotesBtn = document.getElementById('save-notes-btn');
         if (saveNotesBtn) {
@@ -581,72 +488,24 @@ const AlertsModule = {
                 this.saveNotes();
             });
         }
-        
-        // Mark resolved button
-        const markResolvedBtn = document.querySelector('.mark-resolved-btn');
-        if (markResolvedBtn) {
-            markResolvedBtn.addEventListener('click', () => {
-                const alert = this.selectedAlert;
-                const status = this.mapStatus(alert.estado);
-                if (status === 'resolved') {
-                    this.markAsPending();
-                } else {
-                    this.markAsResolved();
-                }
-            });
+    },
+
+    startPeriodicUpdate() {
+        // Update every 30 seconds like Android
+        this.pollingInterval = setInterval(() => {
+            this.syncAndLoad();
+        }, 30000);
+    },
+
+    stopPeriodicUpdate() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
         }
-    },
-
-    showHubConfigModal() {
-        // Not implemented in this version
-        console.log('[ALERTS] Hub config modal not implemented');
-    },
-
-    hideHubConfigModal() {
-        // Not implemented in this version
-    },
-
-    saveHubConfig() {
-        // Not implemented in this version
-    },
-
-    showHubWarning(message) {
-        // Not implemented in this version
-        console.log('[ALERTS] Hub warning:', message);
-    },
-
-    hideHubWarning() {
-        // Not implemented in this version
-    },
-
-    showHubWarningIfMissing() {
-        // Not implemented in this version
     },
 
     setSyncButtonState(enabled, text) {
-        // Not implemented in this version
-        console.log('[ALERTS] Sync button state:', enabled, text);
-        // const btn = document.getElementById('sync-now-btn');
-        // btn.disabled = !enabled;
-        // btn.textContent = text;
-    },
-
-    notifyNewAlerts(count) {
-        this.showToast(`${count} nueva(s) alerta(s) recibida(s)`);
-        
-        // Request notification permission and show notification
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('Nuevas Alertas de Riesgo', {
-                body: `${count} nueva(s) alerta(s) de riesgo recibida(s)`,
-                icon: '/images/app-icon.jpeg'
-            });
-        }
-    },
-
-    requestNotificationPermission() {
-        if ('Notification' in window && Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
+        console.log('[ALERTS-LOW-MEDIUM] Sync button state:', enabled, text);
     },
 
     showToast(message) {
@@ -658,24 +517,10 @@ const AlertsModule = {
         setTimeout(() => {
             toast.classList.add('hidden');
         }, 3000);
-    },
-
-    getHighestRiskLevel(alerts) {
-        const riskOrder = { 'alto': 3, 'medio': 2, 'bajo': 1 };
-        let highestRisk = 'bajo';
-        
-        alerts.forEach(alert => {
-            const risk = (alert.nivelRiesgo || 'bajo').toLowerCase();
-            if (riskOrder[risk] > riskOrder[highestRisk]) {
-                highestRisk = risk;
-            }
-        });
-        
-        return highestRisk;
     }
 };
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    AlertsModule.init();
+    AlertsLowMediumModule.init();
 });
