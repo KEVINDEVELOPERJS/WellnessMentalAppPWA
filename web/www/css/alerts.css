@@ -53,7 +53,15 @@
     padding: 12px 16px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #EF5350;
+    border: 2px solid #FFC107;
+}
+
+.alerts-header-card.risk-high {
+    border: 2px solid #EF5350;
+}
+
+.alerts-header-card.risk-low {
+    border: 2px solid #4CAF50;
 }
 
 .header-content {
@@ -165,6 +173,12 @@
 
 .alert-item.risk-medium::before {
     background: #FFC107;
+    width: 12px;
+}
+
+.alert-item.risk-medium {
+    border-left: 4px solid #FFC107;
+    background: linear-gradient(to right, #FFF8E1 0%, #ffffff 20%);
 }
 
 .alert-item.risk-low::before {
@@ -334,8 +348,9 @@
 }
 
 .alert-risk-badge.medium {
-    background: #FFF8E1;
-    color: #FFC107;
+    background: #FFC107;
+    color: #333;
+    font-weight: bold;
 }
 
 .alert-risk-badge.low {

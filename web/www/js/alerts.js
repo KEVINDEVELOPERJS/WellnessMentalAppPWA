@@ -277,6 +277,7 @@ const AlertsModule = {
         const list = document.getElementById('alerts-list');
         const emptyState = document.getElementById('empty-state');
         const pendingCount = document.getElementById('pending-count');
+        const headerCard = document.querySelector('.alerts-header-card');
         
         const pendingAlerts = this.alerts.filter(a => {
             const status = a.estado?.toLowerCase() || 'pendiente';
@@ -284,6 +285,14 @@ const AlertsModule = {
         });
         
         pendingCount.textContent = pendingAlerts.length;
+        
+        // Set header card color based on highest risk level
+        if (pendingAlerts.length > 0) {
+            const highestRisk = this.getHighestRiskLevel(pendingAlerts);
+            headerCard.className = 'alerts-header-card risk-' + highestRisk;
+        } else {
+            headerCard.className = 'alerts-header-card';
+        }
         
         console.log('[ALERTS] Showing alerts:', this.alerts.length, 'total,', pendingAlerts.length, 'pending');
         
@@ -585,10 +594,9 @@ const AlertsModule = {
     setSyncButtonState(enabled, text) {
         // Not implemented in this version
         console.log('[ALERTS] Sync button state:', enabled, text);
-    },
-        const btn = document.getElementById('sync-now-btn');
-        btn.disabled = !enabled;
-        btn.textContent = text;
+        // const btn = document.getElementById('sync-now-btn');
+        // btn.disabled = !enabled;
+        // btn.textContent = text;
     },
 
     notifyNewAlerts(count) {
@@ -618,6 +626,20 @@ const AlertsModule = {
         setTimeout(() => {
             toast.classList.add('hidden');
         }, 3000);
+    },
+
+    getHighestRiskLevel(alerts) {
+        const riskOrder = { 'alto': 3, 'medio': 2, 'bajo': 1 };
+        let highestRisk = 'bajo';
+        
+        alerts.forEach(alert => {
+            const risk = (alert.nivelRiesgo || 'bajo').toLowerCase();
+            if (riskOrder[risk] > riskOrder[highestRisk]) {
+                highestRisk = risk;
+            }
+        });
+        
+        return highestRisk;
     }
 };
 
