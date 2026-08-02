@@ -64,7 +64,7 @@ const AlertsLowMediumModule = {
 
     async initDatabase() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('wellness_mental', 1);
+            const request = indexedDB.open('wellness_mental', 2);
             
             request.onerror = () => {
                 console.error('[ALERTS-LOW-MEDIUM] Error opening database:', request.error);
