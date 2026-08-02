@@ -507,13 +507,17 @@ const AlertsModule = {
     },
 
     setupEventListeners() {
-        // Back button
+        // Back button - improved handling
         const backBtn = document.getElementById('back-to-dashboard');
         if (backBtn) {
             backBtn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                console.log('[ALERTS] Back button clicked, navigating to dashboard');
                 window.location.href = 'index.html';
             });
+        } else {
+            console.warn('[ALERTS] Back button not found');
         }
         
         // Modal close buttons
