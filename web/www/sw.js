@@ -1,16 +1,21 @@
 // Service Worker for Wellness Mental Web App
 // Handles background notifications and offline support
 
-const CACHE_NAME = 'wellness-mental-v1';
+const CACHE_NAME = 'wellness-mental-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/alerts.html',
+    '/alerts-low-medium.html',
+    '/questionnaire-editor.html',
     '/css/styles.css',
     '/css/alerts.css',
     '/js/app.js',
     '/js/alerts.js',
+    '/js/alerts-low-medium.js',
+    '/js/questionnaire-editor.js',
     '/js/evaluation.js',
+    '/js/hub-client.js',
     '/images/app-icon.jpeg'
 ];
 
@@ -22,17 +27,33 @@ self.addEventListener('install', event => {
                 console.log('[SW] Caching app shell');
                 return cache.addAll(urlsToCache);
             })
+            .catch(error => {
+                console.error('[SW] Cache installation failed:', error);
+            })
     );
 });
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', event => {
+    // Skip manifest.json and other non-essential files
+    if (event.request.url.includes('manifest.json') || 
+        event.request.url.includes('vercel.com/sso-api')) {
+        return;
+    }
+    
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 if (response) {
                     return response;
                 }
+                return fetch(event.request).catch(() => {
+                    // Return a basic offline response if network fails
+                    return new Response('Offline', { status: 503 });
+                });
+            })
+            .catch(error => {
+                console.error('[SW] Fetch error:', error);
                 return fetch(event.request);
             })
     );

@@ -976,15 +976,18 @@ function stopAlertPolling() {
     }
 }
 
-// Register Service Worker
+// Register Service Worker with better error handling
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
                 console.log('[SW] Service Worker registered with scope:', registration.scope);
+                // Force update to use new version
+                registration.update();
             })
             .catch(error => {
                 console.log('[SW] Service Worker registration failed:', error);
+                // Continue without service worker if registration fails
             });
     });
 }
