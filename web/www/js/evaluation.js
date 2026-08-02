@@ -122,6 +122,21 @@ class EvaluationController {
                 riskLevel = 'Alto';
                 icon = '😢';
             }
+        } else if (this.currentQuestionnaire.tipo === 'PSS-10') {
+            // PSS-10 scoring (0-40 scale)
+            if (totalScore <= 13) {
+                level = 'Estrés Bajo';
+                riskLevel = 'Bajo';
+                icon = '😊';
+            } else if (totalScore <= 26) {
+                level = 'Estrés Moderado';
+                riskLevel = 'Moderado';
+                icon = '😐';
+            } else {
+                level = 'Estrés Alto';
+                riskLevel = 'Alto';
+                icon = '😰';
+            }
         } else {
             level = 'Evaluación Completada';
             riskLevel = 'Bajo';
@@ -184,6 +199,14 @@ class EvaluationController {
                 return 'Síntomas moderadamente severos de depresión. Se recomienda buscar ayuda profesional.';
             } else {
                 return 'Síntomas severos de depresión que requieren atención inmediata. Se recomienda consultar con un especialista.';
+            }
+        } else if (this.currentQuestionnaire.tipo === 'PSS-10') {
+            if (score.totalScore <= 13) {
+                return 'Nivel de estrés percibido bajo. Buen manejo de situaciones estresantes.';
+            } else if (score.totalScore <= 26) {
+                return 'Nivel de estrés percibido moderado. Se recomienda implementar técnicas de manejo de estrés.';
+            } else {
+                return 'Nivel de estrés percibido alto. Se recomienda buscar apoyo profesional para manejar el estrés.';
             }
         }
         return 'Evaluación completada exitosamente.';
@@ -376,6 +399,21 @@ class EvaluationController {
                 }
                 
                 await this.db.update(DB_CONFIG.tables.points, pointsData);
+                
+                // Also update gamification stats for games dashboard
+                const storedStats = localStorage.getItem('user_gamification_stats');
+                if (storedStats) {
+                    const stats = JSON.parse(storedStats);
+                    stats.points += 50;
+                    localStorage.setItem('user_gamification_stats', JSON.stringify(stats));
+                } else {
+                    localStorage.setItem('user_gamification_stats', JSON.stringify({
+                        level: 'Principiante',
+                        points: 50,
+                        ranking: '--',
+                        progress: 0
+                    }));
+                }
             }
         } catch (error) {
             console.error('Error adding points:', error);

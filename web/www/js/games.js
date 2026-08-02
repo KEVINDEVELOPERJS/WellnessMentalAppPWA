@@ -22,6 +22,12 @@ class GamesModule {
         this.loadAchievements();
         this.setupEventListeners();
         this.render();
+        
+        // Refresh data periodically to get updated points from games
+        setInterval(() => {
+            this.loadUserData();
+            this.renderUserStats();
+        }, 2000);
     }
 
     setupEventListeners() {

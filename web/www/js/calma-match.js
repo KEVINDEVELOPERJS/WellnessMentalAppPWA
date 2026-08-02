@@ -567,6 +567,22 @@ const CalmaMatchModule = {
     },
     
     addPoints(amount) {
+        // Update the gamification stats for the games dashboard
+        const storedStats = localStorage.getItem('user_gamification_stats');
+        if (storedStats) {
+            const stats = JSON.parse(storedStats);
+            stats.points += amount;
+            localStorage.setItem('user_gamification_stats', JSON.stringify(stats));
+        } else {
+            localStorage.setItem('user_gamification_stats', JSON.stringify({
+                level: 'Principiante',
+                points: amount,
+                ranking: '--',
+                progress: 0
+            }));
+        }
+        
+        // Also store in legacy format for compatibility
         const current = parseInt(localStorage.getItem('userPoints') || '0');
         localStorage.setItem('userPoints', current + amount);
     },

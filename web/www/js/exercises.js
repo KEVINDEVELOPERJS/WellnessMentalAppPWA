@@ -208,6 +208,21 @@ class ExercisesController {
                 }
                 
                 await this.db.update(DB_CONFIG.tables.points, pointsData);
+                
+                // Also update gamification stats for games dashboard
+                const storedStats = localStorage.getItem('user_gamification_stats');
+                if (storedStats) {
+                    const stats = JSON.parse(storedStats);
+                    stats.points += pointsEarned;
+                    localStorage.setItem('user_gamification_stats', JSON.stringify(stats));
+                } else {
+                    localStorage.setItem('user_gamification_stats', JSON.stringify({
+                        level: 'Principiante',
+                        points: pointsEarned,
+                        ranking: '--',
+                        progress: 0
+                    }));
+                }
             }
         } catch (error) {
             console.error('Error adding points:', error);
