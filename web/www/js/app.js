@@ -889,7 +889,6 @@ async function showDashboard() {
         document.getElementById('games-card').classList.add('hidden');
         document.getElementById('videos-card').classList.add('hidden');
         document.getElementById('active-breaks-card').classList.add('hidden');
-        document.getElementById('mental-garden-card').classList.add('hidden');
         document.getElementById('parent-reports-card').classList.add('hidden');
         document.getElementById('community-card').classList.add('hidden');
         document.getElementById('profile-card').classList.add('hidden');

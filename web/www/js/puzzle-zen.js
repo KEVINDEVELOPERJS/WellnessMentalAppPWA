@@ -90,7 +90,7 @@ const PuzzleZenModule = {
         
         const levelDisplay = document.getElementById('level-display');
         if (levelDisplay) {
-            levelDisplay.style.transform = `scale(${this.levelScale})`;
+            levelDisplay.style.transform = `translate(-50%, -50%) scale(${this.levelScale})`;
         }
     },
     
@@ -149,7 +149,7 @@ const PuzzleZenModule = {
             if (this.levelScale < 1.15) {
                 this.levelScale += 0.13;
                 if (this.levelScale > 1.15) this.levelScale = 1.15;
-                levelDisplay.style.transform = `scale(${this.levelScale})`;
+                levelDisplay.style.transform = `translate(-50%, -50%) scale(${this.levelScale})`;
                 requestAnimationFrame(animate);
             } else {
                 // Decay a 1.0
@@ -157,7 +157,7 @@ const PuzzleZenModule = {
                     if (this.levelScale > 1.0) {
                         this.levelScale -= 0.015;
                         if (this.levelScale < 1.0) this.levelScale = 1.0;
-                        levelDisplay.style.transform = `scale(${this.levelScale})`;
+                        levelDisplay.style.transform = `translate(-50%, -50%) scale(${this.levelScale})`;
                         requestAnimationFrame(decay);
                     }
                 };

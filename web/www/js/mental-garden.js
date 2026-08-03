@@ -172,7 +172,7 @@ const MentalGardenModule = {
         this.selectedSlot = slotIndex;
         const slot = this.gardenSlots[slotIndex];
 
-        if (this.isPlantingMode) {
+        if (this.isPlantingMode && this.selectedPlant) {
             this.plantSeed(slotIndex);
             return;
         }
@@ -180,6 +180,10 @@ const MentalGardenModule = {
         if (!slot) {
             this.updateStatus('Selecciona "Plantar Semilla" para colocar una planta aquí');
             document.getElementById('water-btn').disabled = true;
+            // If in planting mode but no plant selected, show plant selection
+            if (this.isPlantingMode) {
+                this.showPlantSelection();
+            }
         } else {
             this.showPlantInfo(slotIndex);
             document.getElementById('water-btn').disabled = !this.canWaterToday(slot);
@@ -191,6 +195,7 @@ const MentalGardenModule = {
     showPlantSelection() {
         const modal = document.getElementById('plant-selection-modal');
         const optionsContainer = document.getElementById('plant-options');
+        const confirmBtn = document.querySelector('.confirm-plant-btn');
 
         optionsContainer.innerHTML = this.plants.map(plant => `
             <div class="plant-option" data-plant-id="${plant.id}">
@@ -200,14 +205,28 @@ const MentalGardenModule = {
             </div>
         `).join('');
 
+        // Reset selection
+        this.selectedPlant = null;
+        confirmBtn.disabled = true;
+
         // Add click listeners
         optionsContainer.querySelectorAll('.plant-option').forEach(option => {
             option.addEventListener('click', () => {
                 optionsContainer.querySelectorAll('.plant-option').forEach(o => o.classList.remove('selected'));
                 option.classList.add('selected');
                 this.selectedPlant = this.plants.find(p => p.id === option.dataset.plantId);
+                confirmBtn.disabled = false;
             });
         });
+
+        // Add confirm button listener
+        confirmBtn.onclick = () => {
+            if (this.selectedPlant) {
+                this.isPlantingMode = true;
+                this.hidePlantSelection();
+                this.updateStatus('Selecciona un espacio vacío para plantar');
+            }
+        };
 
         modal.classList.remove('hidden');
     },
