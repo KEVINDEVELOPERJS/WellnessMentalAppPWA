@@ -873,6 +873,12 @@ async function showDashboard() {
     document.getElementById('user-greeting').textContent = `Hola, ${user.name}`;
     document.getElementById('user-role-badge').textContent = user.role === 'psicologo' ? 'Psicólogo' : 'Estudiante';
     
+    // Listen for username changes
+    window.addEventListener('usernameChanged', (e) => {
+        document.getElementById('user-greeting').textContent = `Hola, ${e.detail.name}`;
+        AppState.currentUser.name = e.detail.name;
+    });
+    
     // Show psychologist-specific cards and hide student cards
     if (user.role === 'psicologo') {
         // Hide all student cards
@@ -1270,13 +1276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeBreaksBtn) {
         activeBreaksBtn.addEventListener('click', () => {
             window.location.href = 'active-breaks.html';
-        });
-    }
-    
-    const mentalGardenBtn = document.getElementById('mental-garden-btn');
-    if (mentalGardenBtn) {
-        mentalGardenBtn.addEventListener('click', () => {
-            window.location.href = 'mental-garden.html';
         });
     }
     

@@ -294,18 +294,34 @@ class ProfileModule {
         const newName = prompt('Ingresa tu nuevo nombre de usuario:', currentName);
         
         if (newName && newName.trim() !== '') {
-            // Update display
-            document.getElementById('user-name').textContent = newName.trim();
+            const trimmedName = newName.trim();
             
-            // Update localStorage
+            // Update display in profile
+            document.getElementById('user-name').textContent = trimmedName;
+            
+            // Update localStorage user_data
             const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
-            userData.name = newName.trim();
+            userData.name = trimmedName;
             localStorage.setItem('user_data', JSON.stringify(userData));
             
-            // Update user initials
-            this.updateUserInitials(newName.trim());
+            // Update localStorage user (used by other modules)
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            user.name = trimmedName;
+            localStorage.setItem('user', JSON.stringify(user));
             
-            showToast('Nombre de usuario actualizado');
+            // Update user initials
+            this.updateUserInitials(trimmedName);
+            
+            // Update dashboard greeting if on dashboard
+            const dashboardGreeting = document.getElementById('user-greeting');
+            if (dashboardGreeting) {
+                dashboardGreeting.textContent = `Hola, ${trimmedName}`;
+            }
+            
+            // Dispatch custom event for other modules to listen
+            window.dispatchEvent(new CustomEvent('usernameChanged', { detail: { name: trimmedName } }));
+            
+            showToast('Nombre de usuario actualizado en toda la aplicación');
         }
     }
 
