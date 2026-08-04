@@ -93,7 +93,7 @@ class EvaluationController {
                 icon = '🙂';
             } else if (totalScore <= 14) {
                 level = 'Ansiedad Moderada';
-                riskLevel = 'Moderado';
+                riskLevel = 'Medio';
                 icon = '😐';
             } else {
                 level = 'Ansiedad Severa';
@@ -111,7 +111,7 @@ class EvaluationController {
                 icon = '🙂';
             } else if (totalScore <= 14) {
                 level = 'Depresión Moderada';
-                riskLevel = 'Moderado';
+                riskLevel = 'Medio';
                 icon = '😐';
             } else if (totalScore <= 19) {
                 level = 'Depresión Moderadamente Severa';
@@ -130,7 +130,7 @@ class EvaluationController {
                 icon = '😊';
             } else if (totalScore <= 26) {
                 level = 'Estrés Moderado';
-                riskLevel = 'Moderado';
+                riskLevel = 'Medio';
                 icon = '😐';
             } else {
                 level = 'Estrés Alto';
@@ -160,7 +160,7 @@ class EvaluationController {
             recommendations.push('Mantener una rutina de sueño regular');
             recommendations.push('Realizar actividad física moderada');
             recommendations.push('Practicar ejercicios de respiración y mindfulness');
-        } else if (score.riskLevel === 'Moderado') {
+        } else if (score.riskLevel === 'Medio') {
             recommendations.push('Considerar hablar con un consejero o terapeuta');
             recommendations.push('Practicar técnicas de manejo de estrés');
             recommendations.push('Mantener contacto con amigos y familiares');
@@ -245,8 +245,8 @@ class EvaluationController {
             // Add points for completing evaluation
             await this.addPointsForEvaluation(userId);
             
-            // Send alert to hub if risk is high or moderate
-            if (score.riskLevel === 'Alto' || score.riskLevel === 'Moderado') {
+            // Send alert to hub if risk is high, medium, or low
+            if (score.riskLevel === 'Alto' || score.riskLevel === 'Medio' || score.riskLevel === 'Bajo') {
                 await this.sendAlertToHub(userId, result, score, resultId);
             }
             

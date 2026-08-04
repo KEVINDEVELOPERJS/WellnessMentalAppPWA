@@ -142,7 +142,7 @@ const AlertsLowMediumModule = {
                 // Filter only low and medium risk alerts
                 this.alerts = allAlerts.filter(alert => {
                     const risk = alert.nivelRiesgo?.toLowerCase() || '';
-                    return risk.includes('bajo') || risk.includes('medio');
+                    return risk.includes('bajo') || risk.includes('medio') || risk.includes('moderado');
                 });
                 
                 // Save to local database
@@ -411,7 +411,7 @@ const AlertsLowMediumModule = {
     mapRiskLevel(nivel) {
         const level = nivel?.toLowerCase() || 'bajo';
         if (level.includes('alto')) return 'high';
-        if (level.includes('medio')) return 'medium';
+        if (level.includes('medio') || level.includes('moderado')) return 'medium';
         return 'low';
     },
 
