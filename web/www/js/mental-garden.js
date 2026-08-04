@@ -48,6 +48,94 @@ const MentalGardenModule = {
             stages: ['🌱', '🌿', '🌳'],
             cost: 100,
             growthTime: 14
+        },
+        {
+            id: 'orchid',
+            name: 'Orquídea',
+            emoji: '🌺',
+            stages: ['🌱', '🌿', '🌺'],
+            cost: 80,
+            growthTime: 10
+        },
+        {
+            id: 'lavender',
+            name: 'Lavanda',
+            emoji: '💜',
+            stages: ['🌱', '🌿', '💜'],
+            cost: 70,
+            growthTime: 9
+        },
+        {
+            id: 'bamboo',
+            name: 'Bambú',
+            emoji: '🎋',
+            stages: ['🌱', '🎋', '🎋'],
+            cost: 120,
+            growthTime: 12
+        },
+        {
+            id: 'palm',
+            name: 'Palmera',
+            emoji: '🌴',
+            stages: ['🌱', '🌿', '🌴'],
+            cost: 150,
+            growthTime: 15
+        },
+        {
+            id: 'lotus',
+            name: 'Loto',
+            emoji: '🪷',
+            stages: ['🌱', '🌿', '🪷'],
+            cost: 200,
+            growthTime: 18
+        },
+        {
+            id: 'cherry_blossom',
+            name: 'Cerezo en Flor',
+            emoji: '🌸',
+            stages: ['🌱', '🌿', '🌸'],
+            cost: 250,
+            growthTime: 20
+        },
+        {
+            id: 'hibiscus',
+            name: 'Hibisco',
+            emoji: '🌺',
+            stages: ['🌱', '🌿', '🌺'],
+            cost: 180,
+            growthTime: 16
+        },
+        {
+            id: 'sunflower_giant',
+            name: 'Girasol Gigante',
+            emoji: '🌻',
+            stages: ['🌱', '🌿', '🌻'],
+            cost: 300,
+            growthTime: 22
+        },
+        {
+            id: 'magic_tree',
+            name: 'Árbol Mágico',
+            emoji: '🌳',
+            stages: ['🌱', '🌿', '🌳', '✨'],
+            cost: 500,
+            growthTime: 30
+        },
+        {
+            id: 'crystal_flower',
+            name: 'Flor de Cristal',
+            emoji: '💎',
+            stages: ['🌱', '💎', '💎'],
+            cost: 750,
+            growthTime: 35
+        },
+        {
+            id: 'golden_tree',
+            name: 'Árbol Dorado',
+            emoji: '🌳',
+            stages: ['🌱', '🌿', '🌳', '🌟'],
+            cost: 1000,
+            growthTime: 45
         }
     ],
 
@@ -62,6 +150,7 @@ const MentalGardenModule = {
         this.renderGarden();
         this.setupEventListeners();
         this.updateWateringStreak();
+        this.updateUserPoints();
     },
 
     loadGardenState() {
@@ -71,8 +160,8 @@ const MentalGardenModule = {
             this.gardenSlots = state.slots || [];
             this.wateringStreak = state.wateringStreak || 0;
         } else {
-            // Initialize empty garden (9 slots)
-            this.gardenSlots = Array(9).fill(null);
+            // Initialize empty garden (16 slots - 4x4 grid)
+            this.gardenSlots = Array(16).fill(null);
         }
     },
 
@@ -103,7 +192,7 @@ const MentalGardenModule = {
             const progress = Math.min(100, Math.round((slot.stage / (plant.stages.length - 1)) * 100));
             const canWater = this.canWaterToday(slot);
 
-            const stageText = `Etapa ${slot.stage + 1}/4`;
+            const stageText = `Etapa ${slot.stage + 1}/${plant.stages.length}`;
             return `
                 <div class="garden-slot occupied ${this.selectedSlot === index ? 'selected' : ''}" data-slot="${index}">
                     <div class="plant-display">${plant.stages[stageIndex]}</div>
@@ -196,14 +285,17 @@ const MentalGardenModule = {
         const modal = document.getElementById('plant-selection-modal');
         const optionsContainer = document.getElementById('plant-options');
         const confirmBtn = document.querySelector('.confirm-plant-btn');
+        const userPoints = this.getUserPoints();
 
-        optionsContainer.innerHTML = this.plants.map(plant => `
-            <div class="plant-option" data-plant-id="${plant.id}">
+        optionsContainer.innerHTML = this.plants.map(plant => {
+            const canAfford = userPoints >= plant.cost;
+            return `
+            <div class="plant-option ${!canAfford ? 'disabled' : ''}" data-plant-id="${plant.id}">
                 <div class="plant-option-emoji">${plant.emoji}</div>
                 <div class="plant-option-name">${plant.name}</div>
-                <div class="plant-option-cost">💰 ${plant.cost} pts</div>
+                <div class="plant-option-cost">${canAfford ? '💰' : '🔒'} ${plant.cost} pts</div>
             </div>
-        `).join('');
+        `}).join('');
 
         // Reset selection
         this.selectedPlant = null;
@@ -211,12 +303,14 @@ const MentalGardenModule = {
 
         // Add click listeners
         optionsContainer.querySelectorAll('.plant-option').forEach(option => {
-            option.addEventListener('click', () => {
-                optionsContainer.querySelectorAll('.plant-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                this.selectedPlant = this.plants.find(p => p.id === option.dataset.plantId);
-                confirmBtn.disabled = false;
-            });
+            if (!option.classList.contains('disabled')) {
+                option.addEventListener('click', () => {
+                    optionsContainer.querySelectorAll('.plant-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    this.selectedPlant = this.plants.find(p => p.id === option.dataset.plantId);
+                    confirmBtn.disabled = false;
+                });
+            }
         });
 
         // Add confirm button listener
@@ -269,9 +363,10 @@ const MentalGardenModule = {
 
         this.saveGardenState();
         this.renderGarden();
+        this.updateUserPoints();
         this.hidePlantSelection();
         this.animateNewPlant(slotIndex);
-        this.showToast(`¡${this.selectedPlant?.name || 'Planta'} plantada! -${this.selectedPlant?.cost || 0} pts`, 'success');
+        this.showToast(`¡Planta plantada! -${this.selectedPlant?.cost || 0} pts`, 'success');
     },
 
     showPlantInfo(slotIndex) {
@@ -353,6 +448,7 @@ const MentalGardenModule = {
 
         this.saveGardenState();
         this.renderGarden();
+        this.updateUserPoints();
         this.showToast(`¡Planta regada! +${pointsEarned} pts`, 'success');
 
         // Check if plant fully grown
@@ -370,6 +466,13 @@ const MentalGardenModule = {
         }
     },
 
+    updateUserPoints() {
+        const pointsElement = document.getElementById('user-points');
+        if (pointsElement) {
+            pointsElement.textContent = this.getUserPoints();
+        }
+    },
+
     updateStatus(message) {
         const status = document.getElementById('garden-status-text');
         if (status) {
@@ -378,18 +481,36 @@ const MentalGardenModule = {
     },
 
     getUserPoints() {
-        const points = localStorage.getItem('userPoints');
-        return points ? parseInt(points) : 0;
+        const stats = localStorage.getItem('user_gamification_stats');
+        if (stats) {
+            const parsed = JSON.parse(stats);
+            return parsed.points || 0;
+        }
+        return 0;
     },
 
     addPoints(amount) {
-        const current = this.getUserPoints();
-        localStorage.setItem('userPoints', current + amount);
+        const stats = localStorage.getItem('user_gamification_stats');
+        let currentStats = { level: 'Principiante', points: 0, ranking: '--', progress: 0 };
+        
+        if (stats) {
+            currentStats = JSON.parse(stats);
+        }
+        
+        currentStats.points += amount;
+        localStorage.setItem('user_gamification_stats', JSON.stringify(currentStats));
     },
 
     deductPoints(amount) {
-        const current = this.getUserPoints();
-        localStorage.setItem('userPoints', Math.max(0, current - amount));
+        const stats = localStorage.getItem('user_gamification_stats');
+        let currentStats = { level: 'Principiante', points: 0, ranking: '--', progress: 0 };
+        
+        if (stats) {
+            currentStats = JSON.parse(stats);
+        }
+        
+        currentStats.points = Math.max(0, currentStats.points - amount);
+        localStorage.setItem('user_gamification_stats', JSON.stringify(currentStats));
     },
 
     showToast(message, type = 'info') {

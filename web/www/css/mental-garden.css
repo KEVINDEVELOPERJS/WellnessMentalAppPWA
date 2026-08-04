@@ -54,8 +54,8 @@
 
 .garden-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
     margin-bottom: 20px;
 }
 
@@ -249,9 +249,11 @@
 
 .plant-options {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .plant-option {
@@ -273,6 +275,18 @@
 .plant-option.selected {
     border-color: #667eea;
     background: #E8F4F8;
+}
+
+.plant-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f8f9fa;
+}
+
+.plant-option.disabled:hover {
+    background: #f8f9fa;
+    transform: none;
+    border-color: #e9ecef;
 }
 
 .plant-option-emoji {
