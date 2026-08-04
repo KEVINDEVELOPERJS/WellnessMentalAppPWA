@@ -151,6 +151,11 @@ const MentalGardenModule = {
         this.setupEventListeners();
         this.updateWateringStreak();
         this.updateUserPoints();
+        
+        // Refresh points periodically to sync with games
+        setInterval(() => {
+            this.updateUserPoints();
+        }, 2000);
     },
 
     loadGardenState() {
@@ -159,6 +164,11 @@ const MentalGardenModule = {
             const state = JSON.parse(saved);
             this.gardenSlots = state.slots || [];
             this.wateringStreak = state.wateringStreak || 0;
+            
+            // Ensure we always have 16 slots
+            while (this.gardenSlots.length < 16) {
+                this.gardenSlots.push(null);
+            }
         } else {
             // Initialize empty garden (16 slots - 4x4 grid)
             this.gardenSlots = Array(16).fill(null);
@@ -340,6 +350,8 @@ const MentalGardenModule = {
 
         // Check if user has enough points
         const userPoints = this.getUserPoints();
+        console.log('User points:', userPoints, 'Plant cost:', this.selectedPlant.cost);
+        
         if (userPoints < this.selectedPlant.cost) {
             this.showToast(`No tienes suficientes puntos. Necesitas ${this.selectedPlant.cost}`);
             this.hidePlantSelection();
@@ -348,6 +360,11 @@ const MentalGardenModule = {
 
         // Deduct points
         this.deductPoints(this.selectedPlant.cost);
+        console.log('Points deducted. New balance:', this.getUserPoints());
+
+        // Store plant info for toast message
+        const plantName = this.selectedPlant.name;
+        const plantCost = this.selectedPlant.cost;
 
         // Plant the seed
         this.gardenSlots[slotIndex] = {
@@ -356,17 +373,28 @@ const MentalGardenModule = {
             plantedDate: new Date().toISOString(),
             lastWatered: null
         };
+        
+        console.log('Plant added to slot:', slotIndex, 'Plant data:', this.gardenSlots[slotIndex]);
 
         this.isPlantingMode = false;
         this.selectedPlant = null;
         this.selectedSlot = null;
 
         this.saveGardenState();
+        console.log('Garden state saved:', this.gardenSlots);
+        
         this.renderGarden();
+        console.log('Garden rendered');
+        
         this.updateUserPoints();
         this.hidePlantSelection();
-        this.animateNewPlant(slotIndex);
-        this.showToast(`¡Planta plantada! -${this.selectedPlant?.cost || 0} pts`, 'success');
+        
+        // Delay animation to ensure DOM is updated
+        setTimeout(() => {
+            this.animateNewPlant(slotIndex);
+        }, 100);
+        
+        this.showToast(`¡${plantName} plantada! -${plantCost} pts`, 'success');
     },
 
     showPlantInfo(slotIndex) {
@@ -486,7 +514,10 @@ const MentalGardenModule = {
             const parsed = JSON.parse(stats);
             return parsed.points || 0;
         }
-        return 0;
+        // Initialize with default points if not exists
+        const defaultStats = { level: 'Principiante', points: 100, ranking: '--', progress: 0 };
+        localStorage.setItem('user_gamification_stats', JSON.stringify(defaultStats));
+        return 100;
     },
 
     addPoints(amount) {
@@ -572,16 +603,20 @@ const MentalGardenModule = {
     
     animateNewPlant: function(slotIndex) {
         const slot = document.querySelector(`.garden-slot[data-slot="${slotIndex}"]`);
-        if (!slot) return;
-        
-        const plantDisplay = slot.querySelector('.plant-display');
-        if (plantDisplay) {
-            plantDisplay.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            plantDisplay.style.transform = 'scale(0)';
-            setTimeout(() => {
-                plantDisplay.style.transform = 'scale(1)';
-            }, 50);
+        if (!slot) {
+            console.log('Slot not found for animation:', slotIndex);
+            return;
         }
+        
+        // Add animation class to the slot
+        slot.classList.add('grow-animation');
+        
+        // Remove animation class after it completes
+        setTimeout(() => {
+            slot.classList.remove('grow-animation');
+        }, 500);
+        
+        console.log('Plant animation triggered for slot:', slotIndex);
     }
 };
 
