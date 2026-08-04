@@ -994,7 +994,7 @@ async function updateAlertsLowMediumCounter() {
             // Filter only low/medium risk alerts
             const lowMediumAlerts = data.alertas.filter(alerta => {
                 const nivel = alerta.nivelRiesgo?.toLowerCase() || '';
-                return nivel.includes('bajo') || nivel.includes('medio');
+                return nivel.includes('bajo') || nivel.includes('medio') || nivel.includes('moderado');
             });
             
             const pendientes = lowMediumAlerts.filter(alerta => {

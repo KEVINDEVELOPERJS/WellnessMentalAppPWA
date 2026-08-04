@@ -439,7 +439,7 @@ const AlertsModule = {
     mapRiskLevel(nivel) {
         const level = nivel?.toLowerCase() || 'bajo';
         if (level.includes('alto')) return 'high';
-        if (level.includes('medio')) return 'medium';
+        if (level.includes('medio') || level.includes('moderado')) return 'medium';
         return 'low';
     },
 
@@ -685,7 +685,7 @@ const AlertsModule = {
     },
 
     getHighestRiskLevel(alerts) {
-        const riskOrder = { 'alto': 3, 'medio': 2, 'bajo': 1 };
+        const riskOrder = { 'alto': 3, 'medio': 2, 'moderado': 2, 'bajo': 1 };
         let highestRisk = 'bajo';
         
         alerts.forEach(alert => {
