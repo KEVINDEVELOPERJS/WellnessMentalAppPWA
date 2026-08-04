@@ -184,7 +184,12 @@ const MentalGardenModule = {
 
     renderGarden() {
         const grid = document.getElementById('garden-grid');
-        if (!grid) return;
+        if (!grid) {
+            console.log('Grid element not found');
+            return;
+        }
+
+        console.log('Rendering garden with slots:', this.gardenSlots);
 
         grid.innerHTML = this.gardenSlots.map((slot, index) => {
             if (!slot) {
@@ -196,13 +201,18 @@ const MentalGardenModule = {
             }
 
             const plant = this.plants.find(p => p.id === slot.plantId);
-            if (!plant) return '';
+            if (!plant) {
+                console.log('Plant not found for ID:', slot.plantId);
+                return '';
+            }
 
             const stageIndex = Math.min(slot.stage, plant.stages.length - 1);
             const progress = Math.min(100, Math.round((slot.stage / (plant.stages.length - 1)) * 100));
             const canWater = this.canWaterToday(slot);
 
             const stageText = `Etapa ${slot.stage + 1}/${plant.stages.length}`;
+            console.log(`Rendering slot ${index}: plant ${plant.name}, stage ${stageIndex}, emoji ${plant.stages[stageIndex]}`);
+            
             return `
                 <div class="garden-slot occupied ${this.selectedSlot === index ? 'selected' : ''}" data-slot="${index}">
                     <div class="plant-display">${plant.stages[stageIndex]}</div>
@@ -211,6 +221,8 @@ const MentalGardenModule = {
                 </div>
             `;
         }).join('');
+
+        console.log('Grid HTML after render:', grid.innerHTML);
 
         // Add click listeners
         grid.querySelectorAll('.garden-slot').forEach(slot => {
@@ -268,10 +280,13 @@ const MentalGardenModule = {
     },
 
     handleSlotClick(slotIndex) {
+        console.log('Slot clicked:', slotIndex, 'Planting mode:', this.isPlantingMode, 'Selected plant:', this.selectedPlant);
+        
         this.selectedSlot = slotIndex;
         const slot = this.gardenSlots[slotIndex];
 
         if (this.isPlantingMode && this.selectedPlant) {
+            console.log('Planting seed in slot:', slotIndex);
             this.plantSeed(slotIndex);
             return;
         }
@@ -326,8 +341,12 @@ const MentalGardenModule = {
         // Add confirm button listener
         confirmBtn.onclick = () => {
             if (this.selectedPlant) {
+                console.log('Plant confirmed for planting:', this.selectedPlant.name);
                 this.isPlantingMode = true;
-                this.hidePlantSelection();
+                // Store the selected plant before hiding modal
+                const plantToPlant = this.selectedPlant;
+                this.hidePlantSelectionWithoutReset();
+                this.selectedPlant = plantToPlant;
                 this.updateStatus('Selecciona un espacio vacío para plantar');
             }
         };
@@ -342,9 +361,19 @@ const MentalGardenModule = {
         this.renderGarden();
     },
 
+    hidePlantSelectionWithoutReset() {
+        document.getElementById('plant-selection-modal').classList.add('hidden');
+        this.renderGarden();
+    },
+
     plantSeed(slotIndex) {
+        console.log('plantSeed called with slotIndex:', slotIndex);
+        console.log('selectedPlant:', this.selectedPlant);
+        console.log('isPlantingMode:', this.isPlantingMode);
+        
         if (!this.selectedPlant) {
             this.showToast('Selecciona una planta primero');
+            this.isPlantingMode = false;
             return;
         }
 
@@ -354,7 +383,8 @@ const MentalGardenModule = {
         
         if (userPoints < this.selectedPlant.cost) {
             this.showToast(`No tienes suficientes puntos. Necesitas ${this.selectedPlant.cost}`);
-            this.hidePlantSelection();
+            this.isPlantingMode = false;
+            this.selectedPlant = null;
             return;
         }
 
@@ -375,19 +405,28 @@ const MentalGardenModule = {
         };
         
         console.log('Plant added to slot:', slotIndex, 'Plant data:', this.gardenSlots[slotIndex]);
+        console.log('Full garden slots:', this.gardenSlots);
 
         this.isPlantingMode = false;
         this.selectedPlant = null;
         this.selectedSlot = null;
 
         this.saveGardenState();
-        console.log('Garden state saved:', this.gardenSlots);
+        console.log('Garden state saved');
         
         this.renderGarden();
         console.log('Garden rendered');
         
         this.updateUserPoints();
-        this.hidePlantSelection();
+        
+        // Check if plant appears in DOM
+        setTimeout(() => {
+            const slotElement = document.querySelector(`.garden-slot[data-slot="${slotIndex}"]`);
+            console.log('Slot element after render:', slotElement);
+            if (slotElement) {
+                console.log('Slot HTML:', slotElement.innerHTML);
+            }
+        }, 50);
         
         // Delay animation to ensure DOM is updated
         setTimeout(() => {
@@ -540,8 +579,11 @@ const MentalGardenModule = {
             currentStats = JSON.parse(stats);
         }
         
+        console.log('Before deduction - Points:', currentStats.points, 'Amount to deduct:', amount);
         currentStats.points = Math.max(0, currentStats.points - amount);
+        console.log('After deduction - Points:', currentStats.points);
         localStorage.setItem('user_gamification_stats', JSON.stringify(currentStats));
+        console.log('Points saved to localStorage');
     },
 
     showToast(message, type = 'info') {
