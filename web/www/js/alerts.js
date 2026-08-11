@@ -995,8 +995,8 @@ const AlertsModule = {
         if (level.includes('alto')) return 'high';
         if (level.includes('medio') || level.includes('moderado')) return 'medium';
         return 'low';
-    },
     }
+};
 };
 
 // Initialize when DOM is ready

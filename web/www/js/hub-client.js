@@ -1,25 +1,106 @@
 // Hub Client - Utility for communicating with Google Apps Script Hub
-// Supports both real hub connection and local fallback mode
+// Web version: Uses local fallback + simulation of multidispositivo for development
+// Note: Google Apps Script has CORS restrictions for web browsers (unlike Android)
+// Solution: Use backend API or Firebase Cloud Functions for production
 
 const HubClient = {
     // Google Apps Script Hub URL - configure your deployed script URL here
     defaultHubUrl: 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec',
     
-    // Use local fallback if real hub fails
-    useLocalFallback: false,
+    // Use local fallback by default for web (CORS restrictions)
+    useLocalFallback: true,
     
-    // CORS proxies for bypassing browser restrictions
-    corsProxies: [
-        'https://corsproxy.io/?', 
-        'https://api.allorigins.win/raw?url=',
-        null // Direct connection last
-    ],
+    // Web simulation mode - simulates multidispositivo behavior
+    webSimulationMode: true,
+    
+    // Backend API URL for production (configure your own backend)
+    backendApiUrl: localStorage.getItem('backend_api_url') || null,
     
     currentProxyIndex: 0,
     retryCount: 0,
     maxRetries: 3,
     
-    // Sample data for local fallback - Mixed risk levels for different sections
+    // Sample data for local fallback - Enhanced with multidispositivo simulation
+    sampleAlerts: [
+        {
+            remoteId: 'sample-android-1',
+            idReferencia: 'sample-android-1',
+            nombreEstudiante: 'María García',
+            gradoEstudiante: '10°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'alto',
+            timestamp: new Date().toISOString(),
+            extracto: 'Evaluación Alto. Puntaje 18. Niveles elevados de ansiedad y depresión detectados.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'android'  // Simula que viene de Android
+        },
+        {
+            remoteId: 'sample-web-1',
+            idReferencia: 'sample-web-1',
+            nombreEstudiante: 'Juan Pérez',
+            gradoEstudiante: '11°',
+            tipo: 'chat',
+            nivelRiesgo: 'alto',
+            timestamp: new Date(Date.now() - 86400000).toISOString(),
+            extracto: 'Chat con IA - Estudiante expresa pensamientos preocupantes sobre el futuro.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'web'  // Simula que viene de Web
+        },
+        {
+            remoteId: 'sample-android-2',
+            idReferencia: 'sample-android-2',
+            nombreEstudiante: 'Ana López',
+            gradoEstudiante: '9°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'medio',
+            timestamp: new Date(Date.now() - 172800000).toISOString(),
+            extracto: 'Evaluación Medio. Puntaje 14. Niveles moderados de ansiedad detectados. Estudiante muestra signos de estrés académico.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'android'
+        },
+        {
+            remoteId: 'sample-web-2',
+            idReferencia: 'sample-web-2',
+            nombreEstudiante: 'Carlos Rodríguez',
+            gradoEstudiante: '10°',
+            tipo: 'chat',
+            nivelRiesgo: 'medio',
+            timestamp: new Date(Date.now() - 259200000).toISOString(),
+            extracto: 'Chat con IA - Estudiante expresa preocupación por exámenes finales y presión familiar.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'web'
+        },
+        {
+            remoteId: 'sample-android-3',
+            idReferencia: 'sample-android-3',
+            nombreEstudiante: 'Laura Martínez',
+            gradoEstudiante: '11°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'bajo',
+            timestamp: new Date(Date.now() - 345600000).toISOString(),
+            extracto: 'Evaluación Bajo. Puntaje 8. Niveles leves de ansiedad. Estudiante maneja bien el estrés.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'android'
+        },
+        {
+            remoteId: 'sample-web-3',
+            idReferencia: 'sample-web-3',
+            nombreEstudiante: 'Pedro Sánchez',
+            gradoEstudiante: '9°',
+            tipo: 'evaluacion',
+            nivelRiesgo: 'bajo',
+            timestamp: new Date(Date.now() - 432000000).toISOString(),
+            extracto: 'Evaluación Bajo. Puntaje 6. Sin signos significativos de estrés. Buen funcionamiento general.',
+            estado: 'PENDIENTE',
+            notas: '',
+            deviceOrigen: 'web'
+        }
+    ],
     sampleAlerts: [
         {
             remoteId: 'sample-1',
@@ -118,62 +199,56 @@ const HubClient = {
     },
     
     /**
-     * Make a request to the hub - with fallback to local mode
+     * Make a request to the hub - Web version with CORS handling
      */
     async request(action, data = {}, method = 'GET') {
-        // If local fallback is forced, use it
-        if (this.useLocalFallback) {
+        // For web, use local fallback by default due to Google Apps Script CORS restrictions
+        if (this.useLocalFallback || this.webSimulationMode) {
             console.log('[HUB CLIENT] Using local fallback mode for:', action);
             return this.getLocalFallbackResponse(action);
         }
         
-        const hubUrl = this.getHubUrl();
-        let lastError = null;
-        
-        console.log('[HUB CLIENT] Attempting to connect to real hub:', hubUrl);
-        
-        // Try each proxy strategy with retries
-        for (let i = 0; i < this.corsProxies.length; i++) {
-            this.currentProxyIndex = i;
-            const proxy = this.corsProxies[i];
-            
-            // Retry logic for each proxy
-            for (let retry = 0; retry < this.maxRetries; retry++) {
-                try {
-                    console.log(`[HUB CLIENT] Attempting request with proxy ${i}, retry ${retry}:`, proxy || 'direct');
-                    
-                    const result = await this.tryRequest(hubUrl, action, data, method, proxy);
-                    
-                    // If successful, save this proxy as preferred
-                    if (i > 0) {
-                        localStorage.setItem('preferred_cors_proxy', i.toString());
-                    }
-                    
-                    console.log('[HUB CLIENT] Successfully connected to hub');
-                    this.retryCount = 0; // Reset retry count
-                    return result;
-                    
-                } catch (error) {
-                    console.warn(`[HUB CLIENT] Proxy ${i}, retry ${retry} failed:`, error.message);
-                    lastError = error;
-                    
-                    // Don't retry on CORS errors, try next proxy
-                    if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
-                        break;
-                    }
-                    
-                    // Wait before retry (exponential backoff)
-                    if (retry < this.maxRetries - 1) {
-                        await this.delay(Math.pow(2, retry) * 1000);
-                    }
-                }
+        // Try backend API if configured (for production)
+        if (this.backendApiUrl) {
+            try {
+                console.log('[HUB CLIENT] Using backend API:', this.backendApiUrl);
+                return await this.requestFromBackend(action, data, method);
+            } catch (error) {
+                console.warn('[HUB CLIENT] Backend API failed, falling back to local:', error.message);
+                this.useLocalFallback = true;
+                return this.getLocalFallbackResponse(action);
             }
         }
         
-        // All proxies failed - enable local fallback
-        console.warn('[HUB CLIENT] All connection methods failed, enabling local fallback');
+        console.log('[HUB CLIENT] No backend configured, using local fallback');
         this.useLocalFallback = true;
         return this.getLocalFallbackResponse(action);
+    },
+
+    /**
+     * Request from backend API (for production)
+     */
+    async requestFromBackend(action, data = {}, method = 'GET') {
+        const backendUrl = this.backendApiUrl;
+        const url = `${backendUrl}/${action}`;
+        
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (method === 'POST') {
+            options.body = JSON.stringify(data);
+        } else {
+            // Add query parameters for GET
+            const params = new URLSearchParams(data);
+            url.search = params.toString();
+        }
+        
+        const response = await fetch(url, options);
+        return await response.json();
     },
     
     /**
@@ -332,6 +407,38 @@ const HubClient = {
             };
         }
     },
+
+    /**
+     * Configure backend API for production
+     */
+    configureBackendApi(backendUrl) {
+        this.backendApiUrl = backendUrl;
+        localStorage.setItem('backend_api_url', backendUrl);
+        console.log('[HUB CLIENT] Backend API configured:', backendUrl);
+        this.useLocalFallback = false;
+        this.webSimulationMode = false;
+    },
+
+    /**
+     * Reset to local fallback mode
+     */
+    resetToLocalFallback() {
+        this.useLocalFallback = true;
+        this.webSimulationMode = true;
+        this.backendApiUrl = null;
+        localStorage.removeItem('backend_api_url');
+        console.log('[HUB CLIENT] Reset to local fallback mode');
+    },
+
+    /**
+     * Reset to try real hub again (disabled for web)
+     */
+    resetToRealHub() {
+        console.log('[HUB CLIENT] Note: Google Apps Script has CORS restrictions for web browsers');
+        console.log('[HUB CLIENT] Use configureBackendApi() to configure your own backend for production');
+        this.resetToLocalFallback();
+    }
+};
     
     /**
      * Enable/disable local fallback mode

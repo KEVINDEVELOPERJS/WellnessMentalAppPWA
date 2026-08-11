@@ -1,41 +1,47 @@
-// Service Worker for Web Push Notifications
-// Wellness Mental App - Alert System
+// Service Worker for Wellness Mental Web App
+// Handles background notifications and offline support
+// Modified to avoid CORS issues with Google Apps Script
 
-const CACHE_NAME = 'wellness-mental-v1';
-const PUSH_NOTIFICATION_CHANNEL = 'alertas-riesgo';
+const CACHE_NAME = 'wellness-mental-v2';
+const urlsToCache = [
+    '/',
+    '/index.html',
+    '/alerts.html',
+    '/alerts-low-medium.html',
+    '/questionnaire-editor.html',
+    '/css/styles.css',
+    '/css/alerts.css',
+    '/js/app.js',
+    '/js/alerts.js',
+    '/js/alerts-low-medium.js',
+    '/js/questionnaire-editor.js',
+    '/js/evaluation.js',
+    '/js/hub-client.js',
+    '/js/push-notifications.js',
+    '/js/email-service.js',
+    '/images/app-icon.jpeg'
+];
 
-// Install event
-self.addEventListener('install', (event) => {
-    console.log('[SW] Service Worker installing...');
+// Install event - cache assets
+self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            console.log('[SW] Caching app shell');
-            return cache.addAll([
-                '/',
-                '/index.html',
-                '/alerts.html',
-                '/alerts-low-medium.html',
-                '/css/styles.css',
-                '/css/alerts.css',
-                '/js/app.js',
-                '/js/alerts.js',
-                '/js/hub-client.js',
-                '/js/push-notifications.js',
-                '/js/email-service.js',
-                '/images/app-icon.jpeg'
-            ]);
-        })
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                console.log('[SW] Caching app shell');
+                return cache.addAll(urlsToCache);
+            })
+            .catch(error => {
+                console.error('[SW] Cache installation failed:', error);
+            })
     );
-    self.skipWaiting();
 });
 
 // Activate event
-self.addEventListener('activate', (event) => {
-    console.log('[SW] Service Worker activating...');
+self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys().then((cacheNames) => {
+        caches.keys().then(cacheNames => {
             return Promise.all(
-                cacheNames.map((cacheName) => {
+                cacheNames.map(cacheName => {
                     if (cacheName !== CACHE_NAME) {
                         console.log('[SW] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
@@ -48,25 +54,31 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch event - serve from cache, fallback to network
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
+    // Skip Google Apps Script URLs to avoid CORS errors
+    if (event.request.url.includes('script.google.com') || 
+        event.request.url.includes('corsproxy.io') ||
+        event.request.url.includes('allorigins.win')) {
+        return;
+    }
+    
+    // Skip manifest.json and other non-essential files
+    if (event.request.url.includes('manifest.json') || 
+        event.request.url.includes('vercel.com/sso-api')) {
+        return;
+    }
+    
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            if (response) {
-                console.log('[SW] Serving from cache:', event.request.url);
-                return response;
-            }
-            return fetch(event.request).then((response) => {
-                // Cache new responses
-                if (!response || response.status !== 200 || response.type !== 'basic') {
+        caches.match(event.request)
+            .then(response => {
+                if (response) {
                     return response;
                 }
-                const responseToCache = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, responseToCache);
+                return fetch(event.request).catch(() => {
+                    // Network error, return cached version if available
+                    return caches.match(event.request);
                 });
-                return response;
-            });
-        })
+            })
     );
 });
 
