@@ -5,6 +5,23 @@ const AppState = {
     db: null
 };
 
+// Configure Firebase with provided credentials
+if (typeof FirebaseService !== 'undefined') {
+    FirebaseService.init({
+        apiKey: "AIzaSyBj2GvxmmDuZPXZAo7hm1zgqQVfSd97Skk",
+        authDomain: "wellness-mental-app.firebaseapp.com",
+        databaseURL: "https://wellness-mental-app-default-rtdb.firebaseio.com",
+        projectId: "wellness-mental-app",
+        storageBucket: "wellness-mental-app.firebasestorage.app",
+        messagingSenderId: "95377338768",
+        appId: "1:95377338768:web:bb815f5f77b95da0e50315",
+        measurementId: "G-BFJ8L1VT8G"
+    });
+    console.log('[APP] Firebase configured with wellness-mental-app project');
+} else {
+    console.warn('[APP] FirebaseService not available');
+}
+
 // Ensure HubClient is available
 if (typeof HubClient === 'undefined') {
     console.warn('[APP] HubClient not available, using fallback');
