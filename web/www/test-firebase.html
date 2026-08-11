@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #console {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #007bff;
+        }
+        .log-error {
+            border-left-color: #dc3545;
+            color: #ff6b6b;
+        }
+        .log-success {
+            border-left-color: #28a745;
+            color: #51cf66;
+        }
+        .log-warning {
+            border-left-color: #ffc107;
+            color: #ffd43b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Test de Conexión Firebase</h1>
+        
+        <div id="firebase-status" class="status info">
+            Esperando verificación de Firebase...
+        </div>
+        
+        <div>
+            <button onclick="testFirebaseConnection()">🧪 Probar Conexión Firebase</button>
+            <button onclick="testCreateUser()">👤 Crear Usuario de Prueba</button>
+            <button onclick="testGetUsers()">📋 Obtener Usuarios</button>
+            <button onclick="clearConsole()">🗑️ Limpiar Consola</button>
+        </div>
+        
+        <div id="console">
+            <div class="log-entry">Consola de logs Firebase...</div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBj2GvxmmDuZPXZAo7hm1zgqQVfSd97Skk",
+            authDomain: "wellness-mental-app.firebaseapp.com",
+            databaseURL: "https://wellness-mental-app-default-rtdb.firebaseio.com",
+            projectId: "wellness-mental-app",
+            storageBucket: "wellness-mental-app.firebasestorage.app",
+            messagingSenderId: "95377338768",
+            appId: "1:95377338768:web:bb815f5f77b95da0e50315",
+            measurementId: "G-BFJ8L1VT8G"
+        };
+
+        let db = null;
+        let auth = null;
+
+        function log(message, type = 'info') {
+            const consoleDiv = document.getElementById('console');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(logEntry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '<div class="log-entry">Consola de logs Firebase...</div>';
+        }
+
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('firebase-status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function testFirebaseConnection() {
+            log('Iniciando prueba de conexión Firebase...', 'info');
+            
+            // Check if Firebase SDK is loaded
+            if (typeof firebase === 'undefined') {
+                log('❌ Firebase SDK no está cargado', 'error');
+                updateStatus('❌ Firebase SDK no está cargado', 'error');
+                return;
+            }
+            
+            log('✅ Firebase SDK está cargado', 'success');
+            
+            try {
+                // Initialize Firebase
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                    log('✅ Firebase app inicializada', 'success');
+                } else {
+                    log('ℹ️ Firebase app ya existe', 'warning');
+                }
+                
+                db = firebase.database();
+                auth = firebase.auth();
+                
+                log('✅ Firebase Database inicializada', 'success');
+                log('✅ Firebase Auth inicializada', 'success');
+                
+                updateStatus('✅ Firebase conectado exitosamente', 'success');
+                
+                // Test database connection
+                db.ref('.info/connected').on('value', (snapshot) => {
+                    const connected = snapshot.val();
+                    if (connected) {
+                        log('✅ Conexión a base de datos confirmada', 'success');
+                    } else {
+                        log('⚠️ Desconectado de base de datos', 'warning');
+                    }
+                });
+                
+            } catch (error) {
+                log(`❌ Error inicializando Firebase: ${error.message}`, 'error');
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCreateUser() {
+            if (!db) {
+                log('❌ Firebase no está inicializado. Prueba la conexión primero.', 'error');
+                return;
+            }
+            
+            log('👤 Creando usuario de prueba...', 'info');
+            
+            try {
+                const usersRef = db.ref('usuarios');
+                const newUserRef = usersRef.push();
+                
+                const testUser = {
+                    nombre: 'Usuario de Prueba',
+                    email: 'test@firebase-test.com',
+                    password_hash: 'hashed_password_test',
+                    edad: 25,
+                    grado: '10°',
+                    rol: 'estudiante',
+                    fecha_registro: new Date().toISOString(),
+                    estado: 'activo',
+                    consentimiento_padres: 1,
+                    tutor_email: null
+                };
+                
+                await newUserRef.set(testUser);
+                log(`✅ Usuario creado exitosamente con ID: ${newUserRef.key}`, 'success');
+                updateStatus('✅ Usuario creado en Firebase Realtime Database', 'success');
+                
+            } catch (error) {
+                log(`❌ Error creando usuario: ${error.message}`, 'error');
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testGetUsers() {
+            if (!db) {
+                log('❌ Firebase no está inicializado. Prueba la conexión primero.', 'error');
+                return;
+            }
+            
+            log('📋 Obteniendo usuarios de Firebase...', 'info');
+            
+            try {
+                const usersRef = db.ref('usuarios');
+                const snapshot = await usersRef.once('value');
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const userCount = Object.keys(users).length;
+                    log(`✅ ${userCount} usuarios encontrados en Firebase`, 'success');
+                    
+                    Object.keys(users).forEach(key => {
+                        const user = users[key];
+                        log(`  👤 ${user.nombre} (${user.email}) - ${user.rol}`, 'info');
+                    });
+                    
+                    updateStatus(`✅ ${userCount} usuarios en Firebase Database`, 'success');
+                } else {
+                    log('⚠️ No hay usuarios en Firebase Database', 'warning');
+                    updateStatus('⚠️ No hay usuarios en Firebase Database', 'warning');
+                }
+                
+            } catch (error) {
+                log(`❌ Error obteniendo usuarios: ${error.message}`, 'error');
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            log('🔥 Test de Firebase cargado', 'info');
+            log('ℹ️ Haz clic en "Probar Conexión Firebase" para comenzar', 'info');
+        };
+    </script>
+</body>
+</html>

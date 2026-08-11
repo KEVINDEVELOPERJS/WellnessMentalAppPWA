@@ -10,6 +10,14 @@ if (typeof FirebaseService !== 'undefined') {
     console.log('[APP] FirebaseService available');
     console.log('[APP] Firebase initialized:', FirebaseService.initialized);
     console.log('[APP] Firebase config status:', FirebaseService.getConfigStatus());
+    
+    // Force Firebase initialization if not ready
+    if (!FirebaseService.initialized && typeof window.firebaseDB !== 'undefined') {
+        FirebaseService.database = window.firebaseDB;
+        FirebaseService.auth = window.firebaseAuth;
+        FirebaseService.initialized = true;
+        console.log('[APP] FirebaseService force-initialized from global Firebase');
+    }
 } else {
     console.warn('[APP] FirebaseService not available');
 }

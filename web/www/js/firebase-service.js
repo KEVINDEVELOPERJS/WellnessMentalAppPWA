@@ -22,6 +22,16 @@ const FirebaseService = {
     init(config = null) {
         console.log('[FIREBASE] init called with config:', config);
         
+        // Check if Firebase is already initialized globally
+        if (typeof window.firebaseDB !== 'undefined' && typeof window.firebaseAuth !== 'undefined') {
+            this.database = window.firebaseDB;
+            this.auth = window.firebaseAuth;
+            this.initialized = true;
+            console.log('[FIREBASE] Using globally initialized Firebase instance');
+            console.log('[FIREBASE] Firebase ready for use');
+            return true;
+        }
+        
         if (config) {
             this.config = { ...this.config, ...config };
             // Save config to localStorage
@@ -96,9 +106,18 @@ const FirebaseService = {
         console.log('[FIREBASE] Firebase initialized:', this.initialized);
         console.log('[FIREBASE] Database available:', !!this.database);
         
+        // Force Firebase initialization if not already initialized
         if (!this.initialized) {
-            console.warn('[FIREBASE] Not initialized, using local fallback');
-            return this.createUserLocal(userData);
+            console.warn('[FIREBASE] Not initialized, attempting to use global Firebase');
+            if (typeof window.firebaseDB !== 'undefined') {
+                this.database = window.firebaseDB;
+                this.auth = window.firebaseAuth;
+                this.initialized = true;
+                console.log('[FIREBASE] Successfully initialized from global Firebase');
+            } else {
+                console.warn('[FIREBASE] Global Firebase not available, using local fallback');
+                return this.createUserLocal(userData);
+            }
         }
 
         try {
@@ -132,7 +151,9 @@ const FirebaseService = {
         } catch (error) {
             console.error('[FIREBASE] Error creating user:', error);
             console.error('[FIREBASE] Error details:', error.message, error.code);
-            return { success: false, error: error.message };
+            // Fallback to local storage on error
+            console.warn('[FIREBASE] Falling back to local storage due to error');
+            return this.createUserLocal(userData);
         }
     },
 
