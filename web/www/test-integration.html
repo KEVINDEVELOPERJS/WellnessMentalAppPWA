@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Integración Alertas - Wellness Mental</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #5BA3B8;
+            margin-bottom: 24px;
+        }
+        .test-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+        }
+        .test-button {
+            background: #5BA3B8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .test-button:hover {
+            background: #4A919F;
+        }
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: none;
+        }
+        .result.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+            display: block;
+        }
+        .result.error {
+            background: #FFEBEE;
+            color: #C62828;
+            display: block;
+        }
+        .result.info {
+            background: #E3F2FD;
+            color: #1565C0;
+            display: block;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .status-badge.active {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .status-badge.inactive {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        .log-container {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+        .log-entry {
+            margin: 4px 0;
+            padding: 4px;
+            border-left: 3px solid #ccc;
+            padding-left: 8px;
+        }
+        .log-entry.success {
+            border-left-color: #4CAF50;
+        }
+        .log-entry.error {
+            border-left-color: #F44336;
+        }
+        .log-entry.info {
+            border-left-color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test de Integración - Sistema de Alertas</h1>
+        
+        <!-- Service Worker Test -->
+        <div class="test-section">
+            <h2>Service Worker <span id="sw-status" class="status-badge inactive">No registrado</span></h2>
+            <button class="test-button" onclick="testServiceWorker()">Verificar Service Worker</button>
+            <div id="sw-result" class="result"></div>
+        </div>
+
+        <!-- Push Notifications Test -->
+        <div class="test-section">
+            <h2>Push Notifications <span id="push-status" class="status-badge inactive">No disponible</span></h2>
+            <button class="test-button" onclick="testPushSupport()">Verificar Soporte</button>
+            <button class="test-button" onclick="requestPushPermission()">Solicitar Permiso</button>
+            <button class="test-button" onclick="testPushNotification()">Probar Notificación</button>
+            <div id="push-result" class="result"></div>
+        </div>
+
+        <!-- Email Service Test -->
+        <div class="test-section">
+            <h2>Email Service <span id="email-status" class="status-badge inactive">No configurado</span></h2>
+            <button class="test-button" onclick="testEmailConfig()">Verificar Configuración</button>
+            <button class="test-button" onclick="testEmailSend()">Probar Envío (Demo)</button>
+            <div id="email-result" class="result"></div>
+        </div>
+
+        <!-- Hub Connection Test -->
+        <div class="test-section">
+            <h2>Hub Connection <span id="hub-status" class="status-badge inactive">No probado</span></h2>
+            <button class="test-button" onclick="testHubConnection()">Probar Conexión</button>
+            <button class="test-button" onclick="testHubListAlerts()">Probar Listar Alertas</button>
+            <button class="test-button" onclick="resetHubConnection()">Resetear a Real Hub</button>
+            <div id="hub-result" class="result"></div>
+        </div>
+
+        <!-- Alerts Module Test -->
+        <div class="test-section">
+            <h2>Alerts Module <span id="alerts-status" class="status-badge inactive">No inicializado</span></h2>
+            <button class="test-button" onclick="testAlertsInit()">Inicializar Módulo</button>
+            <button class="test-button" onclick="testAlertsSync()">Probar Sincronización</button>
+            <div id="alerts-result" class="result"></div>
+        </div>
+
+        <!-- Integration Test -->
+        <div class="test-section">
+            <h2>Test de Integración Completo</h2>
+            <button class="test-button" onclick="runFullIntegrationTest()">Ejecutar Test Completo</button>
+            <div id="integration-result" class="result"></div>
+        </div>
+
+        <!-- Log Container -->
+        <div class="test-section">
+            <h2>Logs del Sistema</h2>
+            <div id="log-container" class="log-container">
+                <div class="log-entry info">Sistema de test inicializado</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/hub-client.js"></script>
+    <script src="js/push-notifications.js"></script>
+    <script src="js/email-service.js"></script>
+    <script src="js/alerts.js"></script>
+
+    <script>
+        // Utility functions
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${type}`;
+        }
+
+        function updateStatus(elementId, isActive, text) {
+            const element = document.getElementById(elementId);
+            element.className = `status-badge ${isActive ? 'active' : 'inactive'}`;
+            element.textContent = text;
+        }
+
+        function addLog(message, type = 'info') {
+            const container = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Service Worker Tests
+        async function testServiceWorker() {
+            addLog('Verificando Service Worker...', 'info');
+            
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        showResult('sw-result', '✅ Service Worker registrado: ' + registration.scope, 'success');
+                        updateStatus('sw-status', true, 'Registrado');
+                        addLog('Service Worker encontrado: ' + registration.scope, 'success');
+                    } else {
+                        showResult('sw-result', '⚠️ Service Worker no registrado. Intentando registrar...', 'info');
+                        const newReg = await navigator.serviceWorker.register('/sw.js');
+                        showResult('sw-result', '✅ Service Worker registrado exitosamente: ' + newReg.scope, 'success');
+                        updateStatus('sw-status', true, 'Registrado');
+                        addLog('Service Worker registrado exitosamente', 'success');
+                    }
+                } catch (error) {
+                    showResult('sw-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error Service Worker: ' + error.message, 'error');
+                }
+            } else {
+                showResult('sw-result', '❌ Service Worker no soportado en este navegador', 'error');
+                updateStatus('sw-status', false, 'No soportado');
+                addLog('Service Worker no soportado', 'error');
+            }
+        }
+
+        // Push Notifications Tests
+        function testPushSupport() {
+            addLog('Verificando soporte de Push Notifications...', 'info');
+            
+            if (typeof PushNotifications !== 'undefined') {
+                const status = PushNotifications.getStatus();
+                showResult('push-result', `✅ PushNotifications disponible. Soportado: ${status.isSupported}, Permiso: ${status.permission}`, 'success');
+                updateStatus('push-status', status.isSupported, status.isSupported ? 'Disponible' : 'No soportado');
+                addLog('PushNotifications disponible: ' + JSON.stringify(status), 'success');
+            } else {
+                showResult('push-result', '❌ Módulo PushNotifications no disponible', 'error');
+                updateStatus('push-status', false, 'No disponible');
+                addLog('Módulo PushNotifications no encontrado', 'error');
+            }
+        }
+
+        async function requestPushPermission() {
+            addLog('Solicitando permiso de notificaciones...', 'info');
+            
+            if (typeof PushNotifications !== 'undefined') {
+                try {
+                    const granted = await PushNotifications.requestPermission();
+                    if (granted) {
+                        showResult('push-result', '✅ Permiso concedido', 'success');
+                        updateStatus('push-status', true, 'Permiso concedido');
+                        addLog('Permiso de notificaciones concedido', 'success');
+                    } else {
+                        showResult('push-result', '❌ Permiso denegado', 'error');
+                        updateStatus('push-status', false, 'Permiso denegado');
+                        addLog('Permiso de notificaciones denegado', 'error');
+                    }
+                } catch (error) {
+                    showResult('push-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error solicitando permiso: ' + error.message, 'error');
+                }
+            } else {
+                showResult('push-result', '❌ Módulo no disponible', 'error');
+            }
+        }
+
+        async function testPushNotification() {
+            addLog('Enviando notificación de prueba...', 'info');
+            
+            if (typeof PushNotifications !== 'undefined') {
+                try {
+                    const sent = await PushNotifications.testNotification();
+                    if (sent) {
+                        showResult('push-result', '✅ Notificación de prueba enviada', 'success');
+                        addLog('Notificación de prueba enviada exitosamente', 'success');
+                    } else {
+                        showResult('push-result', '❌ No se pudo enviar notificación', 'error');
+                        addLog('Falló envío de notificación de prueba', 'error');
+                    }
+                } catch (error) {
+                    showResult('push-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error en notificación de prueba: ' + error.message, 'error');
+                }
+            } else {
+                showResult('push-result', '❌ Módulo no disponible', 'error');
+            }
+        }
+
+        // Email Service Tests
+        function testEmailConfig() {
+            addLog('Verificando configuración de Email Service...', 'info');
+            
+            if (typeof EmailService !== 'undefined') {
+                const status = EmailService.getConfigStatus();
+                const configText = status.isConfigured ? 'Configurado' : 'Modo Demo';
+                showResult('push-result', `✅ EmailService disponible. Estado: ${configText}`, 'success');
+                updateStatus('email-status', status.isConfigured, configText);
+                addLog('EmailService configuración: ' + JSON.stringify(status), 'success');
+            } else {
+                showResult('email-result', '❌ Módulo EmailService no disponible', 'error');
+                updateStatus('email-status', false, 'No disponible');
+                addLog('Módulo EmailService no encontrado', 'error');
+            }
+        }
+
+        async function testEmailSend() {
+            addLog('Enviando email de prueba (modo demo)...', 'info');
+            
+            if (typeof EmailService !== 'undefined') {
+                try {
+                    const result = await EmailService.testConfiguration('test@example.com');
+                    if (result.success) {
+                        showResult('email-result', '✅ Email de prueba enviado (modo demo)', 'success');
+                        addLog('Email de prueba enviado: ' + result.message, 'success');
+                    } else {
+                        showResult('email-result', '❌ Error: ' + result.error, 'error');
+                        addLog('Error en email de prueba: ' + result.error, 'error');
+                    }
+                } catch (error) {
+                    showResult('email-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error en email de prueba: ' + error.message, 'error');
+                }
+            } else {
+                showResult('email-result', '❌ Módulo no disponible', 'error');
+            }
+        }
+
+        // Hub Connection Tests
+        async function testHubConnection() {
+            addLog('Probando conexión con Hub...', 'info');
+            
+            if (typeof HubClient !== 'undefined') {
+                try {
+                    const result = await HubClient.testConnection();
+                    if (result.success) {
+                        const mode = result.fallback ? '(Modo Local)' : '(Modo Real)';
+                        showResult('hub-result', `✅ Hub accesible ${mode}. Alertas: ${result.data.alertas?.length || 0}`, 'success');
+                        updateStatus('hub-status', true, 'Conectado');
+                        addLog('Hub conectado exitosamente: ' + mode, 'success');
+                    } else {
+                        showResult('hub-result', '❌ Error de conexión: ' + result.error, 'error');
+                        updateStatus('hub-status', false, 'Error');
+                        addLog('Error de conexión Hub: ' + result.error, 'error');
+                    }
+                } catch (error) {
+                    showResult('hub-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error probando Hub: ' + error.message, 'error');
+                }
+            } else {
+                showResult('hub-result', '❌ Módulo HubClient no disponible', 'error');
+                updateStatus('hub-status', false, 'No disponible');
+            }
+        }
+
+        async function testHubListAlerts() {
+            addLog('Listando alertas del Hub...', 'info');
+            
+            if (typeof HubClient !== 'undefined') {
+                try {
+                    const data = await HubClient.listAlerts();
+                    if (data.ok && data.alertas) {
+                        showResult('hub-result', `✅ ${data.alertas.length} alertas obtenidas del Hub`, 'success');
+                        addLog(`Alertas obtenidas: ${data.alertas.length}`, 'success');
+                    } else {
+                        showResult('hub-result', '❌ Error: ' + (data.error || 'Error desconocido'), 'error');
+                        addLog('Error listando alertas: ' + (data.error || 'Error desconocido'), 'error');
+                    }
+                } catch (error) {
+                    showResult('hub-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error listando alertas: ' + error.message, 'error');
+                }
+            } else {
+                showResult('hub-result', '❌ Módulo no disponible', 'error');
+            }
+        }
+
+        function resetHubConnection() {
+            addLog('Reseteando conexión Hub a modo real...', 'info');
+            
+            if (typeof HubClient !== 'undefined') {
+                HubClient.resetToRealHub();
+                showResult('hub-result', '✅ Hub reseteado a modo real', 'success');
+                addLog('Hub reseteado a modo real', 'success');
+            } else {
+                showResult('hub-result', '❌ Módulo no disponible', 'error');
+            }
+        }
+
+        // Alerts Module Tests
+        async function testAlertsInit() {
+            addLog('Inicializando módulo de alertas...', 'info');
+            
+            if (typeof AlertsModule !== 'undefined') {
+                try {
+                    await AlertsModule.init();
+                    showResult('alerts-result', '✅ Módulo de alertas inicializado', 'success');
+                    updateStatus('alerts-status', true, 'Inicializado');
+                    addLog('Módulo de alertas inicializado exitosamente', 'success');
+                } catch (error) {
+                    showResult('alerts-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error inicializando alertas: ' + error.message, 'error');
+                }
+            } else {
+                showResult('alerts-result', '❌ Módulo AlertsModule no disponible', 'error');
+                updateStatus('alerts-status', false, 'No disponible');
+            }
+        }
+
+        async function testAlertsSync() {
+            addLog('Probando sincronización de alertas...', 'info');
+            
+            if (typeof AlertsModule !== 'undefined') {
+                try {
+                    const result = await AlertsModule.syncRemoteAlerts();
+                    if (result.error) {
+                        showResult('alerts-result', `⚠️ Sincronización con errores: ${result.error}. Alertas: ${result.synced}`, 'info');
+                        addLog('Sincronización con errores: ' + result.error, 'error');
+                    } else {
+                        showResult('alerts-result', `✅ Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`, 'success');
+                        addLog(`Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`, 'success');
+                    }
+                } catch (error) {
+                    showResult('alerts-result', '❌ Error: ' + error.message, 'error');
+                    addLog('Error en sincronización: ' + error.message, 'error');
+                }
+            } else {
+                showResult('alerts-result', '❌ Módulo no disponible', 'error');
+            }
+        }
+
+        // Full Integration Test
+        async function runFullIntegrationTest() {
+            addLog('Iniciando test de integración completo...', 'info');
+            showResult('integration-result', '⏳ Ejecutando test completo...', 'info');
+            
+            const results = [];
+            
+            // Test 1: Service Worker
+            try {
+                await testServiceWorker();
+                results.push('Service Worker: ✅');
+            } catch (e) {
+                results.push('Service Worker: ❌');
+            }
+            
+            // Test 2: Push Notifications
+            try {
+                await testPushSupport();
+                results.push('Push Notifications: ✅');
+            } catch (e) {
+                results.push('Push Notifications: ❌');
+            }
+            
+            // Test 3: Email Service
+            try {
+                testEmailConfig();
+                results.push('Email Service: ✅');
+            } catch (e) {
+                results.push('Email Service: ❌');
+            }
+            
+            // Test 4: Hub Connection
+            try {
+                await testHubConnection();
+                results.push('Hub Connection: ✅');
+            } catch (e) {
+                results.push('Hub Connection: ❌');
+            }
+            
+            // Test 5: Alerts Module
+            try {
+                await testAlertsInit();
+                results.push('Alerts Module: ✅');
+            } catch (e) {
+                results.push('Alerts Module: ❌');
+            }
+            
+            const passed = results.filter(r => r.includes('✅')).length;
+            const total = results.length;
+            
+            const summary = `Test completado: ${passed}/${total} tests pasaron\n${results.join('\n')}`;
+            
+            if (passed === total) {
+                showResult('integration-result', '✅ ' + summary, 'success');
+                addLog('Test completo: Todos los tests pasaron', 'success');
+            } else {
+                showResult('integration-result', '⚠️ ' + summary, 'info');
+                addLog('Test completo: ' + passed + '/' + total + ' tests pasaron', 'info');
+            }
+        }
+
+        // Auto-run some checks on load
+        window.addEventListener('load', () => {
+            addLog('Página de test cargada', 'info');
+            testServiceWorker();
+            testPushSupport();
+            testEmailConfig();
+        });
+    </script>
+</body>
+</html>
