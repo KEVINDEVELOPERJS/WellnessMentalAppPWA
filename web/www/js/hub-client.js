@@ -437,9 +437,8 @@ const HubClient = {
         console.log('[HUB CLIENT] Note: Google Apps Script has CORS restrictions for web browsers');
         console.log('[HUB CLIENT] Use configureBackendApi() to configure your own backend for production');
         this.resetToLocalFallback();
-    }
-};
-    
+    },
+
     /**
      * Enable/disable local fallback mode
      */
@@ -447,14 +446,14 @@ const HubClient = {
         this.useLocalFallback = enabled;
         console.log('[HUB CLIENT] Local fallback mode:', enabled);
     },
-    
+
     /**
      * Reset to try real hub again
      */
     resetToRealHub() {
-        this.useLocalFallback = false;
-        this.retryCount = 0;
-        console.log('[HUB CLIENT] Reset to try real hub connection');
+        console.log('[HUB CLIENT] Note: Google Apps Script has CORS restrictions for web browsers');
+        console.log('[HUB CLIENT] Use configureBackendApi() to configure your own backend for production');
+        this.resetToLocalFallback();
     }
 };
 

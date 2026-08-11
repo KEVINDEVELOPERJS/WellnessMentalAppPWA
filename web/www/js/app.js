@@ -913,6 +913,12 @@ async function updateAlertsCounter() {
     try {
         console.log('[DASHBOARD] Updating alerts counter using HubClient');
         
+        // Check if HubClient is available
+        if (typeof HubClient === 'undefined') {
+            console.error('[DASHBOARD] HubClient not available');
+            return;
+        }
+        
         const data = await HubClient.listAlerts();
         
         if (data.ok && data.alertas) {
@@ -987,6 +993,12 @@ function sendWebNotification(count, latestAlert) {
 async function updateAlertsLowMediumCounter() {
     try {
         console.log('[DASHBOARD] Updating alerts low/medium counter using HubClient');
+        
+        // Check if HubClient is available
+        if (typeof HubClient === 'undefined') {
+            console.error('[DASHBOARD] HubClient not available');
+            return;
+        }
         
         const data = await HubClient.listAlerts();
         

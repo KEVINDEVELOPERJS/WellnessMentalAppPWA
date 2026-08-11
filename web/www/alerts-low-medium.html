@@ -99,6 +99,40 @@
     </div>
 
     <script src="js/hub-client.js"></script>
+    <script src="js/push-notifications.js"></script>
+    <script src="js/email-service.js"></script>
     <script src="js/alerts-low-medium.js"></script>
+    
+    <!-- Initialize HubClient if not already defined -->
+    <script>
+        if (typeof HubClient === 'undefined') {
+            console.error('[HUB CLIENT] HubClient not loaded, creating fallback');
+            window.HubClient = {
+                useLocalFallback: true,
+                webSimulationMode: true,
+                async listAlerts() {
+                    return { ok: true, alertas: [], _fallback: true };
+                },
+                async publishAlert() {
+                    return { ok: true, _fallback: true };
+                },
+                async updateAlertStatus() {
+                    return { ok: true, _fallback: true };
+                },
+                async testConnection() {
+                    return { success: true, fallback: true, data: { alertas: [] } };
+                }
+            };
+        }
+    </script>
+    
+    <!-- Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => console.log('Service Worker registered:', registration.scope))
+                .catch(error => console.error('Service Worker registration failed:', error));
+        }
+    </script>
 </body>
 </html>
