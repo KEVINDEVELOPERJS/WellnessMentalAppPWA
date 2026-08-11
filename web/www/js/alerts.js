@@ -265,11 +265,43 @@ const AlertsModule = {
 
     async syncRemoteAlerts() {
         try {
-            console.log('[ALERTS] Fetching alerts using HubClient');
-            const data = await HubClient.listAlerts();
+            console.log('[ALERTS] Fetching alerts from Firebase');
             
-            if (data.ok && data.alertas) {
-                const allAlerts = this.transformHubAlerts(data.alertas);
+            // Check if Firebase is available and configured
+            const firebaseStatus = FirebaseService.getConfigStatus();
+            const useFirebase = firebaseStatus.configured && firebaseStatus.initialized;
+
+            let alertsData;
+            
+            if (useFirebase) {
+                // Use Firebase for real-time data
+                const result = await FirebaseService.getAlerts();
+                
+                if (result.success) {
+                    alertsData = result.alerts;
+                    console.log('[ALERTS] Alerts fetched from Firebase:', alertsData.length);
+                } else {
+                    console.warn('[ALERTS] Firebase fetch failed, using HubClient fallback');
+                    const hubData = await HubClient.listAlerts();
+                    if (hubData.ok && hubData.alertas) {
+                        alertsData = hubData.alertas;
+                    } else {
+                        alertsData = [];
+                    }
+                }
+            } else {
+                // Use HubClient fallback (simulated data)
+                console.log('[ALERTS] Using HubClient for alerts (Firebase not configured)');
+                const hubData = await HubClient.listAlerts();
+                if (hubData.ok && hubData.alertas) {
+                    alertsData = hubData.alertas;
+                } else {
+                    alertsData = [];
+                }
+            }
+            
+            if (alertsData && alertsData.length > 0) {
+                const allAlerts = this.transformHubAlerts(alertsData);
                 
                 // Track previous alerts to detect new ones
                 const previousRemoteIds = new Set(this.alerts.map(a => a.remoteId));
@@ -312,10 +344,10 @@ const AlertsModule = {
                 };
             } else {
                 return { 
-                    error: data.error || 'Error del hub', 
                     synced: 0, 
                     new: 0, 
-                    hubAccessible: false 
+                    hubAccessible: true,
+                    error: null
                 };
             }
         } catch (error) {

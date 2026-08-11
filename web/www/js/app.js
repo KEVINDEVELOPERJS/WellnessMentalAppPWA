@@ -399,45 +399,107 @@ class AuthController {
                 return { success: false, error: 'El grado escolar es obligatorio para estudiantes' };
             }
             
-            // Check if email already exists
-            const existingUsers = await this.db.getByIndex(DB_CONFIG.tables.users, 'email', userData.email);
-            if (existingUsers.length > 0) {
-                return { success: false, error: 'Este correo ya está registrado' };
+            // Check if Firebase is available and configured
+            const firebaseStatus = FirebaseService.getConfigStatus();
+            const useFirebase = firebaseStatus.configured && firebaseStatus.initialized;
+
+            if (useFirebase) {
+                // Check if email already exists in Firebase
+                const existingUser = await FirebaseService.getUserByEmail(userData.email);
+                if (existingUser.success) {
+                    return { success: false, error: 'Este correo ya está registrado' };
+                }
+
+                // Hash password
+                const passwordHash = await Utils.hashPassword(userData.password);
+                
+                const firebaseUserData = {
+                    nombre: userData.name,
+                    email: userData.email.toLowerCase(),
+                    password_hash: passwordHash,
+                    edad: userData.age,
+                    grado: userData.grade || 'N/A',
+                    rol: userData.role,
+                    fecha_registro: new Date().toISOString(),
+                    estado: 'activo',
+                    consentimiento_padres: userData.age >= 16 || userData.role === 'psicologo' ? 1 : 0
+                };
+                
+                const result = await FirebaseService.createUser(firebaseUserData);
+                
+                if (result.success) {
+                    // Also save to IndexedDB for offline support
+                    const user = {
+                        name: userData.name,
+                        email: userData.email.toLowerCase(),
+                        passwordHash,
+                        age: userData.age,
+                        grade: userData.grade || 'N/A',
+                        role: userData.role,
+                        createdAt: Utils.now(),
+                        consentimientoPadres: userData.age >= 16 || userData.role === 'psicologo',
+                        estado: 'activo',
+                        firebaseId: result.user.id
+                    };
+                    
+                    const userId = await this.db.add(DB_CONFIG.tables.users, user);
+                    
+                    // Initialize points
+                    await this.db.add(DB_CONFIG.tables.points, {
+                        userId,
+                        puntosTotales: 0,
+                        nivel: 1,
+                        xpNivelActual: 0,
+                        fechaActualizacion: Utils.now()
+                    });
+                    
+                    console.log('[AUTH] User registered in Firebase and IndexedDB:', userData.email);
+                    
+                    return { success: true, user: { ...user, id: userId } };
+                } else {
+                    return { success: false, error: result.error || 'Error al registrar usuario' };
+                }
+            } else {
+                // Fallback to IndexedDB only
+                console.log('[AUTH] Using IndexedDB for registration (Firebase not configured)');
+                
+                // Check if email already exists
+                const existingUsers = await this.db.getByIndex(DB_CONFIG.tables.users, 'email', userData.email);
+                if (existingUsers.length > 0) {
+                    return { success: false, error: 'Este correo ya está registrado' };
+                }
+                
+                // Hash password
+                const passwordHash = await Utils.hashPassword(userData.password);
+                
+                // Create user
+                const user = {
+                    name: userData.name,
+                    email: userData.email.toLowerCase(),
+                    passwordHash,
+                    age: userData.age,
+                    grade: userData.grade || 'N/A',
+                    role: userData.role,
+                    createdAt: Utils.now(),
+                    consentimientoPadres: userData.age >= 16 || userData.role === 'psicologo',
+                    estado: 'activo'
+                };
+                
+                const userId = await this.db.add(DB_CONFIG.tables.users, user);
+                
+                // Initialize points
+                await this.db.add(DB_CONFIG.tables.points, {
+                    userId,
+                    puntosTotales: 0,
+                    nivel: 1,
+                    xpNivelActual: 0,
+                    fechaActualizacion: Utils.now()
+                });
+                
+                console.log('[AUTH] User registered in IndexedDB:', userData.email);
+                
+                return { success: true, user: { ...user, id: userId } };
             }
-            
-            // Hash password
-            const passwordHash = await Utils.hashPassword(userData.password);
-            
-            // Create user
-            const user = {
-                name: userData.name,
-                email: userData.email.toLowerCase(),
-                passwordHash,
-                age: userData.age,
-                grade: userData.grade || 'N/A',
-                role: userData.role,
-                createdAt: Utils.now(),
-                consentimientoPadres: userData.age >= 16 || userData.role === 'psicologo',
-                estado: 'activo'
-            };
-            
-            const userId = await this.db.add(DB_CONFIG.tables.users, user);
-            
-            // Initialize points
-            await this.db.add(DB_CONFIG.tables.points, {
-                userId,
-                puntosTotales: 0,
-                nivel: 1,
-                xpNivelActual: 0,
-                fechaActualizacion: Utils.now()
-            });
-            
-            // Register psychologist in hub if role is psychologist
-            if (userData.role === 'psicologo') {
-                await this.registerPsicologoToHub(user);
-            }
-            
-            return { success: true, user: { ...user, id: userId } };
         } catch (error) {
             console.error('Registration error:', error);
             return { success: false, error: 'Error al registrar usuario' };
@@ -489,19 +551,89 @@ class AuthController {
     
     async login(email, password) {
         try {
-            const users = await this.db.getByIndex(DB_CONFIG.tables.users, 'email', email.toLowerCase());
+            // Check if Firebase is available and configured
+            const firebaseStatus = FirebaseService.getConfigStatus();
+            const useFirebase = firebaseStatus.configured && firebaseStatus.initialized;
+
+            let user;
             
-            if (users.length === 0) {
-                return { success: false, error: 'Correo o contraseña incorrectos' };
+            if (useFirebase) {
+                // Try Firebase first
+                const firebaseUser = await FirebaseService.getUserByEmail(email.toLowerCase());
+                
+                if (firebaseUser.success) {
+                    user = firebaseUser.user;
+                    
+                    // Verify password
+                    const isValid = await Utils.verifyPassword(password, user.password_hash);
+                    
+                    if (!isValid) {
+                        return { success: false, error: 'Correo o contraseña incorrectos' };
+                    }
+                    
+                    // Update IndexedDB for offline support
+                    const localUser = {
+                        name: user.nombre,
+                        email: user.email,
+                        passwordHash: user.password_hash,
+                        age: user.edad,
+                        grade: user.grado,
+                        role: user.rol,
+                        createdAt: user.fecha_registro,
+                        consentimientoPadres: user.consentimiento_padres,
+                        estado: user.estado,
+                        firebaseId: user.id
+                    };
+                    
+                    // Check if user exists in IndexedDB
+                    const existingUsers = await this.db.getByIndex(DB_CONFIG.tables.users, 'email', email.toLowerCase());
+                    if (existingUsers.length === 0) {
+                        await this.db.add(DB_CONFIG.tables.users, localUser);
+                    } else {
+                        // Update existing user
+                        await this.db.update(DB_CONFIG.tables.users, existingUsers[0].id, localUser);
+                    }
+                    
+                    console.log('[AUTH] User logged in via Firebase:', email);
+                } else {
+                    // Firebase failed, try IndexedDB fallback
+                    console.log('[AUTH] Firebase login failed, trying IndexedDB');
+                    const users = await this.db.getByIndex(DB_CONFIG.tables.users, 'email', email.toLowerCase());
+                    
+                    if (users.length === 0) {
+                        return { success: false, error: 'Correo o contraseña incorrectos' };
+                    }
+                    
+                    user = users[0];
+                    const isValid = await Utils.verifyPassword(password, user.passwordHash);
+                    
+                    if (!isValid) {
+                        return { success: false, error: 'Correo o contraseña incorrectos' };
+                    }
+                    
+                    console.log('[AUTH] User logged in via IndexedDB fallback:', email);
+                }
+            } else {
+                // Fallback to IndexedDB only
+                console.log('[AUTH] Using IndexedDB for login (Firebase not configured)');
+                
+                const users = await this.db.getByIndex(DB_CONFIG.tables.users, 'email', email.toLowerCase());
+                
+                if (users.length === 0) {
+                    return { success: false, error: 'Correo o contraseña incorrectos' };
+                }
+                
+                user = users[0];
+                const isValid = await Utils.verifyPassword(password, user.passwordHash);
+                
+                if (!isValid) {
+                    return { success: false, error: 'Correo o contraseña incorrectos' };
+                }
+                
+                console.log('[AUTH] User logged in via IndexedDB:', email);
             }
             
-            const user = users[0];
-            const isValid = await Utils.verifyPassword(password, user.passwordHash);
-            
-            if (!isValid) {
-                return { success: false, error: 'Correo o contraseña incorrectos' };
-            }
-            
+            // Check user status
             if (user.estado !== 'activo') {
                 return { success: false, error: 'La cuenta está inactiva' };
             }
