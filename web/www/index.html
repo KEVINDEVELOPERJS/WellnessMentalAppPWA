@@ -324,15 +324,12 @@
         </div>
     </div>
 
+    <!-- Load HubClient first, then dependencies, then app -->
     <script src="js/hub-client.js"></script>
-    <script src="js/push-notifications.js"></script>
-    <script src="js/email-service.js"></script>
-    <script src="js/app.js"></script>
-    
-    <!-- Initialize HubClient if not already defined -->
     <script>
+        // Ensure HubClient is available before loading other scripts
         if (typeof HubClient === 'undefined') {
-            console.error('[HUB CLIENT] HubClient not loaded, creating fallback');
+            console.error('[INDEX] HubClient failed to load, creating emergency fallback');
             window.HubClient = {
                 useLocalFallback: true,
                 webSimulationMode: true,
@@ -351,6 +348,9 @@
             };
         }
     </script>
+    <script src="js/push-notifications.js"></script>
+    <script src="js/email-service.js"></script>
+    <script src="js/app.js"></script>
     
     <!-- Register Service Worker -->
     <script>

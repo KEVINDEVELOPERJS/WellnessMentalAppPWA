@@ -5,6 +5,48 @@ const AppState = {
     db: null
 };
 
+// Ensure HubClient is available
+if (typeof HubClient === 'undefined') {
+    console.warn('[APP] HubClient not available, using fallback');
+    window.HubClient = {
+        useLocalFallback: true,
+        webSimulationMode: true,
+        async listAlerts() {
+            return { ok: true, alertas: [], _fallback: true };
+        },
+        async publishAlert() {
+            return { ok: true, _fallback: true };
+        },
+        async updateAlertStatus() {
+            return { ok: true, _fallback: true };
+        },
+        async testConnection() {
+            return { success: true, fallback: true, data: { alertas: [] } };
+        }
+    };
+}
+
+// HubClient Fallback - Ensure HubClient is always available
+if (typeof HubClient === 'undefined') {
+    console.log('[APP] HubClient not loaded, creating fallback');
+    window.HubClient = {
+        useLocalFallback: true,
+        webSimulationMode: true,
+        async listAlerts() {
+            return { ok: true, alertas: [], _fallback: true };
+        },
+        async publishAlert() {
+            return { ok: true, _fallback: true };
+        },
+        async updateAlertStatus() {
+            return { ok: true, _fallback: true };
+        },
+        async testConnection() {
+            return { success: true, fallback: true, data: { alertas: [] } };
+        }
+    };
+}
+
 // Database Configuration
 const DB_CONFIG = {
     name: 'wellness_mental',
