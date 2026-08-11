@@ -1,5 +1,5 @@
 // Alerts Module for Psychologists - Based on Android AlertasPsicologoActivity
-// With Hub Synchronization (like Android)
+// With Hub Synchronization, Push Notifications, and Email Service (like Android)
 
 const AlertsModule = {
     alerts: [],
@@ -8,6 +8,8 @@ const AlertsModule = {
     pollingInterval: null,
     userRol: null,
     db: null,
+    pushEnabled: false,
+    emailEnabled: false,
 
     async init() {
         console.log('[ALERTS] Initializing alerts module');
@@ -21,6 +23,12 @@ const AlertsModule = {
             
             // Initialize database
             await this.initDatabase();
+            
+            // Initialize push notifications
+            await this.initPushNotifications();
+            
+            // Initialize email service
+            this.initEmailService();
             
             // Load hub URL
             this.loadHubUrl();
@@ -62,6 +70,121 @@ const AlertsModule = {
         return true;
     },
 
+    async initPushNotifications() {
+        try {
+            console.log('[ALERTS] Initializing push notifications');
+            
+            if (typeof PushNotifications !== 'undefined') {
+                const initialized = await PushNotifications.init();
+                this.pushEnabled = initialized;
+                
+                if (initialized) {
+                    console.log('[ALERTS] Push notifications enabled');
+                    
+                    // Request permission if not granted
+                    if (PushNotifications.permission !== 'granted') {
+                        console.log('[ALERTS] Requesting push notification permission');
+                        const granted = await PushNotifications.requestPermission();
+                        this.pushEnabled = granted;
+                    }
+                    
+                    // Listen for new alerts from push
+                    window.addEventListener('newAlert', (event) => {
+                        console.log('[ALERTS] New alert received via push:', event.detail);
+                        this.handleNewPushAlert(event.detail);
+                    });
+                } else {
+                    console.warn('[ALERTS] Push notifications not available');
+                }
+            } else {
+                console.warn('[ALERTS] PushNotifications module not available');
+            }
+        } catch (error) {
+            console.error('[ALERTS] Error initializing push notifications:', error);
+            this.pushEnabled = false;
+        }
+    },
+
+    initEmailService() {
+        try {
+            console.log('[ALERTS] Initializing email service');
+            
+            if (typeof EmailService !== 'undefined') {
+                this.emailEnabled = true;
+                console.log('[ALERTS] Email service enabled');
+                
+                // Check configuration status
+                const configStatus = EmailService.getConfigStatus();
+                console.log('[ALERTS] Email service config status:', configStatus);
+                
+                if (!configStatus.isConfigured) {
+                    console.warn('[ALERTS] Email service not fully configured (using demo mode)');
+                }
+            } else {
+                console.warn('[ALERTS] EmailService module not available');
+                this.emailEnabled = false;
+            }
+        } catch (error) {
+            console.error('[ALERTS] Error initializing email service:', error);
+            this.emailEnabled = false;
+        }
+    },
+
+    handleNewPushAlert(alert) {
+        // Process new alert received via push notification
+        console.log('[ALERTS] Processing new push alert:', alert);
+        
+        // Add to alerts array if not already present
+        const existingIndex = this.alerts.findIndex(a => 
+            a.remoteId === alert.remoteId || a.id === alert.id
+        );
+        
+        if (existingIndex === -1) {
+            // Transform and add new alert
+            const transformedAlert = this.transformHubAlerts([alert])[0];
+            this.alerts.unshift(transformedAlert);
+            
+            // Save to database
+            this.saveAlertsToDatabase();
+            
+            // Update UI
+            this.showAlerts();
+            
+            // Show toast notification
+            this.showToast(`Nueva alerta: ${alert.nombreEstudiante || 'Estudiante'}`);
+            
+            // If high risk, also send email notification
+            if (alert.nivelRiesgo?.toLowerCase() === 'alto' && this.emailEnabled) {
+                this.sendEmailForAlert(alert);
+            }
+        }
+    },
+
+    async sendEmailForAlert(alert) {
+        if (!this.emailEnabled) {
+            console.log('[ALERTS] Email service not enabled, skipping email');
+            return;
+        }
+        
+        try {
+            console.log('[ALERTS] Sending email for alert:', alert.remoteId);
+            
+            // Get psychologist email from localStorage or user data
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            const psicologoEmail = userData.email || 'psicologo@wellnessmental.com';
+            
+            const result = await EmailService.enviarAlertaPrioritaria(psicologoEmail, alert);
+            
+            if (result.success) {
+                console.log('[ALERTS] Email sent successfully for alert:', alert.remoteId);
+            } else {
+                console.error('[ALERTS] Failed to send email:', result.error);
+            }
+        } catch (error) {
+            console.error('[ALERTS] Error sending email for alert:', error);
+        }
+    },
+
     async initDatabase() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open('wellness_mental', 2);
@@ -87,21 +210,17 @@ const AlertsModule = {
     },
 
     loadHubUrl() {
-        // Hub URL configuration disabled - using local fallback only
-        // this.hubUrl = HubClient.getHubUrl();
-        // console.log('[ALERTS] Hub URL loaded:', this.hubUrl ? 'Configured' : 'Not configured');
-        // 
-        // // Force configure if not set
-        // if (!this.hubUrl) {
-        //     const defaultUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
-        //     localStorage.setItem('alert_sync_url', defaultUrl);
-        //     this.hubUrl = defaultUrl;
-        //     console.log('[ALERTS] Hub URL configured automatically:', defaultUrl);
-        // }
+        // Load hub URL from HubClient (now enabled for real connection)
+        this.hubUrl = HubClient.getHubUrl();
+        console.log('[ALERTS] Hub URL loaded:', this.hubUrl ? 'Configured' : 'Not configured');
         
-        // Use local fallback mode
-        this.hubUrl = null;
-        console.log('[ALERTS] Using local fallback mode only');
+        // Force configure if not set
+        if (!this.hubUrl) {
+            const defaultUrl = 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec';
+            localStorage.setItem('alert_sync_url', defaultUrl);
+            this.hubUrl = defaultUrl;
+            console.log('[ALERTS] Hub URL configured automatically:', defaultUrl);
+        }
     },
 
     async syncAndLoad(showToast = false) {
@@ -151,6 +270,10 @@ const AlertsModule = {
             
             if (data.ok && data.alertas) {
                 const allAlerts = this.transformHubAlerts(data.alertas);
+                
+                // Track previous alerts to detect new ones
+                const previousRemoteIds = new Set(this.alerts.map(a => a.remoteId));
+                
                 // Filter only high risk alerts for main alerts page
                 this.alerts = allAlerts.filter(alert => {
                     const risk = alert.nivelRiesgo?.toLowerCase() || '';
@@ -162,16 +285,28 @@ const AlertsModule = {
                 // Save to local database
                 await this.saveAlertsToDatabase();
                 
-                const newAlerts = this.alerts.length - previousCount;
+                // Detect new alerts and trigger notifications
+                const newAlerts = this.alerts.filter(alert => 
+                    !previousRemoteIds.has(alert.remoteId)
+                );
                 
-                // Notify new alerts
-                if (newAlerts > 0 && previousCount > 0) {
-                    this.notifyNewAlerts(newAlerts);
+                console.log('[ALERTS] New alerts detected:', newAlerts.length);
+                
+                // Process new alerts with push notifications and emails
+                for (const newAlert of newAlerts) {
+                    await this.processNewAlert(newAlert);
+                }
+                
+                const newAlertsCount = newAlerts.length;
+                
+                // Notify new alerts via UI
+                if (newAlertsCount > 0 && previousCount > 0) {
+                    this.notifyNewAlerts(newAlertsCount);
                 }
                 
                 return { 
                     synced: this.alerts.length, 
-                    new: newAlerts, 
+                    new: newAlertsCount, 
                     hubAccessible: true,
                     error: null
                 };
@@ -191,6 +326,88 @@ const AlertsModule = {
                 new: 0, 
                 hubAccessible: false 
             };
+        }
+    },
+
+    async processNewAlert(alert) {
+        console.log('[ALERTS] Processing new alert:', alert.remoteId);
+        
+        try {
+            // Check device origin to determine if it's from another device
+            const isFromOtherDevice = alert.deviceOrigen && 
+                                    alert.deviceOrigen !== 'web' && 
+                                    alert.deviceOrigen !== navigator.userAgent;
+            
+            if (isFromOtherDevice) {
+                console.log('[ALERTS] Alert from other device:', alert.deviceOrigen);
+                
+                // Show push notification for cross-device alerts
+                if (this.pushEnabled) {
+                    await this.showPushNotification(alert);
+                }
+                
+                // Send email for high-risk alerts from other devices
+                if (alert.nivelRiesgo?.toLowerCase() === 'alto' && this.emailEnabled) {
+                    await this.sendEmailForAlert(alert);
+                }
+            }
+            
+            // Log the alert processing
+            this.logAlertProcessing(alert, isFromOtherDevice);
+            
+        } catch (error) {
+            console.error('[ALERTS] Error processing new alert:', error);
+        }
+    },
+
+    async showPushNotification(alert) {
+        try {
+            if (typeof PushNotifications !== 'undefined' && this.pushEnabled) {
+                console.log('[ALERTS] Showing push notification for alert:', alert.remoteId);
+                
+                // Use the push notification service
+                PushNotifications.handleNewAlert(alert);
+                
+                // Also show browser notification if permission granted
+                if (Notification.permission === 'granted') {
+                    const notification = new Notification(`🚨 Alerta ${alert.nivelRiesgo?.toUpperCase()}`, {
+                        body: `${alert.nombreEstudiante || 'Estudiante'} - ${alert.extracto || 'Nueva alerta'}`,
+                        icon: '/images/app-icon.jpeg',
+                        tag: `alerta-${alert.remoteId}`,
+                        requireInteraction: alert.nivelRiesgo?.toLowerCase() === 'alto',
+                        data: {
+                            url: '/alerts.html',
+                            alertId: alert.remoteId
+                        }
+                    });
+                    
+                    notification.onclick = () => {
+                        window.focus();
+                        notification.close();
+                        // Show alert detail
+                        this.showAlertDetail(alert.id);
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('[ALERTS] Error showing push notification:', error);
+        }
+    },
+
+    logAlertProcessing(alert, isFromOtherDevice) {
+        try {
+            const processingLogs = JSON.parse(localStorage.getItem('alert_processing_logs') || '[]');
+            processingLogs.push({
+                alertId: alert.remoteId,
+                timestamp: new Date().toISOString(),
+                deviceOrigen: alert.deviceOrigen,
+                isFromOtherDevice,
+                nivelRiesgo: alert.nivelRiesgo,
+                processed: true
+            });
+            localStorage.setItem('alert_processing_logs', JSON.stringify(processingLogs));
+        } catch (error) {
+            console.error('[ALERTS] Error logging alert processing:', error);
         }
     },
 
@@ -361,9 +578,16 @@ const AlertsModule = {
         list.classList.remove('hidden');
         emptyState.classList.add('hidden');
         
-        list.innerHTML = this.alerts.map(alert => {
+        // Get current filter
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+        
+        // Filter alerts based on device
+        const filteredAlerts = this.filterAlertsByDevice(this.alerts, activeFilter);
+        
+        list.innerHTML = filteredAlerts.map(alert => {
             const riskLevel = this.mapRiskLevel(alert.nivelRiesgo);
             const status = this.mapStatus(alert.estado);
+            const deviceInfo = this.getDeviceInfo(alert.deviceOrigen);
             
             return `
             <div class="alert-item risk-${riskLevel} ${status === 'resolved' ? 'resolved' : ''}" data-alert-id="${alert.id}">
@@ -373,7 +597,12 @@ const AlertsModule = {
                     <div class="alert-item-type">${alert.tipo === 'evaluacion' ? 'Evaluación psicológica' : 'Chat con IA'}</div>
                     <div class="alert-item-extract">${alert.extracto || 'Sin descripción'}</div>
                     <div class="alert-item-date">${this.formatDate(alert.timestamp)}</div>
+                    <div class="sync-indicator ${deviceInfo.syncStatus}">
+                        <span class="icon">${deviceInfo.icon}</span>
+                        <span>${deviceInfo.label}</span>
+                    </div>
                 </div>
+                <div class="alert-item-device ${deviceInfo.deviceClass}">${deviceInfo.deviceLabel}</div>
                 <div class="alert-item-status">${status === 'pending' ? 'PENDIENTE' : 'ATENDIDA'}</div>
             </div>
         `;
@@ -384,6 +613,68 @@ const AlertsModule = {
             item.addEventListener('click', () => {
                 const alertId = parseInt(item.dataset.alertId);
                 this.showAlertDetail(alertId);
+            });
+        });
+        
+        // Setup device filter listeners
+        this.setupDeviceFilter();
+    },
+
+    filterAlertsByDevice(alerts, filter) {
+        if (filter === 'all') return alerts;
+        
+        return alerts.filter(alert => {
+            const device = alert.deviceOrigen?.toLowerCase() || '';
+            if (filter === 'android') {
+                return device.includes('android') || !device.includes('web');
+            }
+            if (filter === 'web') {
+                return device.includes('web');
+            }
+            return true;
+        });
+    },
+
+    getDeviceInfo(deviceOrigen) {
+        const device = deviceOrigen?.toLowerCase() || '';
+        
+        if (device.includes('android')) {
+            return {
+                icon: '📱',
+                label: 'Android',
+                deviceLabel: 'Android',
+                deviceClass: 'android',
+                syncStatus: 'synced'
+            };
+        } else if (device.includes('web')) {
+            return {
+                icon: '💻',
+                label: 'Web',
+                deviceLabel: 'Web',
+                deviceClass: 'web',
+                syncStatus: 'synced'
+            };
+        } else {
+            return {
+                icon: '🔗',
+                label: 'Multidispositivo',
+                deviceLabel: 'Otro',
+                deviceClass: 'unknown',
+                syncStatus: 'synced'
+            };
+        }
+    },
+
+    setupDeviceFilter() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all buttons
+                filterButtons.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                btn.classList.add('active');
+                // Re-render alerts with new filter
+                this.showAlerts();
             });
         });
     },
@@ -696,6 +987,15 @@ const AlertsModule = {
         });
         
         return highestRisk;
+    },
+
+    // Helper function to convert risk level to display format
+    mapRiskLevelToDisplay(nivel) {
+        const level = nivel?.toLowerCase() || 'bajo';
+        if (level.includes('alto')) return 'high';
+        if (level.includes('medio') || level.includes('moderado')) return 'medium';
+        return 'low';
+    },
     }
 };
 

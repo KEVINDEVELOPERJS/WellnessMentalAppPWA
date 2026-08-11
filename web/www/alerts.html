@@ -35,6 +35,13 @@
                     </div>
                 </div>
 
+                <!-- Device Filter -->
+                <div class="device-filter">
+                    <button class="filter-btn active" data-filter="all">Todos</button>
+                    <button class="filter-btn" data-filter="android">📱 Android</button>
+                    <button class="filter-btn" data-filter="web">💻 Web</button>
+                </div>
+
                 <!-- Alerts List -->
                 <div class="alerts-list" id="alerts-list">
                     <!-- Alerts will be populated by JS -->
@@ -99,6 +106,17 @@
     </div>
 
     <script src="js/hub-client.js"></script>
+    <script src="js/push-notifications.js"></script>
+    <script src="js/email-service.js"></script>
     <script src="js/alerts.js"></script>
+    
+    <!-- Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => console.log('Service Worker registered:', registration.scope))
+                .catch(error => console.error('Service Worker registration failed:', error));
+        }
+    </script>
 </body>
 </html>

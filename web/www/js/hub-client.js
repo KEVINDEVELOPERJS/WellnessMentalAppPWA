@@ -1,24 +1,23 @@
 // Hub Client - Utility for communicating with Google Apps Script Hub
-// Disabled external connections - using local fallback only to avoid CORS errors
+// Supports both real hub connection and local fallback mode
 
 const HubClient = {
-    // External hub URL disabled to prevent CORS errors
-    // defaultHubUrl: 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec',
+    // Google Apps Script Hub URL - configure your deployed script URL here
+    defaultHubUrl: 'https://script.google.com/macros/s/AKfycbxqK43sPmZlPgZhLmgeBYpkl1J_Anx-egwhYWcrZtTmkThYU6f9dfSknuEYSPysY4zJ/exec',
     
-    // Use local fallback only - disabled external connections
-    useLocalFallback: true,
+    // Use local fallback if real hub fails
+    useLocalFallback: false,
     
-    // CORS proxies disabled - using local fallback only
-    // corsProxies: [
-    //     'https://corsproxy.io/?', 
-    //     'https://api.allorigins.win/raw?url=',
-    //     'https://cors-anywhere.herokuapp.com/',
-    //     null // Direct connection last
-    // ],
+    // CORS proxies for bypassing browser restrictions
+    corsProxies: [
+        'https://corsproxy.io/?', 
+        'https://api.allorigins.win/raw?url=',
+        null // Direct connection last
+    ],
     
-    // currentProxyIndex: 0,
-    // retryCount: 0,
-    // maxRetries: 3,
+    currentProxyIndex: 0,
+    retryCount: 0,
+    maxRetries: 3,
     
     // Sample data for local fallback - Mixed risk levels for different sections
     sampleAlerts: [
@@ -103,85 +102,86 @@ const HubClient = {
     ],
     
     /**
-     * Get hub URL (from localStorage or default) - DISABLED
+     * Get hub URL (from localStorage or default)
      */
-    // getHubUrl() {
-    //     let url = localStorage.getItem('alert_sync_url');
-    //     
-    //     // If not in localStorage, set it automatically
-    //     if (!url) {
-    //         url = this.defaultHubUrl;
-    //         localStorage.setItem('alert_sync_url', url);
-    //         console.log('[HUB CLIENT] Hub URL configured automatically:', url);
-    //     }
-    //     
-    //     return url;
-    // },
-    
-    /**
-     * Make a request to the hub - LOCAL FALLBACK ONLY
-     */
-    async request(action, data = {}, method = 'GET') {
-        // Always use local fallback to avoid CORS errors
-        console.log('[HUB CLIENT] Using local fallback mode for:', action);
-        return this.getLocalFallbackResponse(action);
+    getHubUrl() {
+        let url = localStorage.getItem('alert_sync_url');
         
-        // External connection logic disabled
-        // const hubUrl = this.getHubUrl();
-        // let lastError = null;
-        // 
-        // console.log('[HUB CLIENT] Attempting to connect to real hub:', hubUrl);
-        // 
-        // // Try each proxy strategy with retries
-        // for (let i = 0; i < this.corsProxies.length; i++) {
-        //     this.currentProxyIndex = i;
-        //     const proxy = this.corsProxies[i];
-        //     
-        //     // Retry logic for each proxy
-        //     for (let retry = 0; retry < this.maxRetries; retry++) {
-        //         try {
-        //             console.log(`[HUB CLIENT] Attempting request with proxy ${i}, retry ${retry}:`, proxy || 'direct');
-        //             
-        //             const result = await this.tryRequest(hubUrl, action, data, method, proxy);
-        //             
-        //             // If successful, save this proxy as preferred
-        //             if (i > 0) {
-        //                 localStorage.setItem('preferred_cors_proxy', i.toString());
-        //             }
-        //             
-        //             console.log('[HUB CLIENT] Successfully connected to hub');
-        //             this.retryCount = 0; // Reset retry count
-        //             return result;
-        //             
-        //         } catch (error) {
-        //             console.warn(`[HUB CLIENT] Proxy ${i}, retry ${retry} failed:`, error.message);
-        //             lastError = error;
-        //             
-        //             // Don't retry on CORS errors, try next proxy
-        //             if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
-        //                 break;
-        //             }
-        //             
-        //             // Wait before retry (exponential backoff)
-        //             if (retry < this.maxRetries - 1) {
-        //                 await this.delay(Math.pow(2, retry) * 1000);
-        //             }
-        //         }
-        //     }
-        // }
-        // 
-        // // All proxies failed - enable local fallback
-        // console.warn('[HUB CLIENT] All connection methods failed, enabling local fallback');
-        // this.useLocalFallback = true;
-        // return this.getLocalFallbackResponse(action);
+        // If not in localStorage, set it automatically
+        if (!url) {
+            url = this.defaultHubUrl;
+            localStorage.setItem('alert_sync_url', url);
+            console.log('[HUB CLIENT] Hub URL configured automatically:', url);
+        }
+        
+        return url;
     },
     
     /**
-     * Delay helper for retry logic - DISABLED
+     * Make a request to the hub - with fallback to local mode
      */
-    // delay(ms) {
-    //     return new Promise(resolve => setTimeout(resolve, ms));
-    // },
+    async request(action, data = {}, method = 'GET') {
+        // If local fallback is forced, use it
+        if (this.useLocalFallback) {
+            console.log('[HUB CLIENT] Using local fallback mode for:', action);
+            return this.getLocalFallbackResponse(action);
+        }
+        
+        const hubUrl = this.getHubUrl();
+        let lastError = null;
+        
+        console.log('[HUB CLIENT] Attempting to connect to real hub:', hubUrl);
+        
+        // Try each proxy strategy with retries
+        for (let i = 0; i < this.corsProxies.length; i++) {
+            this.currentProxyIndex = i;
+            const proxy = this.corsProxies[i];
+            
+            // Retry logic for each proxy
+            for (let retry = 0; retry < this.maxRetries; retry++) {
+                try {
+                    console.log(`[HUB CLIENT] Attempting request with proxy ${i}, retry ${retry}:`, proxy || 'direct');
+                    
+                    const result = await this.tryRequest(hubUrl, action, data, method, proxy);
+                    
+                    // If successful, save this proxy as preferred
+                    if (i > 0) {
+                        localStorage.setItem('preferred_cors_proxy', i.toString());
+                    }
+                    
+                    console.log('[HUB CLIENT] Successfully connected to hub');
+                    this.retryCount = 0; // Reset retry count
+                    return result;
+                    
+                } catch (error) {
+                    console.warn(`[HUB CLIENT] Proxy ${i}, retry ${retry} failed:`, error.message);
+                    lastError = error;
+                    
+                    // Don't retry on CORS errors, try next proxy
+                    if (error.message.includes('CORS') || error.message.includes('Access-Control')) {
+                        break;
+                    }
+                    
+                    // Wait before retry (exponential backoff)
+                    if (retry < this.maxRetries - 1) {
+                        await this.delay(Math.pow(2, retry) * 1000);
+                    }
+                }
+            }
+        }
+        
+        // All proxies failed - enable local fallback
+        console.warn('[HUB CLIENT] All connection methods failed, enabling local fallback');
+        this.useLocalFallback = true;
+        return this.getLocalFallbackResponse(action);
+    },
+    
+    /**
+     * Delay helper for retry logic
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
     
     /**
      * Get local fallback response for testing
@@ -219,67 +219,67 @@ const HubClient = {
     },
     
     /**
-     * Try a single request with a specific proxy - DISABLED
+     * Try a single request with a specific proxy
      */
-    // async tryRequest(hubUrl, action, data, method, proxy) {
-    //     let url;
-    //     let body = null;
-    //     let headers = {
-    //         'Content-Type': 'application/json'
-    //     };
-    //     
-    //     if (method === 'GET') {
-    //         // Build URL with query parameters
-    //         const params = new URLSearchParams({ action, ...data });
-    //         const targetUrl = `${hubUrl}?${params.toString()}`;
-    //         url = proxy ? proxy + encodeURIComponent(targetUrl) : targetUrl;
-    //     } else {
-    //         // POST request
-    //         url = proxy ? proxy + encodeURIComponent(hubUrl) : hubUrl;
-    //         body = JSON.stringify({ action, ...data });
-    //     }
-    //     
-    //     console.log('[HUB CLIENT] Request URL:', url);
-    //     console.log('[HUB CLIENT] Request method:', method);
-    //     
-    //     const controller = new AbortController();
-    //     const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
-    //     
-    //     try {
-    //         const response = await fetch(url, {
-    //             method: method,
-    //             headers: headers,
-    //             body: body,
-    //             mode: proxy ? 'cors' : 'cors',
-    //             redirect: 'follow',
-    //             signal: controller.signal
-    //         });
-    //         
-    //         clearTimeout(timeoutId);
-    //         
-    //         console.log('[HUB CLIENT] Response status:', response.status);
-    //         console.log('[HUB CLIENT] Response ok:', response.ok);
-    //         
-    //         if (!response.ok) {
-    //             const text = await response.text();
-    //             console.error('[HUB CLIENT] Error response:', text);
-    //             throw new Error(`HTTP ${response.status}: ${text}`);
-    //         }
-    //         
-    //         const result = await response.json();
-    //         console.log('[HUB CLIENT] Response data:', result);
-    //         
-    //         return result;
-    //     } catch (error) {
-    //         clearTimeout(timeoutId);
-    //         
-    //         if (error.name === 'AbortError') {
-    //             throw new Error('Request timeout after 20 seconds');
-    //         }
-    //         
-    //         throw error;
-    //     }
-    // },
+    async tryRequest(hubUrl, action, data, method, proxy) {
+        let url;
+        let body = null;
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (method === 'GET') {
+            // Build URL with query parameters
+            const params = new URLSearchParams({ action, ...data });
+            const targetUrl = `${hubUrl}?${params.toString()}`;
+            url = proxy ? proxy + encodeURIComponent(targetUrl) : targetUrl;
+        } else {
+            // POST request
+            url = proxy ? proxy + encodeURIComponent(hubUrl) : hubUrl;
+            body = JSON.stringify({ action, ...data });
+        }
+        
+        console.log('[HUB CLIENT] Request URL:', url);
+        console.log('[HUB CLIENT] Request method:', method);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: headers,
+                body: body,
+                mode: proxy ? 'cors' : 'cors',
+                redirect: 'follow',
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            console.log('[HUB CLIENT] Response status:', response.status);
+            console.log('[HUB CLIENT] Response ok:', response.ok);
+            
+            if (!response.ok) {
+                const text = await response.text();
+                console.error('[HUB CLIENT] Error response:', text);
+                throw new Error(`HTTP ${response.status}: ${text}`);
+            }
+            
+            const result = await response.json();
+            console.log('[HUB CLIENT] Response data:', result);
+            
+            return result;
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (error.name === 'AbortError') {
+                throw new Error('Request timeout after 20 seconds');
+            }
+            
+            throw error;
+        }
+    },
     
     /**
      * List alerts from hub
@@ -342,13 +342,13 @@ const HubClient = {
     },
     
     /**
-     * Reset to try real hub again - DISABLED
+     * Reset to try real hub again
      */
-    // resetToRealHub() {
-    //     this.useLocalFallback = false;
-    //     this.retryCount = 0;
-    //     console.log('[HUB CLIENT] Reset to try real hub connection');
-    // }
+    resetToRealHub() {
+        this.useLocalFallback = false;
+        this.retryCount = 0;
+        console.log('[HUB CLIENT] Reset to try real hub connection');
+    }
 };
 
 // Export for use in other modules

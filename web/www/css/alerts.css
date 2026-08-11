@@ -147,6 +147,91 @@
     display: none;
 }
 
+/* Device Filter */
+.device-filter {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 12px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    border-color: #5BA3B8;
+    color: #5BA3B8;
+}
+
+.filter-btn.active {
+    background: #5BA3B8;
+    border-color: #5BA3B8;
+    color: white;
+}
+
+/* Device indicator in alert items */
+.alert-item-device {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background: #f5f5f5;
+    color: #666;
+    font-weight: 500;
+}
+
+.alert-item-device.android {
+    background: #E3F2FD;
+    color: #1976D2;
+}
+
+.alert-item-device.web {
+    background: #E8F5E9;
+    color: #4CAF50;
+}
+
+.alert-item-device.unknown {
+    background: #FFF3E0;
+    color: #FF9800;
+}
+
+/* Multidispositivo sync indicator */
+.sync-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.sync-indicator.synced {
+    color: #4CAF50;
+}
+
+.sync-indicator.pending {
+    color: #FF9800;
+}
+
+.sync-indicator.error {
+    color: #F44336;
+}
+
+.sync-indicator .icon {
+    font-size: 14px;
+}
+
 /* Alerts List */
 .alerts-list {
     flex: 1;
