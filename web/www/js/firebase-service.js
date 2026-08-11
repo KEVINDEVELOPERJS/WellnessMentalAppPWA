@@ -20,24 +20,34 @@ const FirebaseService = {
      * Initialize Firebase with configuration
      */
     init(config = null) {
+        console.log('[FIREBASE] init called with config:', config);
+        
         if (config) {
             this.config = { ...this.config, ...config };
             // Save config to localStorage
             Object.keys(config).forEach(key => {
                 localStorage.setItem(`firebase_${key}`, config[key]);
             });
+            console.log('[FIREBASE] Config updated:', this.config);
         }
 
         // Check if Firebase SDK is loaded
         if (typeof firebase === 'undefined') {
-            console.error('[FIREBASE] Firebase SDK not loaded');
+            console.error('[FIREBASE] Firebase SDK not loaded - checking window.firebase');
+            console.log('[FIREBASE] window.firebase available:', typeof window.firebase);
             return false;
         }
+
+        console.log('[FIREBASE] Firebase SDK is available, attempting initialization');
 
         try {
             // Initialize Firebase
             if (!firebase.apps.length) {
+                console.log('[FIREBASE] No existing Firebase apps, initializing new one');
                 firebase.initializeApp(this.config);
+                console.log('[FIREBASE] Firebase app initialized');
+            } else {
+                console.log('[FIREBASE] Firebase app already exists, using existing');
             }
 
             this.database = firebase.database();
@@ -45,9 +55,12 @@ const FirebaseService = {
             this.initialized = true;
 
             console.log('[FIREBASE] Firebase initialized successfully');
+            console.log('[FIREBASE] Database reference:', this.database);
+            console.log('[FIREBASE] Auth reference:', this.auth);
             return true;
         } catch (error) {
             console.error('[FIREBASE] Firebase initialization error:', error);
+            console.error('[FIREBASE] Error details:', error.message, error.stack);
             return false;
         }
     },
@@ -79,14 +92,21 @@ const FirebaseService = {
      * Create user in Firebase (equivalente a UsuarioDAO.insert)
      */
     async createUser(userData) {
+        console.log('[FIREBASE] createUser called with data:', userData);
+        console.log('[FIREBASE] Firebase initialized:', this.initialized);
+        console.log('[FIREBASE] Database available:', !!this.database);
+        
         if (!this.initialized) {
             console.warn('[FIREBASE] Not initialized, using local fallback');
             return this.createUserLocal(userData);
         }
 
         try {
+            console.log('[FIREBASE] Attempting to create user in Firebase');
             const usersRef = this.database.ref('usuarios');
             const newUserRef = usersRef.push();
+            
+            console.log('[FIREBASE] New user ref key:', newUserRef.key);
             
             const userWithId = {
                 id: newUserRef.key,
@@ -104,11 +124,14 @@ const FirebaseService = {
                 consentimiento_token_expira_at: userData.consentimiento_token_expira_at || null
             };
 
+            console.log('[FIREBASE] User data to save:', userWithId);
+            
             await newUserRef.set(userWithId);
-            console.log('[FIREBASE] User created:', userWithId.id);
+            console.log('[FIREBASE] User created successfully:', userWithId.id);
             return { success: true, user: userWithId };
         } catch (error) {
             console.error('[FIREBASE] Error creating user:', error);
+            console.error('[FIREBASE] Error details:', error.message, error.code);
             return { success: false, error: error.message };
         }
     },

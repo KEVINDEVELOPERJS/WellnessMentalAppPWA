@@ -329,9 +329,36 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     
+    <!-- Firebase initialization script -->
+    <script>
+        console.log('[INDEX] Firebase SDK scripts loaded');
+        console.log('[INDEX] Firebase available:', typeof firebase);
+        console.log('[INDEX] Firebase app:', typeof firebase !== 'undefined' ? firebase.app : 'undefined');
+    </script>
+    
     <!-- Load HubClient first, then dependencies, then app -->
     <script src="js/hub-client.js"></script>
     <script src="js/firebase-service.js"></script>
+    <script>
+        // Initialize Firebase immediately after loading firebase-service.js
+        console.log('[INDEX] FirebaseService loaded:', typeof FirebaseService);
+        if (typeof FirebaseService !== 'undefined') {
+            FirebaseService.init({
+                apiKey: "AIzaSyBj2GvxmmDuZPXZAo7hm1zgqQVfSd97Skk",
+                authDomain: "wellness-mental-app.firebaseapp.com",
+                databaseURL: "https://wellness-mental-app-default-rtdb.firebaseio.com",
+                projectId: "wellness-mental-app",
+                storageBucket: "wellness-mental-app.firebasestorage.app",
+                messagingSenderId: "95377338768",
+                appId: "1:95377338768:web:bb815f5f77b95da0e50315",
+                measurementId: "G-BFJ8L1VT8G"
+            });
+            console.log('[INDEX] Firebase initialized with wellness-mental-app project');
+            console.log('[INDEX] Firebase status:', FirebaseService.getConfigStatus());
+        } else {
+            console.error('[INDEX] FirebaseService not available');
+        }
+    </script>
     <script>
         // Ensure HubClient is available before loading other scripts
         if (typeof HubClient === 'undefined') {

@@ -5,19 +5,11 @@ const AppState = {
     db: null
 };
 
-// Configure Firebase with provided credentials
+// Firebase is already initialized in index.html, just verify it
 if (typeof FirebaseService !== 'undefined') {
-    FirebaseService.init({
-        apiKey: "AIzaSyBj2GvxmmDuZPXZAo7hm1zgqQVfSd97Skk",
-        authDomain: "wellness-mental-app.firebaseapp.com",
-        databaseURL: "https://wellness-mental-app-default-rtdb.firebaseio.com",
-        projectId: "wellness-mental-app",
-        storageBucket: "wellness-mental-app.firebasestorage.app",
-        messagingSenderId: "95377338768",
-        appId: "1:95377338768:web:bb815f5f77b95da0e50315",
-        measurementId: "G-BFJ8L1VT8G"
-    });
-    console.log('[APP] Firebase configured with wellness-mental-app project');
+    console.log('[APP] FirebaseService available');
+    console.log('[APP] Firebase initialized:', FirebaseService.initialized);
+    console.log('[APP] Firebase config status:', FirebaseService.getConfigStatus());
 } else {
     console.warn('[APP] FirebaseService not available');
 }
