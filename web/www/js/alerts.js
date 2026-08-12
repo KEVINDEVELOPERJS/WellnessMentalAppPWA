@@ -283,16 +283,6 @@ const AlertsModule = {
         }
         
         this.setSyncButtonState(true, 'Sincronizar ahora');
-    }
-        } catch (error) {
-            console.error('[ALERTS] Sync error:', error);
-            this.setSyncButtonState(true, 'Sincronizar ahora');
-            if (showToast) {
-                this.showToast('Error al sincronizar alertas');
-            }
-            // Fallback to local database
-            await this.loadAlertsFromDatabase();
-        }
     },
 
     hubAvailable() {
