@@ -416,6 +416,16 @@ class AuthController {
                 return { success: false, error: 'El grado escolar es obligatorio para estudiantes' };
             }
             
+            // Validar consentimiento parental para menores de 16
+            if (userData.role === 'estudiante' && userData.age < 16) {
+                if (!userData.parentalConsent) {
+                    return { success: false, error: 'Se requiere consentimiento parental para estudiantes menores de 16 años' };
+                }
+                if (!userData.tutorEmail || !Utils.isValidEmail(userData.tutorEmail)) {
+                    return { success: false, error: 'Se requiere el correo del tutor para estudiantes menores de 16 años' };
+                }
+            }
+            
             // Check if Firebase is available and configured
             const firebaseStatus = FirebaseService.getConfigStatus();
             const useFirebase = firebaseStatus.configured && firebaseStatus.initialized;
@@ -439,7 +449,8 @@ class AuthController {
                     rol: userData.role,
                     fecha_registro: new Date().toISOString(),
                     estado: 'activo',
-                    consentimiento_padres: userData.age >= 16 || userData.role === 'psicologo' ? 1 : 0
+                    consentimiento_padres: userData.age >= 16 || userData.role === 'psicologo' ? 1 : 0,
+                    tutor_email: userData.tutorEmail || null
                 };
                 
                 const result = await FirebaseService.createUser(firebaseUserData);
@@ -659,16 +670,25 @@ class AuthController {
                 return { success: false, error: 'Se requiere consentimiento parental' };
             }
             
-            // Generate token
+            // Generate token with JWT
             const token = Utils.generateToken(user.id, user.email, user.role);
+            
+            // Generate JWT token with 24h expiration
+            const jwtToken = JWTService.generateToken({
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                name: user.name
+            }, '24h');
             
             // Store session
             localStorage.setItem('token', token);
+            localStorage.setItem('jwt_token', jwtToken);
             localStorage.setItem('userId', user.id);
             localStorage.setItem('userName', user.name);
             localStorage.setItem('userRole', user.role);
             
-            return { success: true, user, token };
+            return { success: true, user, token: jwtToken };
         } catch (error) {
             console.error('Login error:', error);
             return { success: false, error: 'Error al iniciar sesión' };
@@ -678,19 +698,41 @@ class AuthController {
     async logout() {
         stopAlertPolling();
         localStorage.removeItem('token');
+        localStorage.removeItem('jwt_token');
         localStorage.removeItem('userId');
         localStorage.removeItem('userName');
         localStorage.removeItem('userRole');
+        JWTService.clearToken();
         AppState.currentUser = null;
         AppState.token = null;
     }
     
     async getCurrentUser() {
         const token = localStorage.getItem('token');
+        const jwtToken = localStorage.getItem('jwt_token');
         const userId = localStorage.getItem('userId');
         
         if (!token || !userId) {
             return null;
+        }
+        
+        // Verificar JWT token
+        if (jwtToken) {
+            const jwtVerification = JWTService.verifyToken(jwtToken);
+            if (!jwtVerification.valid) {
+                console.log('[AUTH] JWT token inválido o expirado, logout');
+                await this.logout();
+                return null;
+            }
+            
+            // Verificar si necesita refresh
+            if (JWTService.shouldRefreshToken()) {
+                console.log('[AUTH] JWT token necesita refresh');
+                const payload = JWTService.getCurrentPayload();
+                if (payload) {
+                    JWTService.refreshToken(payload);
+                }
+            }
         }
         
         if (!Utils.isTokenValid(token)) {
@@ -1308,7 +1350,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 password: document.getElementById('register-password').value,
                 age: parseInt(document.getElementById('register-age').value),
                 role: document.getElementById('register-role').value,
-                grade: document.getElementById('register-grade').value
+                grade: document.getElementById('register-grade').value,
+                tutorEmail: document.getElementById('register-tutor-email').value,
+                parentalConsent: document.getElementById('parental-consent').checked
             };
             
             Utils.showLoading();
@@ -1347,6 +1391,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerRole = document.getElementById('register-role');
     if (registerRole) {
         registerRole.addEventListener('change', (e) => {
+            const role = e.target.value;
+            const gradeGroup = document.getElementById('grade-group');
+            
+            if (role === 'estudiante') {
+                gradeGroup.classList.remove('hidden');
+            } else {
+                gradeGroup.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Age change handler for parental consent
+    const registerAge = document.getElementById('register-age');
+    if (registerAge) {
+        registerAge.addEventListener('input', (e) => {
+            const age = parseInt(e.target.value);
+            const tutorEmailGroup = document.getElementById('tutor-email-group');
+            const parentalConsentGroup = document.getElementById('parental-consent-group');
+            const registerRole = document.getElementById('register-role');
+            
+            // Solo para estudiantes menores de 16
+            if (registerRole.value === 'estudiante' && age < 16 && age >= 13) {
+                tutorEmailGroup.classList.remove('hidden');
+                parentalConsentGroup.classList.remove('hidden');
+                document.getElementById('register-tutor-email').required = true;
+                document.getElementById('parental-consent').required = true;
+            } else {
+                tutorEmailGroup.classList.add('hidden');
+                parentalConsentGroup.classList.add('hidden');
+                document.getElementById('register-tutor-email').required = false;
+                document.getElementById('parental-consent').required = false;
+            }
+        });
+    }
             const role = e.target.value;
             const gradeGroup = document.getElementById('grade-group');
             

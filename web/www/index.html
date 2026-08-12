@@ -105,8 +105,17 @@
                     </div>
                     
                     <div class="form-group hidden" id="tutor-email-group">
-                        <label for="register-tutor-email">Correo del tutor (menores de 16)</label>
-                        <input type="email" id="register-tutor-email" placeholder="tutor@email.com">
+                        <label for="register-tutor-email">Correo del tutor (menores de 16) *</label>
+                        <input type="email" id="register-tutor-email" placeholder="tutor@email.com" required>
+                        <small class="form-text text-muted">Requerido para estudiantes menores de 16 años</small>
+                    </div>
+                    
+                    <div class="form-group hidden" id="parental-consent-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="parental-consent" required>
+                            <span>Confirmo que he obtenido el consentimiento de mis padres/tutores para usar esta aplicación</span>
+                        </label>
+                        <small class="form-text text-muted">Este consentimiento es obligatorio para estudiantes menores de 16 años</small>
                     </div>
                     
                     <button type="submit" class="btn btn-primary btn-large">
@@ -370,6 +379,7 @@
     <!-- Load HubClient first, then dependencies, then app -->
     <script src="js/hub-client.js"></script>
     <script src="js/firebase-service.js"></script>
+    <script src="js/jwt-service.js"></script>
     <script>
         // Initialize FirebaseService with existing Firebase instance
         if (typeof FirebaseService !== 'undefined' && typeof window.firebaseDB !== 'undefined') {
