@@ -85,7 +85,8 @@ const DB_CONFIG = {
         garden: 'garden',
         checkIn: 'check_in',
         community: 'community',
-        activeBreaks: 'active_breaks'
+        activeBreaks: 'active_breaks',
+        auditLogs: 'audit_logs'
     }
 };
 
