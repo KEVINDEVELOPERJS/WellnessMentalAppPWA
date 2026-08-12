@@ -430,6 +430,54 @@ const FirebaseService = {
     },
 
     /**
+     * Save alert to Firebase
+     */
+    async saveAlert(alertData) {
+        if (!this.initialized) {
+            return this.saveAlertLocal(alertData);
+        }
+
+        try {
+            const alertsRef = this.database.ref('alertas_riesgo');
+            const newAlertRef = alertsRef.push();
+            const alertId = newAlertRef.key;
+            
+            const alertWithId = {
+                ...alertData,
+                id: alertId,
+                timestamp: alertData.timestamp || new Date().toISOString()
+            };
+            
+            await newAlertRef.set(alertWithId);
+            console.log('[FIREBASE] Alert saved to Firebase:', alertId);
+            
+            return { success: true, alertId, alert: alertWithId };
+        } catch (error) {
+            console.error('[FIREBASE] Error saving alert:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Save alert locally (fallback)
+     */
+    async saveAlertLocal(alertData) {
+        const alerts = JSON.parse(localStorage.getItem('firebase_alerts') || '[]');
+        const newId = Date.now().toString();
+        
+        const alertWithId = {
+            id: newId,
+            ...alertData,
+            timestamp: alertData.timestamp || new Date().toISOString()
+        };
+        
+        alerts.push(alertWithId);
+        localStorage.setItem('firebase_alerts', JSON.stringify(alerts));
+        
+        return { success: true, alertId: newId, alert: alertWithId, local: true };
+    },
+
+    /**
      * Update alert status
      */
     async updateAlertStatus(alertId, estado, notas) {

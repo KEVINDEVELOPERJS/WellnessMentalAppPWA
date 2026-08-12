@@ -328,19 +328,36 @@ class EvaluationController {
                 console.error('[EVALUATION] Error saving alert locally:', localError);
             }
             
-            // Try to send to hub if HubClient is available
-            if (typeof HubClient !== 'undefined') {
+            // Try to send to Firebase instead of HubClient
+            console.log('[EVALUATION] Attempting to save alert to Firebase');
+            
+            if (typeof FirebaseService !== 'undefined' && FirebaseService.getConfigStatus().initialized) {
                 try {
-                    console.log('[EVALUATION] Sending alert to hub using HubClient');
-                    const data = await HubClient.publishAlert(alerta);
+                    // Save to Firebase alertas_riesgo path
+                    const firebaseAlert = {
+                        id_estudiante: userId,
+                        email_estudiante: user.email,
+                        nombre_estudiante: user.name,
+                        grado_estudiante: user.grade || 'N/A',
+                        tipo: 'evaluacion',
+                        nivel_riesgo: score.riskLevel.toLowerCase(),
+                        timestamp: new Date().toISOString(),
+                        extracto: `Evaluación ${this.currentQuestionnaire.tipo}. Puntaje ${score.totalScore}. ${result.prediagnostico.substring(0, 50)}`,
+                        estado: 'PENDIENTE',
+                        notas: '',
+                        id_referencia: resultId,
+                        device_origen: 'web',
+                        email_psicologo: psicologoEmail || ''
+                    };
                     
-                    console.log('[EVALUATION] Hub response:', data);
-                    console.log('[EVALUATION] Hub response ok:', data.ok);
-                    console.log('[EVALUATION] Hub response remoteId:', data.remoteId);
+                    const firebaseResult = await FirebaseService.saveAlert(firebaseAlert);
                     
-                    if (data.ok) {
-                        console.log('[EVALUATION] Alert sent to hub successfully');
-                        console.log('[EVALUATION] Remote ID:', data.remoteId);
+                    if (firebaseResult.success) {
+                        console.log('[EVALUATION] Alert saved to Firebase successfully');
+                        console.log('[EVALUATION] Firebase ID:', firebaseResult.alertId);
+                        
+                        // Update local alert with Firebase ID
+                        alerta.firebaseId = firebaseResult.alertId;
                         
                         // Show success toast to user
                         if (score.riskLevel === 'Alto') {
@@ -349,19 +366,19 @@ class EvaluationController {
                             Utils.showToast('Alerta enviada al psicólogo', 'success');
                         }
                     } else {
-                        console.error('[EVALUATION] Error sending alert to hub:', data.error);
-                        Utils.showToast('Alerta guardada localmente (error de conexión al hub)', 'warning');
+                        console.error('[EVALUATION] Error saving to Firebase:', firebaseResult.error);
+                        Utils.showToast('Alerta guardada localmente (error de Firebase)', 'warning');
                     }
-                } catch (hubError) {
-                    console.error('[EVALUATION] Hub request failed:', hubError);
-                    Utils.showToast('Alerta guardada localmente (hub no disponible)', 'warning');
+                } catch (firebaseError) {
+                    console.error('[EVALUATION] Firebase request failed:', firebaseError);
+                    Utils.showToast('Alerta guardada localmente (Firebase no disponible)', 'warning');
                 }
             } else {
-                console.warn('[EVALUATION] HubClient not available, alert saved locally only');
-                Utils.showToast('Alerta guardada localmente', 'info');
+                console.log('[EVALUATION] Firebase not available, alert saved locally only');
+                Utils.showToast('Alerta guardada localmente (Firebase no configurado)', 'warning');
             }
         } catch (error) {
-            console.error('[EVALUATION] Error sending alert to hub:', error);
+            console.error('[EVALUATION] Error sending alert:', error);
             Utils.showToast('Error de conexión al enviar alerta', 'error');
         }
     }

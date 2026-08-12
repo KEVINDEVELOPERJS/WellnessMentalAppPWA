@@ -224,30 +224,66 @@ const AlertsModule = {
     },
 
     async syncAndLoad(showToast = false) {
-        if (!this.hubAvailable()) {
-            console.log('[ALERTS] Hub not available, loading from local fallback');
-            // Load from local database as fallback
-            await this.loadAlertsFromDatabase();
-            return;
-        }
-
         this.setSyncButtonState(false, 'Sincronizando...');
         
         try {
-            const result = await this.syncRemoteAlerts();
-            
-            this.setSyncButtonState(true, 'Sincronizar ahora');
-            this.showAlerts();
-            
-            if (result.error) {
-                if (showToast) {
-                    this.showToast(`Error de sincronización: ${result.error}`);
-                }
-            } else {
-                if (showToast) {
-                    this.showToast(`Sincronización exitosa: ${result.synced} alertas, ${result.new} nuevas`);
+            // Try to load from Firebase first
+            if (typeof FirebaseService !== 'undefined' && FirebaseService.getConfigStatus().initialized) {
+                console.log('[ALERTS] Loading alerts from Firebase');
+                const firebaseResult = await FirebaseService.getAlerts();
+                
+                if (firebaseResult.success) {
+                    console.log('[ALERTS] Firebase alerts loaded:', firebaseResult.alerts.length);
+                    
+                    // Transform Firebase alerts to local format
+                    const transformedAlerts = firebaseResult.alerts.map(alert => ({
+                        id: alert.id,
+                        remoteId: alert.id,
+                        emailEstudiante: alert.email_estudiante || alert.emailEstudiante,
+                        nombreEstudiante: alert.nombre_estudiante || alert.nombreEstudiante,
+                        gradoEstudiante: alert.grado_estudiante || alert.gradoEstudiante,
+                        tipo: alert.tipo,
+                        nivelRiesgo: alert.nivel_riesgo || alert.nivelRiesgo,
+                        timestamp: alert.timestamp,
+                        extracto: alert.extracto,
+                        estado: alert.estado,
+                        notas: alert.notas || '',
+                        deviceOrigen: alert.device_origen || alert.deviceOrigen,
+                        emailPsicologo: alert.email_psicologo || alert.emailPsicologo
+                    }));
+                    
+                    this.alerts = transformedAlerts;
+                    await this.saveAlertsToDatabase();
+                    this.showAlerts();
+                    
+                    if (showToast) {
+                        this.showToast(`Sincronización exitosa: ${transformedAlerts.length} alertas de Firebase`);
+                    }
+                    return;
+                } else {
+                    console.error('[ALERTS] Firebase error:', firebaseResult.error);
                 }
             }
+            
+            // Fallback to local database
+            console.log('[ALERTS] Firebase not available, loading from local database');
+            await this.loadAlertsFromDatabase();
+            
+            if (showToast) {
+                this.showToast('Alertas cargadas desde base de datos local');
+            }
+            
+        } catch (error) {
+            console.error('[ALERTS] Error syncing alerts:', error);
+            await this.loadAlertsFromDatabase();
+            
+            if (showToast) {
+                this.showToast('Error de sincronización, usando datos locales');
+            }
+        }
+        
+        this.setSyncButtonState(true, 'Sincronizar ahora');
+    }
         } catch (error) {
             console.error('[ALERTS] Sync error:', error);
             this.setSyncButtonState(true, 'Sincronizar ahora');
@@ -1028,7 +1064,6 @@ const AlertsModule = {
         if (level.includes('medio') || level.includes('moderado')) return 'medium';
         return 'low';
     }
-};
 };
 
 // Initialize when DOM is ready
