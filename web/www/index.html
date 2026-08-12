@@ -333,12 +333,12 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK - Mover al inicio para asegurar carga -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     
-    <!-- Firebase initialization script - DIRECT INITIALIZATION -->
+    <!-- Firebase initialization script - DIRECTO ANTES DE OTROS SCRIPTS -->
     <script>
         console.log('[FIREBASE] Firebase SDK scripts loaded');
         console.log('[FIREBASE] Firebase available:', typeof firebase);
@@ -360,6 +360,8 @@
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
                     console.log('[FIREBASE] Firebase initialized directly');
+                } else {
+                    console.log('[FIREBASE] Firebase app already exists, using existing');
                 }
                 
                 // Create global Firebase references
