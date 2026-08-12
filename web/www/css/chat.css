@@ -49,6 +49,25 @@
     font-weight: 500;
 }
 
+/* AI Assistant Badge (HU-02: Etiqueta permanente "Asistente de IA") */
+.ai-assistant-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    animation: badge-pulse 2s infinite;
+}
+
+@keyframes badge-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.02); }
+}
+
 /* Chat Messages */
 .chat-messages {
     flex: 1;

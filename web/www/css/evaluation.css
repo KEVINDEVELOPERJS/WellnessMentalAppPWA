@@ -28,6 +28,100 @@
     font-size: 1.5rem;
 }
 
+/* Traffic Light Styles (HU-03: Semáforo visual animado) */
+.traffic-light-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1rem;
+}
+
+.traffic-light {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.traffic-light-housing {
+    background: #2c3e50;
+    padding: 1rem;
+    border-radius: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.light {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: #555;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.light.active {
+    box-shadow: 0 0 20px currentColor, inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.red-light.active {
+    background: #ff4757;
+    color: #ff4757;
+    animation: pulse-red 1.5s infinite;
+}
+
+.yellow-light.active {
+    background: #ffa502;
+    color: #ffa502;
+    animation: pulse-yellow 1.5s infinite;
+}
+
+.green-light.active {
+    background: #2ed573;
+    color: #2ed573;
+    animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes pulse-yellow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes pulse-green {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.traffic-light-result {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.result-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.result-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.result-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
 /* Questionnaire List */
 .questionnaire-list {
     display: flex;

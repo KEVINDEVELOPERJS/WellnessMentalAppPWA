@@ -153,6 +153,13 @@ class EvaluationController {
     }
     
     getRecommendations(score) {
+        // Usar el generador de prediagnóstico para recomendaciones (HU-03)
+        if (typeof PrediagnosisGenerator !== 'undefined') {
+            const questionnaireType = this.currentQuestionnaire.tipo || 'general';
+            return PrediagnosisGenerator.generateRecommendations(score.riskLevel, questionnaireType);
+        }
+        
+        // Fallback al método original
         const recommendations = [];
         
         if (score.riskLevel === 'Bajo') {
@@ -178,6 +185,18 @@ class EvaluationController {
     }
     
     getPrediagnosis(score) {
+        // Usar el generador de prediagnóstico completo (HU-03)
+        if (typeof PrediagnosisGenerator !== 'undefined') {
+            const questionnaireType = this.currentQuestionnaire.tipo || 'general';
+            return PrediagnosisGenerator.generate(
+                score.totalScore, 
+                questionnaireType, 
+                score.riskLevel, 
+                this.answers
+            );
+        }
+        
+        // Fallback al método original si el generador no está disponible
         if (this.currentQuestionnaire.tipo === 'GAD-7') {
             if (score.totalScore <= 4) {
                 return 'Puntaje dentro del rango normal. Se recomienda continuar con prácticas de bienestar.';
@@ -493,6 +512,17 @@ function showResultsScreen(score, prediagnosis, recommendations) {
         riskWarning.classList.remove('hidden');
     } else {
         riskWarning.classList.add('hidden');
+    }
+    
+    // Show traffic light animation (HU-03: Semáforo visual animado)
+    if (typeof TrafficLight !== 'undefined') {
+        TrafficLight.createContainer('traffic-light-result-container');
+        const riskLevelMap = {
+            'Bajo': 'bajo',
+            'Medio': 'medio', 
+            'Alto': 'alto'
+        };
+        TrafficLight.show(riskLevelMap[score.riskLevel] || 'bajo', 'traffic-light-result-container');
     }
     
     Utils.showScreen('results-screen');
